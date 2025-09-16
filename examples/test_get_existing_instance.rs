@@ -117,14 +117,19 @@ fn main() -> SzResult<()> {
     // Test 8: Test that we can still get the existing instance
     println!("\n8. Testing that existing instance can still be retrieved...");
     let test_env = SzEnvironmentCore::get_existing_instance()?;
-    println!("✅ Existing instance retrieved successfully: {:p}", std::sync::Arc::as_ptr(&test_env));
+    println!(
+        "✅ Existing instance retrieved successfully: {:p}",
+        std::sync::Arc::as_ptr(&test_env)
+    );
 
     // Verify it's the same instance as env1
     let same_instance = std::sync::Arc::ptr_eq(&env1, &test_env);
     if same_instance {
         println!("✅ Retrieved instance is the same as the original instance");
     } else {
-        return Err(SzError::unknown("Retrieved instance is different from original".to_string()));
+        return Err(SzError::unknown(
+            "Retrieved instance is different from original".to_string(),
+        ));
     }
 
     println!("\n🎯 All get_existing_instance() and parameter validation tests completed!");

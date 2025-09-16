@@ -130,7 +130,10 @@ fn main() -> SzResult<()> {
                 println!("   This demonstrates the debug utility is working properly");
             } else {
                 // Sz_init failed with an unexpected error, so this test should fail
-                return Err(SzError::configuration(format!("Sz_init failed with code {}: {}", result, error_msg)));
+                return Err(SzError::configuration(format!(
+                    "Sz_init failed with code {}: {}",
+                    result, error_msg
+                )));
             }
         } else {
             // Clean up the debug database file if it was created
@@ -140,7 +143,10 @@ fn main() -> SzResult<()> {
             }
 
             // Sz_init failed but we couldn't get error details - this is unexpected
-            return Err(SzError::configuration(format!("Sz_init failed with code {}", result)));
+            return Err(SzError::configuration(format!(
+                "Sz_init failed with code {}",
+                result
+            )));
         }
     } else {
         println!("✅ Sz_init succeeded - debug utility working correctly");
