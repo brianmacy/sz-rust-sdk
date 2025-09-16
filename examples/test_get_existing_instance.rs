@@ -29,7 +29,7 @@ fn main() -> SzResult<()> {
     // Use a test settings string since this test is focused on singleton pattern validation
     // not actual database connectivity. The settings don't need to be valid for this test.
     let settings = r#"{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"},"SQL":{"CONNECTION":"sqlite3://na:na@/tmp/test_singleton.db"}}"#;
-    let env1 = SzEnvironmentCore::get_instance("test-module-1", &settings, true)?;
+    let env1 = SzEnvironmentCore::get_instance("test-module-1", settings, true)?;
     println!(
         "✅ First instance created: {:p}",
         std::sync::Arc::as_ptr(&env1)
@@ -54,7 +54,7 @@ fn main() -> SzResult<()> {
 
     // Test 4: Try to call get_instance with same parameters - should succeed
     println!("\n4. Testing get_instance() with same parameters...");
-    let env2 = SzEnvironmentCore::get_instance("test-module-1", &settings, true)?;
+    let env2 = SzEnvironmentCore::get_instance("test-module-1", settings, true)?;
     println!(
         "✅ get_instance() with same parameters succeeded: {:p}",
         std::sync::Arc::as_ptr(&env2)
@@ -70,7 +70,7 @@ fn main() -> SzResult<()> {
 
     // Test 5: Try to call get_instance with different module name - should fail
     println!("\n5. Testing get_instance() with different module name...");
-    match SzEnvironmentCore::get_instance("test-module-2", &settings, true) {
+    match SzEnvironmentCore::get_instance("test-module-2", settings, true) {
         Ok(_) => {
             println!("❌ ERROR: get_instance() with different module name should have failed!");
             return Err(SzError::unknown("Parameter validation failed".to_string()));
@@ -101,7 +101,7 @@ fn main() -> SzResult<()> {
 
     // Test 7: Try to call get_instance with different verbose_logging - should fail
     println!("\n7. Testing get_instance() with different verbose_logging...");
-    match SzEnvironmentCore::get_instance("test-module-1", &settings, false) {
+    match SzEnvironmentCore::get_instance("test-module-1", settings, false) {
         Ok(_) => {
             println!("❌ ERROR: get_instance() with different verbose_logging should have failed!");
             return Err(SzError::unknown("Parameter validation failed".to_string()));
