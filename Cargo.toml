@@ -1,0 +1,73 @@
+[package]
+name = "sz-rust-sdk"
+version = "0.1.0"
+edition = "2021"
+authors = ["Senzing Community"]
+license = "Apache-2.0"
+description = "Rust SDK for Senzing entity resolution engine"
+keywords = ["senzing", "entity-resolution", "ffi"]
+categories = ["api-bindings", "database"]
+
+[lib]
+name = "sz_rust_sdk"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bitflags = "2.4"
+thiserror = "1.0"
+libc = "0.2"
+hex = "0.4"
+
+[dev-dependencies]
+tokio-test = "0.4"
+
+# Examples configuration
+[[example]]
+name = "environment_and_hubs"
+path = "examples/initialization/environment_and_hubs.rs"
+
+[[example]]
+name = "engine_priming"
+path = "examples/initialization/engine_priming.rs"
+
+[[example]]
+name = "load_records"
+path = "examples/loading/load_records.rs"
+
+[[example]]
+name = "load_with_info"
+path = "examples/loading/load_with_info.rs"
+
+[[example]]
+name = "search_records"
+path = "examples/searching/search_records.rs"
+
+[[example]]
+name = "why_search"
+path = "examples/searching/why_search.rs"
+
+[[example]]
+name = "register_data_sources"
+path = "examples/configuration/register_data_sources.rs"
+
+[[example]]
+name = "manage_configuration"
+path = "examples/configuration/manage_configuration.rs"
+
+[[example]]
+name = "get_version"
+path = "examples/information/get_version.rs"
+
+[[example]]
+name = "check_datastore_performance"
+path = "examples/information/check_datastore_performance.rs"
+
+[[example]]
+name = "delete_records"
+path = "examples/deleting/delete_records.rs"
+
+[[example]]
+name = "complete_workflow"
+path = "examples/complete_workflow.rs"
