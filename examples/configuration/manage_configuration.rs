@@ -56,14 +56,14 @@ fn display_current_config_status(config_mgr: &dyn SzConfigManager) -> SzResult<(
     // Parse and display data sources
     match serde_json::from_str::<Value>(&data_source_registry) {
         Ok(registry_json) => {
-            if let Some(data_sources) = registry_json.get("DATA_SOURCES") {
-                if let Some(ds_array) = data_sources.as_array() {
-                    println!("Configured Data Sources ({}):", ds_array.len());
-                    for ds in ds_array {
-                        if let Some(ds_code) = ds.get("DSRC_CODE") {
-                            let ds_id = ds.get("DSRC_ID").and_then(|id| id.as_i64()).unwrap_or(0);
-                            println!("  - {} (ID: {})", ds_code, ds_id);
-                        }
+            if let Some(data_sources) = registry_json.get("DATA_SOURCES")
+                && let Some(ds_array) = data_sources.as_array()
+            {
+                println!("Configured Data Sources ({}):", ds_array.len());
+                for ds in ds_array {
+                    if let Some(ds_code) = ds.get("DSRC_CODE") {
+                        let ds_id = ds.get("DSRC_ID").and_then(|id| id.as_i64()).unwrap_or(0);
+                        println!("  - {} (ID: {})", ds_code, ds_id);
                     }
                 }
             }
@@ -157,32 +157,32 @@ fn display_configuration_registry(config_mgr: &dyn SzConfigManager) -> SzResult<
         Ok(registry_json) => {
             match serde_json::from_str::<Value>(&registry_json) {
                 Ok(registry) => {
-                    if let Some(configs) = registry.get("CONFIGS") {
-                        if let Some(configs_array) = configs.as_array() {
-                            println!("Total configurations: {}", configs_array.len());
+                    if let Some(configs) = registry.get("CONFIGS")
+                        && let Some(configs_array) = configs.as_array()
+                    {
+                        println!("Total configurations: {}", configs_array.len());
 
-                            for config in configs_array.iter().take(10) {
-                                // Show first 10
-                                let config_id = config
-                                    .get("CONFIG_ID")
-                                    .and_then(|id| id.as_i64())
-                                    .unwrap_or(0);
+                        for config in configs_array.iter().take(10) {
+                            // Show first 10
+                            let config_id = config
+                                .get("CONFIG_ID")
+                                .and_then(|id| id.as_i64())
+                                .unwrap_or(0);
 
-                                let comment = config
-                                    .get("CONFIG_COMMENTS")
-                                    .and_then(|c| c.as_str())
-                                    .unwrap_or("No comment");
+                            let comment = config
+                                .get("CONFIG_COMMENTS")
+                                .and_then(|c| c.as_str())
+                                .unwrap_or("No comment");
 
-                                let created = config
-                                    .get("SYS_CREATE_DT")
-                                    .and_then(|dt| dt.as_str())
-                                    .unwrap_or("Unknown");
+                            let created = config
+                                .get("SYS_CREATE_DT")
+                                .and_then(|dt| dt.as_str())
+                                .unwrap_or("Unknown");
 
-                                println!(
-                                    "  Config ID: {} | Created: {} | Comment: {}",
-                                    config_id, created, comment
-                                );
-                            }
+                            println!(
+                                "  Config ID: {} | Created: {} | Comment: {}",
+                                config_id, created, comment
+                            );
                         }
                     }
                 }

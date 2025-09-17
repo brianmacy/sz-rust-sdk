@@ -57,61 +57,60 @@ fn print_search_results(criteria: &str, result_json: &str) -> SzResult<()> {
 
     println!("Search criteria: {}", criteria);
 
-    if let Some(resolved_entities) = result.get("RESOLVED_ENTITIES") {
-        if let Some(entities_array) = resolved_entities.as_array() {
-            if entities_array.is_empty() {
-                println!("  No results found");
-            } else {
-                println!("  Found {} result(s):", entities_array.len());
+    if let Some(resolved_entities) = result.get("RESOLVED_ENTITIES")
+        && let Some(entities_array) = resolved_entities.as_array()
+    {
+        if entities_array.is_empty() {
+            println!("  No results found");
+        } else {
+            println!("  Found {} result(s):", entities_array.len());
 
-                for (index, entity_obj) in entities_array.iter().enumerate() {
-                    if let Some(entity) = entity_obj.get("ENTITY") {
-                        let entity_id = entity
-                            .get("RESOLVED_ENTITY")
-                            .and_then(|re| re.get("ENTITY_ID"))
-                            .and_then(|id| id.as_i64())
-                            .unwrap_or(0);
+            for (index, entity_obj) in entities_array.iter().enumerate() {
+                if let Some(entity) = entity_obj.get("ENTITY") {
+                    let entity_id = entity
+                        .get("RESOLVED_ENTITY")
+                        .and_then(|re| re.get("ENTITY_ID"))
+                        .and_then(|id| id.as_i64())
+                        .unwrap_or(0);
 
-                        let entity_name = entity
-                            .get("RESOLVED_ENTITY")
-                            .and_then(|re| re.get("ENTITY_NAME"))
-                            .and_then(|name| name.as_str())
-                            .unwrap_or("Unknown");
+                    let entity_name = entity
+                        .get("RESOLVED_ENTITY")
+                        .and_then(|re| re.get("ENTITY_NAME"))
+                        .and_then(|name| name.as_str())
+                        .unwrap_or("Unknown");
 
-                        println!(
-                            "    {}. Entity ID: {}, Name: {}",
-                            index + 1,
-                            entity_id,
-                            entity_name
-                        );
+                    println!(
+                        "    {}. Entity ID: {}, Name: {}",
+                        index + 1,
+                        entity_id,
+                        entity_name
+                    );
 
-                        // Print match score if available
-                        if let Some(match_info) = entity_obj.get("MATCH_INFO") {
-                            if let Some(match_score) = match_info.get("MATCH_SCORE") {
-                                println!("       Match Score: {}", match_score);
-                            }
-                        }
+                    // Print match score if available
+                    if let Some(match_info) = entity_obj.get("MATCH_INFO")
+                        && let Some(match_score) = match_info.get("MATCH_SCORE")
+                    {
+                        println!("       Match Score: {}", match_score);
+                    }
 
-                        // Print some record details
-                        if let Some(records) = entity
-                            .get("RESOLVED_ENTITY")
-                            .and_then(|re| re.get("RECORDS"))
-                        {
-                            if let Some(records_array) = records.as_array() {
-                                println!("       Records: {} record(s)", records_array.len());
-                                for record in records_array.iter().take(3) {
-                                    // Show first 3 records
-                                    let data_source = record
-                                        .get("DATA_SOURCE")
-                                        .and_then(|ds| ds.as_str())
-                                        .unwrap_or("Unknown");
-                                    let record_id = record
-                                        .get("RECORD_ID")
-                                        .and_then(|id| id.as_str())
-                                        .unwrap_or("Unknown");
-                                    println!("         - {}: {}", data_source, record_id);
-                                }
-                            }
+                    // Print some record details
+                    if let Some(records) = entity
+                        .get("RESOLVED_ENTITY")
+                        .and_then(|re| re.get("RECORDS"))
+                        && let Some(records_array) = records.as_array()
+                    {
+                        println!("       Records: {} record(s)", records_array.len());
+                        for record in records_array.iter().take(3) {
+                            // Show first 3 records
+                            let data_source = record
+                                .get("DATA_SOURCE")
+                                .and_then(|ds| ds.as_str())
+                                .unwrap_or("Unknown");
+                            let record_id = record
+                                .get("RECORD_ID")
+                                .and_then(|id| id.as_str())
+                                .unwrap_or("Unknown");
+                            println!("         - {}: {}", data_source, record_id);
                         }
                     }
                 }

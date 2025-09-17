@@ -239,37 +239,37 @@ fn parse_and_display_performance_results(result_json: &str, test_name: &str) -> 
 
 fn assess_performance(perf_data: &Value) -> SzResult<()> {
     // Provide basic performance assessment based on operations per second
-    if let Some(ops_per_sec) = perf_data.get("operationsPerSecond") {
-        if let Some(ops_rate) = ops_per_sec.as_f64() {
-            println!("  Performance Assessment:");
+    if let Some(ops_per_sec) = perf_data.get("operationsPerSecond")
+        && let Some(ops_rate) = ops_per_sec.as_f64()
+    {
+        println!("  Performance Assessment:");
 
-            match ops_rate {
-                rate if rate >= 1000.0 => {
-                    println!("    ✓ Excellent performance ({:.0} ops/sec)", rate)
-                }
-                rate if rate >= 500.0 => println!("    ✓ Good performance ({:.0} ops/sec)", rate),
-                rate if rate >= 100.0 => println!("    ⚠ Fair performance ({:.0} ops/sec)", rate),
-                rate if rate >= 50.0 => {
-                    println!("    ⚠ Below average performance ({:.0} ops/sec)", rate)
-                }
-                rate => println!(
-                    "    ✗ Poor performance ({:.0} ops/sec) - consider optimization",
-                    rate
-                ),
+        match ops_rate {
+            rate if rate >= 1000.0 => {
+                println!("    ✓ Excellent performance ({:.0} ops/sec)", rate)
             }
+            rate if rate >= 500.0 => println!("    ✓ Good performance ({:.0} ops/sec)", rate),
+            rate if rate >= 100.0 => println!("    ⚠ Fair performance ({:.0} ops/sec)", rate),
+            rate if rate >= 50.0 => {
+                println!("    ⚠ Below average performance ({:.0} ops/sec)", rate)
+            }
+            rate => println!(
+                "    ✗ Poor performance ({:.0} ops/sec) - consider optimization",
+                rate
+            ),
         }
     }
 
     // Check average response time
-    if let Some(avg_response) = perf_data.get("averageResponseTimeMs") {
-        if let Some(response_time) = avg_response.as_f64() {
-            match response_time {
-                time if time <= 10.0 => println!("    ✓ Excellent response time ({:.2} ms)", time),
-                time if time <= 50.0 => println!("    ✓ Good response time ({:.2} ms)", time),
-                time if time <= 100.0 => println!("    ⚠ Fair response time ({:.2} ms)", time),
-                time if time <= 500.0 => println!("    ⚠ Slow response time ({:.2} ms)", time),
-                time => println!("    ✗ Very slow response time ({:.2} ms)", time),
-            }
+    if let Some(avg_response) = perf_data.get("averageResponseTimeMs")
+        && let Some(response_time) = avg_response.as_f64()
+    {
+        match response_time {
+            time if time <= 10.0 => println!("    ✓ Excellent response time ({:.2} ms)", time),
+            time if time <= 50.0 => println!("    ✓ Good response time ({:.2} ms)", time),
+            time if time <= 100.0 => println!("    ⚠ Fair response time ({:.2} ms)", time),
+            time if time <= 500.0 => println!("    ⚠ Slow response time ({:.2} ms)", time),
+            time => println!("    ✗ Very slow response time ({:.2} ms)", time),
         }
     }
 
@@ -297,25 +297,25 @@ fn display_repository_statistics(diagnostic: &dyn SzDiagnostic) -> SzResult<()> 
             }
 
             // Database size information
-            if let Some(db_size) = repo_json.get("databaseSize") {
-                if let Some(size_mb) = db_size.get("sizeMB") {
-                    println!("Database Size: {:.1} MB", size_mb.as_f64().unwrap_or(0.0));
-                }
+            if let Some(db_size) = repo_json.get("databaseSize")
+                && let Some(size_mb) = db_size.get("sizeMB")
+            {
+                println!("Database Size: {:.1} MB", size_mb.as_f64().unwrap_or(0.0));
             }
 
             // Data source breakdown
-            if let Some(data_sources) = repo_json.get("dataSources") {
-                if let Some(ds_array) = data_sources.as_array() {
-                    println!("Data Sources: {}", ds_array.len());
-                    for ds in ds_array.iter().take(5) {
-                        // Show first 5
-                        if let Some(ds_code) = ds.get("dataSourceCode") {
-                            let record_count = ds
-                                .get("recordCount")
-                                .and_then(|rc| rc.as_i64())
-                                .unwrap_or(0);
-                            println!("  {}: {} records", ds_code, record_count);
-                        }
+            if let Some(data_sources) = repo_json.get("dataSources")
+                && let Some(ds_array) = data_sources.as_array()
+            {
+                println!("Data Sources: {}", ds_array.len());
+                for ds in ds_array.iter().take(5) {
+                    // Show first 5
+                    if let Some(ds_code) = ds.get("dataSourceCode") {
+                        let record_count = ds
+                            .get("recordCount")
+                            .and_then(|rc| rc.as_i64())
+                            .unwrap_or(0);
+                        println!("  {}: {} records", ds_code, record_count);
                     }
                 }
             }

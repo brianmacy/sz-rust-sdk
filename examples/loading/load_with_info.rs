@@ -70,29 +70,27 @@ fn print_resolution_info(record_id: &str, data_source: &str, info_json: &str) ->
     println!("Resolution details for {} from {}:", record_id, data_source);
 
     // Check for affected entities
-    if let Some(affected_entities) = info.get("AFFECTED_ENTITIES") {
-        if let Some(entities_array) = affected_entities.as_array() {
-            println!("  Affected entities: {}", entities_array.len());
-            for (i, entity) in entities_array.iter().enumerate() {
-                if let Some(entity_id) = entity.get("ENTITY_ID") {
-                    println!("    Entity {}: {}", i + 1, entity_id);
-                }
+    if let Some(affected_entities) = info.get("AFFECTED_ENTITIES")
+        && let Some(entities_array) = affected_entities.as_array()
+    {
+        println!("  Affected entities: {}", entities_array.len());
+        for (i, entity) in entities_array.iter().enumerate() {
+            if let Some(entity_id) = entity.get("ENTITY_ID") {
+                println!("    Entity {}: {}", i + 1, entity_id);
             }
         }
     }
 
     // Check for interesting entities (potential matches)
-    if let Some(interesting) = info.get("INTERESTING_ENTITIES") {
-        if let Some(interesting_array) = interesting.get("ENTITIES") {
-            if let Some(entities) = interesting_array.as_array() {
-                if !entities.is_empty() {
-                    println!("  Interesting entities found: {}", entities.len());
-                    for entity in entities {
-                        if let Some(entity_id) = entity.get("ENTITY_ID") {
-                            println!("    Potential match: {}", entity_id);
-                        }
-                    }
-                }
+    if let Some(interesting) = info.get("INTERESTING_ENTITIES")
+        && let Some(interesting_array) = interesting.get("ENTITIES")
+        && let Some(entities) = interesting_array.as_array()
+        && !entities.is_empty()
+    {
+        println!("  Interesting entities found: {}", entities.len());
+        for entity in entities {
+            if let Some(entity_id) = entity.get("ENTITY_ID") {
+                println!("    Potential match: {}", entity_id);
             }
         }
     }
@@ -123,10 +121,10 @@ fn main() -> SzResult<()> {
         println!("✓ Loaded record {} from {}", record_id, data_source_code);
 
         // Print detailed resolution information if available
-        if !result.is_empty() {
-            if let Err(e) = print_resolution_info(record_id, data_source_code, &result) {
-                println!("  Warning: Could not parse resolution info: {}", e);
-            }
+        if !result.is_empty()
+            && let Err(e) = print_resolution_info(record_id, data_source_code, &result)
+        {
+            println!("  Warning: Could not parse resolution info: {}", e);
         }
 
         loaded_count += 1;

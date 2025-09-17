@@ -166,16 +166,15 @@ fn load_test_records(
         println!("  ✓ Loaded: {} from {}", record_id, data_source);
 
         // Show resolution info for the first few records
-        if loaded_count < 3 && !result.is_empty() {
-            if let Ok(info) = serde_json::from_str::<Value>(&result) {
-                if let Some(affected) = info.get("AFFECTED_ENTITIES") {
-                    if let Some(entities) = affected.as_array() {
-                        for entity in entities {
-                            if let Some(entity_id) = entity.get("ENTITY_ID") {
-                                println!("    Affected Entity: {}", entity_id);
-                            }
-                        }
-                    }
+        if loaded_count < 3
+            && !result.is_empty()
+            && let Ok(info) = serde_json::from_str::<Value>(&result)
+            && let Some(affected) = info.get("AFFECTED_ENTITIES")
+            && let Some(entities) = affected.as_array()
+        {
+            for entity in entities {
+                if let Some(entity_id) = entity.get("ENTITY_ID") {
+                    println!("    Affected Entity: {}", entity_id);
                 }
             }
         }
@@ -203,24 +202,24 @@ fn verify_loaded_records(
         match engine.get_entity_by_record(data_source, record_id, Some(SzFlags::GET_ENTITY_DEFAULT))
         {
             Ok(entity_json) => {
-                if let Ok(entity) = serde_json::from_str::<Value>(&entity_json) {
-                    if let Some(resolved_entity) = entity.get("RESOLVED_ENTITY") {
-                        let entity_id = resolved_entity
-                            .get("ENTITY_ID")
-                            .and_then(|id| id.as_i64())
-                            .unwrap_or(0);
+                if let Ok(entity) = serde_json::from_str::<Value>(&entity_json)
+                    && let Some(resolved_entity) = entity.get("RESOLVED_ENTITY")
+                {
+                    let entity_id = resolved_entity
+                        .get("ENTITY_ID")
+                        .and_then(|id| id.as_i64())
+                        .unwrap_or(0);
 
-                        let record_count = resolved_entity
-                            .get("RECORDS")
-                            .and_then(|records| records.as_array())
-                            .map(|arr| arr.len())
-                            .unwrap_or(0);
+                    let record_count = resolved_entity
+                        .get("RECORDS")
+                        .and_then(|records| records.as_array())
+                        .map(|arr| arr.len())
+                        .unwrap_or(0);
 
-                        println!(
-                            "  {} {} -> Entity ID: {} ({} records)",
-                            data_source, record_id, entity_id, record_count
-                        );
-                    }
+                    println!(
+                        "  {} {} -> Entity ID: {} ({} records)",
+                        data_source, record_id, entity_id, record_count
+                    );
                 }
             }
             Err(e) => {
@@ -250,17 +249,15 @@ fn delete_selected_records(engine: &dyn SzEngine) -> SzResult<()> {
                 println!("    ✓ Successfully deleted");
 
                 // Parse deletion result for impact information
-                if !delete_result.is_empty() {
-                    if let Ok(info) = serde_json::from_str::<Value>(&delete_result) {
-                        if let Some(affected) = info.get("AFFECTED_ENTITIES") {
-                            if let Some(entities) = affected.as_array() {
-                                println!("    Affected {} entities", entities.len());
-                                for entity in entities.iter().take(3) {
-                                    if let Some(entity_id) = entity.get("ENTITY_ID") {
-                                        println!("      Entity: {}", entity_id);
-                                    }
-                                }
-                            }
+                if !delete_result.is_empty()
+                    && let Ok(info) = serde_json::from_str::<Value>(&delete_result)
+                    && let Some(affected) = info.get("AFFECTED_ENTITIES")
+                    && let Some(entities) = affected.as_array()
+                {
+                    println!("    Affected {} entities", entities.len());
+                    for entity in entities.iter().take(3) {
+                        if let Some(entity_id) = entity.get("ENTITY_ID") {
+                            println!("      Entity: {}", entity_id);
                         }
                     }
                 }
@@ -305,16 +302,16 @@ fn verify_deletion_impact(engine: &dyn SzEngine) -> SzResult<()> {
     match engine.get_entity_by_record("TEST", "DELETE_TEST_002", Some(SzFlags::GET_ENTITY_DEFAULT))
     {
         Ok(entity_json) => {
-            if let Ok(entity) = serde_json::from_str::<Value>(&entity_json) {
-                if let Some(resolved_entity) = entity.get("RESOLVED_ENTITY") {
-                    let record_count = resolved_entity
-                        .get("RECORDS")
-                        .and_then(|records| records.as_array())
-                        .map(|arr| arr.len())
-                        .unwrap_or(0);
+            if let Ok(entity) = serde_json::from_str::<Value>(&entity_json)
+                && let Some(resolved_entity) = entity.get("RESOLVED_ENTITY")
+            {
+                let record_count = resolved_entity
+                    .get("RECORDS")
+                    .and_then(|records| records.as_array())
+                    .map(|arr| arr.len())
+                    .unwrap_or(0);
 
-                    println!("    Remaining related entity has {} records", record_count);
-                }
+                println!("    Remaining related entity has {} records", record_count);
             }
         }
         Err(e) => {

@@ -36,33 +36,32 @@ fn main() -> SzResult<()> {
     let search_json: Value = serde_json::from_str(&search_result)?;
     let mut entity_ids = Vec::new();
 
-    if let Some(resolved_entities) = search_json.get("RESOLVED_ENTITIES") {
-        if let Some(entities_array) = resolved_entities.as_array() {
-            println!("   Found {} entities", entities_array.len());
+    if let Some(resolved_entities) = search_json.get("RESOLVED_ENTITIES")
+        && let Some(entities_array) = resolved_entities.as_array()
+    {
+        println!("   Found {} entities", entities_array.len());
 
-            for (index, entity_obj) in entities_array.iter().enumerate() {
-                if let Some(entity) = entity_obj.get("ENTITY") {
-                    if let Some(entity_id) = entity
-                        .get("RESOLVED_ENTITY")
-                        .and_then(|re| re.get("ENTITY_ID"))
-                        .and_then(|id| id.as_i64())
-                    {
-                        entity_ids.push(entity_id);
+        for (index, entity_obj) in entities_array.iter().enumerate() {
+            if let Some(entity) = entity_obj.get("ENTITY")
+                && let Some(entity_id) = entity
+                    .get("RESOLVED_ENTITY")
+                    .and_then(|re| re.get("ENTITY_ID"))
+                    .and_then(|id| id.as_i64())
+            {
+                entity_ids.push(entity_id);
 
-                        let entity_name = entity
-                            .get("RESOLVED_ENTITY")
-                            .and_then(|re| re.get("ENTITY_NAME"))
-                            .and_then(|name| name.as_str())
-                            .unwrap_or("Unknown");
+                let entity_name = entity
+                    .get("RESOLVED_ENTITY")
+                    .and_then(|re| re.get("ENTITY_NAME"))
+                    .and_then(|name| name.as_str())
+                    .unwrap_or("Unknown");
 
-                        println!(
-                            "     {}. Entity ID: {}, Name: {}",
-                            index + 1,
-                            entity_id,
-                            entity_name
-                        );
-                    }
-                }
+                println!(
+                    "     {}. Entity ID: {}, Name: {}",
+                    index + 1,
+                    entity_id,
+                    entity_name
+                );
             }
         }
     }
@@ -135,37 +134,37 @@ fn main() -> SzResult<()> {
 
 fn print_why_analysis(why_json: &Value) -> SzResult<()> {
     // Extract key information from the why analysis
-    if let Some(why_results) = why_json.get("WHY_RESULTS") {
-        if let Some(results_array) = why_results.as_array() {
-            for result in results_array {
-                if let Some(entity_id) = result.get("ENTITY_ID") {
-                    println!("Entity ID: {}", entity_id);
+    if let Some(why_results) = why_json.get("WHY_RESULTS")
+        && let Some(results_array) = why_results.as_array()
+    {
+        for result in results_array {
+            if let Some(entity_id) = result.get("ENTITY_ID") {
+                println!("Entity ID: {}", entity_id);
+            }
+
+            if let Some(match_info) = result.get("MATCH_INFO") {
+                println!("Match Information:");
+
+                if let Some(why_key) = match_info.get("WHY_KEY") {
+                    println!("  Why Key: {}", why_key);
                 }
 
-                if let Some(match_info) = result.get("MATCH_INFO") {
-                    println!("Match Information:");
+                if let Some(why_errule_code) = match_info.get("WHY_ERRULE_CODE") {
+                    println!("  Rule Code: {}", why_errule_code);
+                }
 
-                    if let Some(why_key) = match_info.get("WHY_KEY") {
-                        println!("  Why Key: {}", why_key);
-                    }
+                if let Some(match_level_code) = match_info.get("MATCH_LEVEL_CODE") {
+                    println!("  Match Level: {}", match_level_code);
+                }
 
-                    if let Some(why_errule_code) = match_info.get("WHY_ERRULE_CODE") {
-                        println!("  Rule Code: {}", why_errule_code);
-                    }
-
-                    if let Some(match_level_code) = match_info.get("MATCH_LEVEL_CODE") {
-                        println!("  Match Level: {}", match_level_code);
-                    }
-
-                    // Print feature matches
-                    if let Some(feature_scores) = match_info.get("FEATURE_SCORES") {
-                        if let Some(scores_obj) = feature_scores.as_object() {
-                            println!("  Feature Matches:");
-                            for (feature_type, score_info) in scores_obj {
-                                if let Some(score) = score_info.as_i64() {
-                                    println!("    {}: {}", feature_type, score);
-                                }
-                            }
+                // Print feature matches
+                if let Some(feature_scores) = match_info.get("FEATURE_SCORES")
+                    && let Some(scores_obj) = feature_scores.as_object()
+                {
+                    println!("  Feature Matches:");
+                    for (feature_type, score_info) in scores_obj {
+                        if let Some(score) = score_info.as_i64() {
+                            println!("    {}: {}", feature_type, score);
                         }
                     }
                 }
@@ -174,14 +173,13 @@ fn print_why_analysis(why_json: &Value) -> SzResult<()> {
     }
 
     // Print candidate keys if available
-    if let Some(candidate_keys) = why_json.get("CANDIDATE_KEYS") {
-        if let Some(keys_obj) = candidate_keys.as_object() {
-            if !keys_obj.is_empty() {
-                println!("Candidate Keys Used:");
-                for (key_type, key_info) in keys_obj {
-                    println!("  {}: {:?}", key_type, key_info);
-                }
-            }
+    if let Some(candidate_keys) = why_json.get("CANDIDATE_KEYS")
+        && let Some(keys_obj) = candidate_keys.as_object()
+        && !keys_obj.is_empty()
+    {
+        println!("Candidate Keys Used:");
+        for (key_type, key_info) in keys_obj {
+            println!("  {}: {:?}", key_type, key_info);
         }
     }
 
