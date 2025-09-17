@@ -24,3 +24,15 @@ target
 # Added by cargo
 
 /target
+
+# Temporary debugging and test files
+debug_*.rs
+quick_test*
+*.log
+*_results.txt
+*.o
+*.rcgu.o
+
+# Temporary analysis files
+*analysis*.md
+*enumeration*.md
