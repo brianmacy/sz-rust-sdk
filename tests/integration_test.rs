@@ -5,9 +5,11 @@
 //! Note: These tests validate that the SDK correctly interfaces with Senzing
 //! and handles expected error conditions appropriately.
 
+use serial_test::serial;
 use sz_rust_sdk::prelude::*;
 
 #[test]
+#[serial]
 fn test_sdk_compilation_and_imports() {
     // Test that all major SDK components can be imported and referenced
     // This validates the public API is correctly exposed
@@ -34,7 +36,11 @@ fn test_sdk_compilation_and_imports() {
 }
 
 #[test]
+#[serial]
 fn test_environment_initialization_with_expected_error() {
+    // Clean up any existing global instance first
+    let _ = SzEnvironmentCore::destroy_global_instance();
+
     // Test that environment initialization behaves as expected with current setup
     // This validates FFI integration is working correctly
 
@@ -83,6 +89,7 @@ fn test_environment_initialization_with_expected_error() {
 }
 
 #[test]
+#[serial]
 fn test_error_handling_system() {
     // Test that our error handling system works correctly
 
@@ -101,6 +108,7 @@ fn test_error_handling_system() {
 }
 
 #[test]
+#[serial]
 fn test_flags_system() {
     // Test that bitflags work correctly
 
@@ -115,6 +123,7 @@ fn test_flags_system() {
 }
 
 #[test]
+#[serial]
 fn test_types_and_aliases() {
     // Test that type aliases work correctly
 

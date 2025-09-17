@@ -16,7 +16,22 @@ pub struct SzConfigManagerCore {
 
 impl SzConfigManagerCore {
     pub fn new() -> SzResult<Self> {
-        Self::new_with_params("SzRustSDK-ConfigMgr", "{}", false)
+        // Instead of initializing with empty config, reuse the existing singleton's configuration
+        // This prevents conflicts when the environment is already initialized
+        match super::environment::SzEnvironmentCore::get_existing_instance() {
+            Ok(existing_env) => {
+                // Reuse the existing environment's configuration
+                Self::new_with_params(
+                    "SzRustSDK-ConfigMgr",
+                    existing_env.get_ini_params(),
+                    existing_env.get_verbose_logging(),
+                )
+            }
+            Err(_) => {
+                // No existing environment, fallback to default empty config
+                Self::new_with_params("SzRustSDK-ConfigMgr", "{}", false)
+            }
+        }
     }
 
     pub fn new_with_params(
@@ -24,7 +39,7 @@ impl SzConfigManagerCore {
         ini_params: &str,
         verbose_logging: bool,
     ) -> SzResult<Self> {
-        // Initialize the config manager module with parameters
+        // Always initialize the config manager module with parameters
         let module_name_c = crate::ffi::helpers::str_to_c_string(module_name)?;
         let ini_params_c = crate::ffi::helpers::str_to_c_string(ini_params)?;
         let verbose = if verbose_logging { 1 } else { 0 };
@@ -128,6 +143,10 @@ impl SzConfigManager for SzConfigManagerCore {
 
 impl Drop for SzConfigManagerCore {
     fn drop(&mut self) {
-        // Config manager doesn't need cleanup in the new API
+        // Config manager handles its own destruction as it's not tied to environment lifecycle
+        unsafe {
+            let _ = crate::ffi::bindings::SzConfigMgr_destroy();
+            crate::ffi::bindings::SzConfigMgr_clearLastException();
+        }
     }
 }

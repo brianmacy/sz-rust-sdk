@@ -246,6 +246,25 @@ impl SzError {
             _ => Self::unknown(error_msg),
         }
     }
+
+    /// Creates an Unknown error from a source error
+    pub fn from_source(source: Box<dyn std::error::Error + Send + Sync>) -> Self {
+        Self::Unknown {
+            message: source.to_string(),
+            source: Some(source),
+        }
+    }
+
+    /// Creates an Unknown error with a custom message and source
+    pub fn with_message_and_source<S: Into<String>>(
+        message: S,
+        source: Box<dyn std::error::Error + Send + Sync>,
+    ) -> Self {
+        Self::Unknown {
+            message: message.into(),
+            source: Some(source),
+        }
+    }
 }
 
 /// Utility function to convert C string errors to SzError

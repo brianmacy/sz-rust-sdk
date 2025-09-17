@@ -48,6 +48,12 @@ unsafe extern "C" {
 
     pub fn Sz_destroy() -> c_longlong;
 
+    // Module-specific destroy functions
+    pub fn SzConfig_destroy() -> c_longlong;
+    pub fn SzConfigMgr_destroy() -> c_longlong;
+    pub fn SzDiagnostic_destroy() -> c_longlong;
+    pub fn SzProduct_destroy() -> c_longlong;
+
     pub fn Sz_getActiveConfigID() -> c_longlong;
 
     // Engine functions using helper variants

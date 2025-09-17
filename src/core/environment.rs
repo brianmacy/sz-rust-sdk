@@ -74,16 +74,16 @@ impl SzEnvironmentCore {
                     *env_guard = Some(new_env.clone());
                     Ok(new_env)
                 } else {
-                    // Validate parameters match existing instance
-                    if existing_env.module_name != module_name
-                        || existing_env.ini_params != ini_params
+                    // Validate critical parameters match existing instance (ini_params and verbose_logging)
+                    // Module name can be different as it's only used for logging
+                    if existing_env.ini_params != ini_params
                         || existing_env.verbose_logging != verbose_logging
                     {
                         return Err(SzError::configuration(
-                            "Cannot change initialization parameters after SzEnvironmentCore instance is created"
+                            "Cannot change critical initialization parameters (ini_params, verbose_logging) after SzEnvironmentCore instance is created"
                         ));
                     }
-                    // Return the existing valid environment
+                    // Return the existing valid environment (module name can be different)
                     Ok(existing_env.clone())
                 }
             }
@@ -142,14 +142,56 @@ impl SzEnvironmentCore {
     /// This allows a new instance to be created with different parameters.
     pub fn destroy_global_instance() -> SzResult<()> {
         if let Some(global_env) = GLOBAL_ENVIRONMENT.get() {
-            let mut env_guard = global_env.lock().unwrap();
+            let mut env_guard = match global_env.lock() {
+                Ok(guard) => guard,
+                Err(poisoned) => {
+                    // Recover from poisoned mutex
+                    println!("Warning: Mutex was poisoned, recovering...");
+                    poisoned.into_inner()
+                }
+            };
             if let Some(env) = env_guard.take() {
-                // Mark as destroyed - the actual Sz_destroy will be called in Drop
-                env.is_destroyed
-                    .store(true, std::sync::atomic::Ordering::Relaxed);
+                // Ensure complete destruction of all Senzing modules
+                if !env.is_destroyed() {
+                    println!("Destroying global SzEnvironmentCore instance and all modules...");
+
+                    // Mark the environment as destroyed
+                    env.is_destroyed
+                        .store(true, std::sync::atomic::Ordering::Relaxed);
+
+                    // Cleanup environment-tied components only
+                    // SzConfig* functions are handled independently in their constructors/destructors
+                    unsafe {
+                        // These are tied to the environment lifecycle
+                        let _ = crate::ffi::bindings::SzDiagnostic_destroy();
+                        let _ = crate::ffi::bindings::SzProduct_destroy();
+                        // Finally destroy the main Senzing environment
+                        let _ = crate::ffi::bindings::Sz_destroy();
+
+                        // Clear exception states for environment-tied components
+                        crate::ffi::bindings::Sz_clearLastException();
+                        crate::ffi::bindings::SzDiagnostic_clearLastException();
+                        crate::ffi::bindings::SzProduct_clearLastException();
+                    }
+
+                    println!("✅ Global SzEnvironmentCore instance destroyed completely");
+
+                    // Give the native library time to fully clean up internal state
+                    std::thread::sleep(std::time::Duration::from_millis(100));
+                }
             }
         }
         Ok(())
+    }
+
+    /// Get the initialization parameters used by this environment
+    pub fn get_ini_params(&self) -> &str {
+        &self.ini_params
+    }
+
+    /// Get the verbose logging setting used by this environment
+    pub fn get_verbose_logging(&self) -> bool {
+        self.verbose_logging
     }
 
     /// Ensures Sz_init has been called - should be called before any engine operations

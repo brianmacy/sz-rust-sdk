@@ -105,3 +105,4 @@ This is a Rust SDK for Senzing entity resolution engine following the same patte
 - Mirror the error hierarchy from the C# exceptions
 - If the Senzing SDK function returns -2, create the proper error from the appropriate *_getLastException function.
 - Make sure all error checking and processing is happening in all the core functions
+- Make sure the tests are aligned with the detailed C# test analysis.

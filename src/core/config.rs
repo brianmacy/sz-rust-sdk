@@ -106,5 +106,10 @@ impl Drop for SzConfigCore {
                 let _ = crate::ffi::bindings::SzConfig_close_helper(self.handle);
             }
         }
+        // Config handles its own destruction as it's not tied to environment lifecycle
+        unsafe {
+            let _ = crate::ffi::bindings::SzConfig_destroy();
+            crate::ffi::bindings::SzConfig_clearLastException();
+        }
     }
 }

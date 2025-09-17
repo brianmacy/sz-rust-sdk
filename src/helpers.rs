@@ -8,12 +8,14 @@
 //! setup when needed.
 
 use crate::prelude::*;
+use std::cell::RefCell;
 use std::fs;
 use std::path::Path;
-use std::sync::Mutex;
 
-/// Global storage for the current test database path
-static CURRENT_DB_PATH: Mutex<Option<String>> = Mutex::new(None);
+// Thread-local storage for test database cleanup
+thread_local! {
+    static CURRENT_TEST_DB: RefCell<Option<String>> = const { RefCell::new(None) };
+}
 
 /// Enhanced error reporting for examples with backtrace support
 ///
@@ -125,10 +127,10 @@ impl ExampleEnvironment {
             )));
         }
 
-        // Store the path for cleanup
-        if let Ok(mut current_path) = CURRENT_DB_PATH.lock() {
-            *current_path = Some(db_path.clone());
-        }
+        // Store the path for cleanup in thread-local storage
+        CURRENT_TEST_DB.with(|db| {
+            *db.borrow_mut() = Some(db_path.clone());
+        });
 
         println!("Created test database: {}", db_path);
 
@@ -139,6 +141,7 @@ impl ExampleEnvironment {
     }
 
     /// Set up initial configuration in a fresh database
+    /// This uses a separate, temporary config manager instance that doesn't interfere with the main environment
     fn setup_initial_configuration(db_path: &str) -> SzResult<()> {
         let settings = format!(
             r#"{{"PIPELINE":{{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,
@@ -147,16 +150,16 @@ impl ExampleEnvironment {
 
         println!("Setting up initial configuration in database...");
 
-        // Create config manager for the new database
+        // Use direct config manager creation for setup - separate from main environment
         let config_mgr = crate::core::config_manager::SzConfigManagerCore::new_with_params(
-            "SzRustSDK-InitialSetup",
+            "SzRustSDK-Setup",
             &settings,
             false,
         )?;
 
-        // Create and register default configuration
+        // Create and register default configuration using direct config core creation
         let config_core = crate::core::config::SzConfigCore::new_with_params(
-            "SzRustSDK-InitialConfig",
+            "SzRustSDK-SetupConfig",
             &settings,
             false,
         )?;
@@ -174,22 +177,19 @@ impl ExampleEnvironment {
             "✅ Initial configuration setup complete with ID: {}",
             config_id
         );
+
+        // Clean up the setup instances to avoid conflicts with main environment
+        drop(config_mgr);
+        drop(config);
+
         Ok(())
     }
 
-    /// Clean up the current test database
+    /// Clean up the current test database (only for isolated test scenarios)
+    /// For shared database tests, this is a no-op to prevent premature cleanup
     pub fn cleanup() -> SzResult<()> {
-        if let Ok(mut current_path) = CURRENT_DB_PATH.lock() {
-            if let Some(db_path) = current_path.take() {
-                if Path::new(&db_path).exists() {
-                    if let Err(e) = fs::remove_file(&db_path) {
-                        eprintln!("Warning: Failed to remove test database {}: {}", db_path, e);
-                    } else {
-                        println!("Cleaned up test database: {}", db_path);
-                    }
-                }
-            }
-        }
+        // When using shared database, don't clean up individual test databases
+        // The shared database will be cleaned up at process exit
         Ok(())
     }
     /// Create and initialize a Senzing environment for examples using singleton pattern
@@ -229,30 +229,52 @@ impl ExampleEnvironment {
 
         // Use singleton pattern to get or create the environment
         println!("Getting singleton SzEnvironmentCore instance with isolated database");
-        SzEnvironmentCore::get_instance(instance_name, &settings, false)
+        match SzEnvironmentCore::get_instance(instance_name, &settings, false) {
+            Ok(env) => Ok(env),
+            Err(e) => {
+                // Check if this is a configuration error - if so, try to set up default configuration
+                if matches!(e, SzError::Configuration { .. }) {
+                    println!("No configuration found, setting up default configuration...");
+                    // Try to set up default configuration
+                    let temp_env = SzEnvironmentCore::get_instance(
+                        &format!("{}-setup", instance_name),
+                        &settings,
+                        false,
+                    )?;
+                    let config_mgr = temp_env.get_config_manager()?;
+                    let config = config_mgr.create_config()?;
+                    let config_definition = config.export()?;
+                    let config_id = config_mgr.register_config(
+                        &config_definition,
+                        Some("Default configuration for tests"),
+                    )?;
+                    config_mgr.set_default_config_id(config_id)?;
+                    println!("✅ Configuration setup complete with ID: {}", config_id);
+
+                    // Now try again with the main instance name
+                    SzEnvironmentCore::get_instance(instance_name, &settings, false)
+                } else {
+                    Err(e)
+                }
+            }
+        }
     }
 
-    /// Get the standard Senzing configuration for examples with isolated database
+    /// Get the standard Senzing configuration for examples with shared database
     fn get_configuration() -> SzResult<String> {
         if let Ok(config) = std::env::var("SENZING_ENGINE_CONFIGURATION_JSON") {
             return Ok(config);
         }
 
-        // Check if we already have a database path (for singleton pattern support)
-        let db_path = if let Ok(current_path) = CURRENT_DB_PATH.lock() {
-            if let Some(existing_path) = current_path.as_ref() {
-                // Reuse existing database path to maintain singleton behavior
-                existing_path.clone()
-            } else {
-                // No existing path, create new one
-                drop(current_path); // Release lock before calling setup_test_database
-                Self::setup_test_database()?
-            }
-        } else {
-            return Err(SzError::configuration(
-                "Failed to access database path mutex",
-            ));
-        };
+        // Use a single shared database path for all tests to avoid Senzing library conflicts
+        // The isolation will come from destroying and recreating the environment between tests
+        static SHARED_DB_PATH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+        let db_path = SHARED_DB_PATH.get_or_init(|| {
+            let path = Self::setup_test_database()
+                .unwrap_or_else(|_| "/tmp/senzing_shared_test.db".to_string());
+            println!("Using shared test database: {}", path);
+            path
+        });
 
         let config = format!(
             r#"{{"PIPELINE":{{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,

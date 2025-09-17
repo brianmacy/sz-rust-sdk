@@ -1,0 +1,9 @@
+[alias]
+# Run tests with single thread (alternative approach)
+test-single = "test -- --test-threads=1"
+
+# Run all tests with output
+test-all = "test -- --nocapture"
+
+[target.x86_64-unknown-linux-gnu]
+rustflags = []
