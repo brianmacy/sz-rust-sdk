@@ -1,71 +1,60 @@
 //! Register Data Sources Example
 //!
-//! This example demonstrates how to register multiple data sources in the Senzing
-//! configuration using the automatic setup functionality.
+//! This example demonstrates how to register new data sources in Senzing configuration.
+//! Note: Most examples use the "TEST" data source which is available by default.
+//! This example shows how to add additional data sources when needed.
 //!
-//! Rust equivalent of: configuration/RegisterDataSources/Program.cs
+//! Key Senzing SDK concepts demonstrated:
+//! - Environment initialization
+//! - Getting configuration manager
+//! - Creating and modifying configurations
+//! - Registering data sources with register_data_source()
+//! - Setting default configuration
 
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
-    // Create a descriptive instance name (can be anything)
-    let instance_name = env!("CARGO_PKG_NAME");
+    // Step 1: Get a configured Senzing environment
+    let env = get_environment()?;
 
-    // Remove any existing environment configuration to use isolated database
-    unsafe { std::env::remove_var("SENZING_ENGINE_CONFIGURATION_JSON") };
+    // Step 2: Get the configuration manager
+    let config_mgr = env.get_config_manager()?;
 
-    println!("Registering data sources...");
+    println!("Registering data sources in Senzing configuration...");
 
-    // Initialize the Senzing environment with automatic configuration setup
-    let environment = match ExampleEnvironment::initialize(instance_name) {
-        Ok(env) => env,
-        Err(e) => {
-            eprintln!("Failed to initialize environment: {}", e);
-            return Err(e);
-        }
-    };
+    // Step 3: Create a new configuration
+    let config = config_mgr.create_config()?;
+    println!("✓ Created new configuration");
 
-    // Get the engine with automatic setup which includes default data sources
-    let _engine = ExampleEnvironment::get_engine_with_setup(&environment)?;
-    println!("✅ Engine initialized with default data sources");
+    // Step 4: Register data sources
+    // register_data_source(data_source_code)
+    config.register_data_source("CUSTOMERS")?;
+    println!("✓ Registered CUSTOMERS data source");
 
-    // Verify that default data sources exist by testing some operations
-    let data_sources_to_test = vec!["CUSTOMERS", "EMPLOYEES"];
+    config.register_data_source("EMPLOYEES")?;
+    println!("✓ Registered EMPLOYEES data source");
 
-    for data_source in &data_sources_to_test {
-        println!("Testing data source: {}", data_source);
+    config.register_data_source("PARTNERS")?;
+    println!("✓ Registered PARTNERS data source");
 
-        // Test adding a record (this will fail if data source doesn't exist)
-        let test_record = format!(r#"{{
-            "RECORD_ID": "TEST_{}",
-            "DATA_SOURCE": "{}",
-            "NAME_FIRST": "Test",
-            "NAME_LAST": "Person"
-        }}"#, data_source, data_source);
+    // Step 5: Export the configuration to JSON
+    let config_json = config.export()?;
+    println!("✓ Exported configuration ({} chars)", config_json.len());
 
-        match _engine.add_record(data_source, &format!("TEST_{}", data_source), &test_record, None) {
-            Ok(_) => {
-                println!("✅ Data source {} is registered and working", data_source);
+    // Step 6: Register the configuration and set it as default
+    let config_id = config_mgr.register_config(&config_json, Some("Added data sources"))?;
+    println!("✓ Registered configuration with ID: {}", config_id);
 
-                // Clean up the test record
-                let _ = _engine.delete_record(data_source, &format!("TEST_{}", data_source), None);
-            }
-            Err(e) => {
-                println!("⚠️  Data source {} test failed: {}", data_source, e);
-            }
-        }
-    }
+    config_mgr.set_default_config_id(config_id)?;
+    println!("✓ Set as default configuration");
 
-    // Test search to verify configuration is complete
-    println!("Testing search operation to verify configuration...");
-    let results = _engine.search_by_attributes(r#"{"NAME_LAST": "TestPerson"}"#, None, None)?;
-    println!("✅ Search operation successful");
-    println!("Search results: {}", results);
-
-    println!("✅ Data source registration and verification completed");
-
-    // Clean up resources
-    ExampleEnvironment::cleanup()?;
+    println!("✅ Data source registration complete");
 
     Ok(())
+}
+
+/// Simple helper to get a configured Senzing environment
+/// Handles database setup and configuration automatically
+fn get_environment() -> SzResult<std::sync::Arc<SzEnvironmentCore>> {
+    sz_rust_sdk::helpers::ExampleEnvironment::initialize("register_data_sources_example")
 }

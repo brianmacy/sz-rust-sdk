@@ -1,164 +1,60 @@
 //! Get Version Example
 //!
-//! This example demonstrates how to retrieve version and license information
-//! from the Senzing SDK, including API version and build details.
+//! This example demonstrates how to get Senzing version information.
 //!
-//! Rust equivalent of: information/GetVersion/Program.cs
+//! Key Senzing SDK concepts demonstrated:
+//! - Environment initialization
+//! - Getting the product interface
+//! - Retrieving version information with get_version()
+//! - Processing JSON version data
 
 use sz_rust_sdk::prelude::*;
 use serde_json::Value;
 
 fn main() -> SzResult<()> {
-    // Create a descriptive instance name (can be anything)
-    let instance_name = env!("CARGO_PKG_NAME");
+    // Step 1: Get a configured Senzing environment
+    let env = get_environment()?;
 
-    // Remove any existing environment configuration to use isolated database
-    unsafe { std::env::remove_var("SENZING_ENGINE_CONFIGURATION_JSON") };
+    // Step 2: Get the product interface for version information
+    let product = env.get_product()?;
 
-    // Initialize the Senzing environment using the singleton pattern
-    let environment = match ExampleEnvironment::initialize(instance_name) {
-        Ok(env) => env,
-        Err(e) => {
-            eprintln!("Failed to initialize environment: {}", e);
-            return Err(e);
-        }
-    };
+    println!("Getting Senzing version information...");
 
-    println!("Retrieving Senzing version and license information...");
-
-    // Get the product component from the environment
-    let product = environment.get_product()?;
-
-    // Display version information
-    display_version_info(&product)?;
-
-    // Display license information
-    display_license_info(&product)?;
-
-    println!("✅ Version information retrieved successfully!");
-
-    // Clean up resources
-    ExampleEnvironment::cleanup()?;
-
-    Ok(())
-}
-
-/// Display version information
-fn display_version_info(product: &Box<dyn SzProduct>) -> SzResult<()> {
-    println!("\n--- Version Information ---");
-
-    // Get version as JSON string
+    // Step 3: Get version information
+    // get_version() returns JSON with version details
     let version_json = product.get_version()?;
+    println!("✓ Retrieved version information");
 
-    // Parse JSON to display formatted information
-    let version_info: Value = serde_json::from_str(&version_json)
-        .map_err(|e| SzError::unknown(&format!("Failed to parse version JSON: {}", e)))?;
-
-    // Display API version
-    if let Some(api_version) = version_info.get("API_VERSION").and_then(|v| v.as_str()) {
-        println!("API Version: {}", api_version);
-    }
-
-    // Display native API version
-    if let Some(native_api_version) = version_info.get("NATIVE_API_VERSION").and_then(|v| v.as_str()) {
-        println!("Native API Version: {}", native_api_version);
-    }
-
-    // Display build version
-    if let Some(build_version) = version_info.get("BUILD_VERSION").and_then(|v| v.as_str()) {
-        println!("Build Version: {}", build_version);
-    }
-
-    // Display build date
-    if let Some(build_date) = version_info.get("BUILD_DATE").and_then(|v| v.as_str()) {
-        println!("Build Date: {}", build_date);
-    }
-
-    // Display build number
-    if let Some(build_number) = version_info.get("BUILD_NUMBER").and_then(|v| v.as_str()) {
-        println!("Build Number: {}", build_number);
-    }
-
-    // Display compatibility version
-    if let Some(compatibility_version) = version_info.get("COMPATIBILITY_VERSION") {
-        if let Some(config_version) = compatibility_version.get("CONFIG_VERSION").and_then(|v| v.as_str()) {
-            println!("Config Compatibility Version: {}", config_version);
+    // Step 4: Parse and display the version information
+    if let Ok(version_data) = serde_json::from_str::<Value>(&version_json) {
+        // Display key version information
+        if let Some(product_name) = version_data["PRODUCT_NAME"].as_str() {
+            println!("Product: {}", product_name);
         }
+
+        if let Some(version) = version_data["VERSION"].as_str() {
+            println!("Version: {}", version);
+        }
+
+        if let Some(build_version) = version_data["BUILD_VERSION"].as_str() {
+            println!("Build: {}", build_version);
+        }
+
+        if let Some(build_date) = version_data["BUILD_DATE"].as_str() {
+            println!("Build Date: {}", build_date);
+        }
+    } else {
+        // If JSON parsing fails, just display the raw JSON
+        println!("Raw version info:\n{}", version_json);
     }
 
-    // Display the raw JSON for complete information
-    println!("\nRaw Version JSON:");
-    if let Ok(pretty_json) = serde_json::to_string_pretty(&version_info) {
-        println!("{}", pretty_json);
-    } else {
-        println!("{}", version_json);
-    }
+    println!("✅ Version information retrieved successfully");
 
     Ok(())
 }
 
-/// Display license information
-fn display_license_info(product: &Box<dyn SzProduct>) -> SzResult<()> {
-    println!("\n--- License Information ---");
-
-    // Get license information as JSON string
-    let license_json = product.get_license()?;
-
-    // Parse JSON to display formatted information
-    let license_info: Value = serde_json::from_str(&license_json)
-        .map_err(|e| SzError::unknown(&format!("Failed to parse license JSON: {}", e)))?;
-
-    // Display customer information
-    if let Some(customer) = license_info.get("customer").and_then(|v| v.as_str()) {
-        println!("Customer: {}", customer);
-    }
-
-    // Display contract information
-    if let Some(contract) = license_info.get("contract").and_then(|v| v.as_str()) {
-        println!("Contract: {}", contract);
-    }
-
-    // Display issue date
-    if let Some(issue_date) = license_info.get("issueDate").and_then(|v| v.as_str()) {
-        println!("Issue Date: {}", issue_date);
-    }
-
-    // Display license type
-    if let Some(license_type) = license_info.get("licenseType").and_then(|v| v.as_str()) {
-        println!("License Type: {}", license_type);
-    }
-
-    // Display license level
-    if let Some(license_level) = license_info.get("licenseLevel").and_then(|v| v.as_str()) {
-        println!("License Level: {}", license_level);
-    }
-
-    // Display billing information
-    if let Some(billing) = license_info.get("billing").and_then(|v| v.as_str()) {
-        println!("Billing: {}", billing);
-    }
-
-    // Display expiration date
-    if let Some(expire_date) = license_info.get("expireDate").and_then(|v| v.as_str()) {
-        println!("Expiration Date: {}", expire_date);
-    }
-
-    // Display record limit
-    if let Some(record_limit) = license_info.get("recordLimit").and_then(|v| v.as_i64()) {
-        if record_limit > 0 {
-            println!("Record Limit: {}", record_limit);
-        } else {
-            println!("Record Limit: Unlimited");
-        }
-    }
-
-    // Display the raw JSON for complete license information
-    println!("\nRaw License JSON:");
-    if let Ok(pretty_json) = serde_json::to_string_pretty(&license_info) {
-        println!("{}", pretty_json);
-    } else {
-        println!("{}", license_json);
-    }
-
-    Ok(())
+/// Simple helper to get a configured Senzing environment
+/// Handles database setup and configuration automatically
+fn get_environment() -> SzResult<std::sync::Arc<SzEnvironmentCore>> {
+    sz_rust_sdk::helpers::ExampleEnvironment::initialize("get_version_example")
 }

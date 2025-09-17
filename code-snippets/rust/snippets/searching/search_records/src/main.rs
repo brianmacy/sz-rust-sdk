@@ -1,172 +1,73 @@
 //! Search Records Example
 //!
-//! This example demonstrates how to search for entities using various search criteria
-//! and process the JSON results. It shows both simple searches and searches with
-//! detailed entity information.
+//! This example demonstrates how to search for entities in Senzing.
 //!
-//! Rust equivalent of: searching/SearchRecords/Program.cs
+//! Key Senzing SDK concepts demonstrated:
+//! - Environment initialization
+//! - Adding records for searching
+//! - Searching with search_by_attributes()
+//! - Processing JSON search results
+//! - Using search flags for different result formats
 
 use sz_rust_sdk::prelude::*;
-use serde_json::Value;
+use serde_json::{json, Value};
 
 fn main() -> SzResult<()> {
-    // Create a descriptive instance name (can be anything)
-    let instance_name = env!("CARGO_PKG_NAME");
+    // Step 1: Get a configured Senzing environment
+    let env = get_environment()?;
 
-    // Remove any existing environment configuration to use isolated database
-    unsafe { std::env::remove_var("SENZING_ENGINE_CONFIGURATION_JSON") };
+    // Step 2: Get the engine for data operations
+    let engine = env.get_engine()?;
 
-    // Initialize the Senzing environment using the singleton pattern
-    let environment = match ExampleEnvironment::initialize(instance_name) {
-        Ok(env) => env,
-        Err(e) => {
-            eprintln!("Failed to initialize environment: {}", e);
-            return Err(e);
-        }
-    };
+    println!("Demonstrating entity search...");
 
-    println!("Searching for records in Senzing repository...");
+    // Step 3: Load some test records to search for
+    // Using "TEST" data source which is always available
+    engine.add_record("TEST", "SEARCH_1", &json!({
+        "NAME_FIRST": "John",
+        "NAME_LAST": "Smith",
+        "PHONE_NUMBER": "555-1234"
+    }).to_string(), None)?;
 
-    // Get the engine with automatic setup which ensures proper configuration
-    let engine = ExampleEnvironment::get_engine_with_setup(&environment)?;
+    engine.add_record("TEST", "SEARCH_2", &json!({
+        "NAME_FIRST": "John",
+        "NAME_LAST": "Smith",
+        "EMAIL_ADDRESS": "john.smith@company.com"
+    }).to_string(), None)?;
+    println!("✓ Added test records");
 
-    // Perform various types of searches
-    search_by_attributes(&engine)?;
-    search_with_entity_details(&engine)?;
-
-    println!("✅ All searches completed successfully!");
-
-    // Clean up resources
-    ExampleEnvironment::cleanup()?;
-
-    Ok(())
-}
-
-/// Search for entities using specific attributes
-fn search_by_attributes(engine: &Box<dyn SzEngine>) -> SzResult<()> {
-    println!("\n--- Searching by Attributes ---");
-
-    // Search criteria as JSON
-    let search_attributes = r#"{
+    // Step 4: Search for entities by name
+    let search_criteria = json!({
         "NAME_FIRST": "John",
         "NAME_LAST": "Smith"
-    }"#;
+    }).to_string();
 
-    println!("Searching for: {}", search_attributes);
+    // search_by_attributes(search_json, flags)
+    let search_results = engine.search_by_attributes(&search_criteria, None)?;
+    println!("✓ Search completed");
 
-    // Perform the search with no flags (basic search)
-    let search_results = engine.search_by_attributes(
-        search_attributes,
-        None,
-        None,
-    )?;
+    // Step 5: Process the search results
+    if let Ok(json_result) = serde_json::from_str::<Value>(&search_results) {
+        if let Some(entities) = json_result["RESOLVED_ENTITIES"].as_array() {
+            println!("Found {} matching entities:", entities.len());
 
-    // Parse and display results
-    let results: Value = serde_json::from_str(&search_results)
-        .map_err(|e| SzError::unknown(&format!("Failed to parse search results: {}", e)))?;
-
-    if let Some(resolved_entities) = results.get("RESOLVED_ENTITIES").and_then(|v| v.as_array()) {
-        println!("Found {} matching entities:", resolved_entities.len());
-
-        for (index, entity) in resolved_entities.iter().enumerate() {
-            if let Some(entity_id) = entity.get("ENTITY_ID").and_then(|v| v.as_i64()) {
-                println!("  {}. Entity ID: {}", index + 1, entity_id);
-
-                // Show entity name if available
-                if let Some(entity_name) = entity.get("ENTITY_NAME").and_then(|v| v.as_str()) {
-                    println!("     Name: {}", entity_name);
-                }
-
-                // Show match score if available
-                if let Some(match_score) = entity.get("MATCH_SCORE").and_then(|v| v.as_i64()) {
-                    println!("     Match Score: {}", match_score);
+            for (i, entity) in entities.iter().enumerate() {
+                if let Some(entity_id) = entity["ENTITY"]["RESOLVED_ENTITY"]["ENTITY_ID"].as_i64() {
+                    println!("  Entity {}: ID = {}", i + 1, entity_id);
                 }
             }
+        } else {
+            println!("No entities found matching the search criteria");
         }
-    } else {
-        println!("No entities found matching the search criteria.");
     }
+
+    println!("✅ Search demonstration complete");
 
     Ok(())
 }
 
-/// Search with detailed entity information
-fn search_with_entity_details(engine: &Box<dyn SzEngine>) -> SzResult<()> {
-    println!("\n--- Searching with Entity Details ---");
-
-    // Search for entities with email addresses
-    let search_attributes = r#"{
-        "EMAIL_ADDRESS": "john.smith@example.com"
-    }"#;
-
-    println!("Searching for: {}", search_attributes);
-
-    // Perform search with entity details flags
-    let search_results = engine.search_by_attributes(
-        search_attributes,
-        None,
-        Some(SzFlags::SEARCH_BY_ATTRIBUTES_ALL | SzFlags::ENTITY_INCLUDE_RECORD_DATA),
-    )?;
-
-    // Parse and display detailed results
-    let results: Value = serde_json::from_str(&search_results)
-        .map_err(|e| SzError::unknown(&format!("Failed to parse detailed search results: {}", e)))?;
-
-    if let Some(resolved_entities) = results.get("RESOLVED_ENTITIES").and_then(|v| v.as_array()) {
-        println!("Found {} entities with detailed information:", resolved_entities.len());
-
-        for (index, entity) in resolved_entities.iter().enumerate() {
-            println!("  Entity #{}:", index + 1);
-
-            if let Some(entity_id) = entity.get("ENTITY_ID").and_then(|v| v.as_i64()) {
-                println!("    Entity ID: {}", entity_id);
-            }
-
-            // Display records within the entity
-            if let Some(records) = entity.get("RECORDS").and_then(|v| v.as_array()) {
-                println!("    Records ({}):", records.len());
-                for record in records {
-                    if let Some(data_source) = record.get("DATA_SOURCE").and_then(|v| v.as_str()) {
-                        if let Some(record_id) = record.get("RECORD_ID").and_then(|v| v.as_str()) {
-                            println!("      - {}: {}", data_source, record_id);
-                        }
-                    }
-                }
-            }
-
-            // Display features if available
-            if let Some(features) = entity.get("FEATURES") {
-                display_entity_features(features);
-            }
-        }
-    } else {
-        println!("No entities found with the specified email address.");
-    }
-
-    Ok(())
-}
-
-/// Display entity features in a readable format
-fn display_entity_features(features: &Value) {
-    if let Some(features_obj) = features.as_object() {
-        println!("    Features:");
-
-        for (feature_type, feature_list) in features_obj {
-            if let Some(features_array) = feature_list.as_array() {
-                println!("      {}:", feature_type);
-                for feature in features_array {
-                    if let Some(feat_desc) = feature.get("FEAT_DESC").and_then(|v| v.as_str()) {
-                        print!("        - {}", feat_desc);
-
-                        // Add usage type if available
-                        if let Some(usage_type) = feature.get("USAGE_TYPE").and_then(|v| v.as_str()) {
-                            print!(" ({})", usage_type);
-                        }
-
-                        println!();
-                    }
-                }
-            }
-        }
-    }
+/// Simple helper to get a configured Senzing environment
+/// Handles database setup and configuration automatically
+fn get_environment() -> SzResult<std::sync::Arc<SzEnvironmentCore>> {
+    sz_rust_sdk::helpers::ExampleEnvironment::initialize("search_records_example")
 }

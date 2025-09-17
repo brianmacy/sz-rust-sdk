@@ -128,3 +128,4 @@ This is a Rust SDK for Senzing entity resolution engine following the same patte
 - Make sure all error checking and processing is happening in all the core functions
 - Make sure the tests are aligned with the detailed C# test analysis.
 - DEMAND that all native SDK errors are caught and mapped to SzErrors
+- DEMAND code-snippets are minimal demonstrations of a single concept and should limit themselves to the minimal needed to know to accomplish the specific task.  Also, document the Senzing SDK usage well.
