@@ -242,7 +242,7 @@ pub trait SzConfigManager {
 
     /// Creates a configuration from a JSON definition
     fn create_config_from_definition(&self, config_definition: &str)
-        -> SzResult<Box<dyn SzConfig>>;
+    -> SzResult<Box<dyn SzConfig>>;
 
     /// Gets the configuration registry
     fn get_config_registry(&self) -> SzResult<JsonString>;

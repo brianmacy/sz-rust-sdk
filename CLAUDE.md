@@ -96,13 +96,35 @@ This is a Rust SDK for Senzing entity resolution engine following the same patte
 3. Use `cargo fmt` to maintain consistent code style
 4. Ensure all tests pass with `cargo test`
 5. Consider adding examples for public API functions
+
+## Senzing v4 SDK Requirements
+
+- **MANDATORY: 100% API Coverage** - The Rust SDK MUST achieve 100% functional parity with the C# Senzing v4 SDK
+- **Reference Implementation** - Always use the C# SDK as the authoritative reference for API design, method signatures, and behavior
+- **Missing Method Policy** - Any method available in C# SzEngine, SzConfig, SzConfigManager, SzDiagnostic, or SzProduct interfaces MUST be implemented in Rust
+- **Flag Compatibility** - All SzFlag combinations available in C# must have equivalent SzFlags in Rust
+- **Error Hierarchy** - Mirror the complete C# exception hierarchy with equivalent Rust error types
+- **FFI Completeness** - Bind to ALL native Senzing functions that the C# SDK uses, not just a subset
+
+### Critical Missing Functions (MUST IMPLEMENT)
+- `reevaluate_entity` - Required for stewardship operations
+- `reevaluate_record` - Required for record-level stewardship
+- `why_record_in_entity` - Required for entity analysis
+- `why_entities` (not `why_entity`) - Use correct v4 function names
+- Any other method gaps identified through C# SDK comparison
+
+### Quality Standards
 - Senzing uses a synchronous design
+- **MANDATORY: Use Thread Pools, NOT Async/Await** - Senzing SDK scales with real OS threads, use thread pools and futures for parallelization
+- **Thread Pool Architecture** - Each thread gets its own engine instance, engines are thread-safe at C library level
+- **No Async/Await** - Do not use tokio, async/await, or async runtimes. Use std::thread and mpsc channels for coordination
+- **Thread Scaling** - Examples must demonstrate proper scaling with 4+ OS threads showing per-thread performance metrics
 - No mock tests for this project.  Only ones that actually use the SDK.
 - Senzing is installed at /opt/senzing/er/.
 - Look to the C# code for guidance on which native functions to use for FFI.
 - Do not create mock tests for use without the native library.  All tests should require the native library.
-- All the examples must run successfully
-- Mirror the error hierarchy from the C# exceptions
+- All the examples must run successfully (target: 22/22 = 100%)
 - If the Senzing SDK function returns -2, create the proper error from the appropriate *_getLastException function.
 - Make sure all error checking and processing is happening in all the core functions
 - Make sure the tests are aligned with the detailed C# test analysis.
+- DEMAND that all native SDK errors are caught and mapped to SzErrors

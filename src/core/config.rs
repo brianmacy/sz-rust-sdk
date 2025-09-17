@@ -13,11 +13,6 @@ unsafe impl Send for SzConfigCore {}
 unsafe impl Sync for SzConfigCore {}
 
 impl SzConfigCore {
-    pub fn new() -> SzResult<Self> {
-        // Use minimal settings - config module may not need full database settings
-        Self::new_with_params("SzRustSDK-Config", "{}", false)
-    }
-
     pub fn new_with_params(
         module_name: &str,
         ini_params: &str,
@@ -44,18 +39,44 @@ impl SzConfigCore {
     }
 
     pub fn new_with_definition(config_definition: &str) -> SzResult<Self> {
-        let config = Self::new()?;
-        config.load_definition(config_definition)?;
-        Ok(config)
-    }
+        // Get environment parameters for proper initialization
+        match super::environment::SzEnvironmentCore::get_existing_instance() {
+            Ok(existing_env) => {
+                // Initialize the config module with parameters
+                let module_name_c = crate::ffi::helpers::str_to_c_string("SzRustSDK-Config")?;
+                let ini_params_c =
+                    crate::ffi::helpers::str_to_c_string(existing_env.get_ini_params())?;
+                let verbose = if existing_env.get_verbose_logging() {
+                    1
+                } else {
+                    0
+                };
 
-    fn load_definition(&self, config_definition: &str) -> SzResult<()> {
-        let config_def_c = crate::ffi::helpers::str_to_c_string(config_definition)?;
-        ffi_call_config!(crate::ffi::bindings::SzConfig_load_helper(
-            self.handle,
-            config_def_c.as_ptr()
-        ));
-        Ok(())
+                ffi_call_config!(crate::ffi::bindings::SzConfig_init(
+                    module_name_c.as_ptr(),
+                    ini_params_c.as_ptr(),
+                    verbose
+                ));
+
+                // Load the config definition directly - this returns the handle
+                let config_def_c = crate::ffi::helpers::str_to_c_string(config_definition)?;
+                let result =
+                    unsafe { crate::ffi::bindings::SzConfig_load_helper(config_def_c.as_ptr()) };
+                if result.return_code != 0 {
+                    crate::ffi::helpers::check_config_return_code(result.return_code)?;
+                }
+                let handle = result.response;
+
+                Ok(Self { handle })
+            }
+            Err(e) => {
+                // Error if no environment exists - don't create fake objects
+                Err(crate::error::SzError::configuration(format!(
+                    "Cannot create config with definition without initialized environment: {}",
+                    e
+                )))
+            }
+        }
     }
 }
 
@@ -67,15 +88,16 @@ impl SzConfig for SzConfigCore {
     }
 
     fn get_data_source_registry(&self) -> SzResult<JsonString> {
-        // This would require a specific FFI function for getting data source registry
-        // For now, we'll use export and extract the data source information
-        self.export()
+        // Use the native SzConfig_getDataSourceRegistry function instead of export
+        let result =
+            unsafe { crate::ffi::bindings::SzConfig_getDataSourceRegistry_helper(self.handle) };
+        unsafe { crate::ffi::helpers::process_config_pointer_result(result) }
     }
 
     fn register_data_source(&self, data_source_code: &str) -> SzResult<JsonString> {
-        // Create the proper JSON format for data source registration
-        let data_source_json = format!(r#"{{"DSRC_CODE": "{}"}}"#, data_source_code);
-        let data_source_c = crate::ffi::helpers::str_to_c_string(&data_source_json)?;
+        // Create JSON input as expected by native function (matching C# SDK behavior)
+        let json_input = format!(r#"{{"DSRC_CODE": "{}"}}"#, data_source_code);
+        let data_source_c = crate::ffi::helpers::str_to_c_string(&json_input)?;
 
         let result = unsafe {
             crate::ffi::bindings::SzConfig_registerDataSource_helper(
@@ -106,9 +128,11 @@ impl Drop for SzConfigCore {
                 let _ = crate::ffi::bindings::SzConfig_close_helper(self.handle);
             }
         }
-        // Config handles its own destruction as it's not tied to environment lifecycle
+        // NOTE: SzConfig_destroy() should only be called when the entire process is shutting down
+        // or when we're certain no other SzConfig instances will be needed.
+        // For now, we only clean up the handle and clear exceptions.
+        // Module destruction should be handled by a singleton manager or at process exit.
         unsafe {
-            let _ = crate::ffi::bindings::SzConfig_destroy();
             crate::ffi::bindings::SzConfig_clearLastException();
         }
     }

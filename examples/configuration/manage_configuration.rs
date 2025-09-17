@@ -50,9 +50,8 @@ fn display_current_config_status(config_mgr: &dyn SzConfigManager) -> SzResult<(
     let default_config_id = config_mgr.get_default_config_id()?;
     println!("Default Configuration ID: {}", default_config_id);
 
-    // Get the configuration and show some details
-    let config = config_mgr.create_config_from_id(default_config_id)?;
-    let data_source_registry = config.get_data_source_registry()?;
+    // Get the data source registry from config manager instead of individual config
+    let data_source_registry = config_mgr.get_config_registry()?;
 
     // Parse and display data sources
     match serde_json::from_str::<Value>(&data_source_registry) {

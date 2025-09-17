@@ -80,7 +80,7 @@ impl SzEnvironmentCore {
                         || existing_env.verbose_logging != verbose_logging
                     {
                         return Err(SzError::configuration(
-                            "Cannot change critical initialization parameters (ini_params, verbose_logging) after SzEnvironmentCore instance is created"
+                            "Cannot change critical initialization parameters (ini_params, verbose_logging) after SzEnvironmentCore instance is created",
                         ));
                     }
                     // Return the existing valid environment (module name can be different)

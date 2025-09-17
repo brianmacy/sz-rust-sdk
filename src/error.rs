@@ -277,7 +277,7 @@ pub unsafe fn c_str_to_sz_error(c_str: *const i8) -> SzError {
         return SzError::unknown("Unknown error occurred");
     }
 
-    match CStr::from_ptr(c_str).to_str() {
+    match unsafe { CStr::from_ptr(c_str) }.to_str() {
         Ok(error_msg) => SzError::unknown(error_msg),
         Err(_) => SzError::ffi("Failed to convert C string to Rust string"),
     }

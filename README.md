@@ -9,6 +9,8 @@ This SDK provides Rust developers with access to Senzing's powerful entity resol
 ## Features
 
 - **Type-Safe FFI Bindings** - Safe Rust wrappers around native Senzing functions
+- **Thread Pool Scaling** - Real OS thread scaling with per-thread engine instances
+- **High Performance** - Thread-safe engine operations designed for parallel processing
 - **Comprehensive Error Handling** - Structured error types with detailed error messages
 - **Database Isolation** - Automatic test database isolation for concurrent testing
 - **Entity Resolution** - Add, search, and resolve entities across data sources
@@ -97,6 +99,57 @@ Run examples with:
 cargo run --example minimal_test
 cargo run --example register_data_sources
 cargo run --example load_records
+```
+
+## Code Snippets
+
+The SDK provides comprehensive code snippets organized by category, providing complete feature parity with C# v4 code snippets:
+
+### Information Retrieval
+- **`information/get_version`** - Retrieve SDK and engine version information
+- **`information/get_license`** - Display licensing details and limits
+- **`information/database_demo`** - Database operations demonstration
+
+### Initialization & Configuration
+- **`initialization/environment_and_hubs`** - Environment setup and management
+- **`initialization/engine_priming`** - Engine performance optimization
+- **`initialization/purge_repository`** - Repository cleanup operations
+- **`configuration/init_default_config`** - Default configuration setup
+- **`configuration/register_data_sources`** - Data source registration
+
+### Loading Operations
+- **`loading/load_records`** - Basic record loading
+- **`loading/load_via_loop`** - Batch loading with monitoring
+- **`loading/load_via_loop_async`** - Asynchronous batch loading coordination
+
+### Search Operations
+- **`searching/search_records`** - Entity search by attributes
+- **`searching/search_async`** - Asynchronous search coordination
+- **`searching/why_search`** - Understanding search results
+
+### Deletion Operations
+- **`deleting/delete_records`** - Basic record deletion
+- **`deleting/delete_via_loop`** - Batch deletion with retry logic
+
+### Redo Processing
+- **`redo/load_with_redo_via_loop`** - Loading with redo processing phases
+- **`redo/redo_continuous`** - Continuous redo monitoring
+- **`redo/redo_continuous_via_futures`** - Async redo processing with tokio
+- **`redo/redo_with_info_continuous`** - Comprehensive redo tracking
+
+### Stewardship Operations
+- **`stewardship/force_resolve`** - Manual entity resolution forcing
+- **`stewardship/force_unresolve`** - Manual entity separation
+
+Run all code snippets with:
+```bash
+./run_all_code_snippets.sh
+```
+
+Run individual snippets with:
+```bash
+cd code-snippets/rust/snippets/[category]/[example]
+cargo run
 ```
 
 ## Development

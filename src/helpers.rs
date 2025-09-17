@@ -185,11 +185,16 @@ impl ExampleEnvironment {
         Ok(())
     }
 
-    /// Clean up the current test database (only for isolated test scenarios)
-    /// For shared database tests, this is a no-op to prevent premature cleanup
+    /// Clean up the current test database and destroy the global environment
+    /// This allows a new environment to be created that will pick up updated configurations
     pub fn cleanup() -> SzResult<()> {
-        // When using shared database, don't clean up individual test databases
-        // The shared database will be cleaned up at process exit
+        println!("Cleaning up environment for configuration reinitialization...");
+
+        // Destroy the global environment instance so the next initialization
+        // will pick up any configuration changes that were made
+        crate::core::environment::SzEnvironmentCore::destroy_global_instance()?;
+
+        println!("✅ Environment cleanup complete");
         Ok(())
     }
     /// Create and initialize a Senzing environment for examples using singleton pattern
@@ -261,6 +266,30 @@ impl ExampleEnvironment {
     }
 
     /// Get the standard Senzing configuration for examples with shared database
+    fn get_configuration_verbose() -> SzResult<String> {
+        if let Ok(config) = std::env::var("SENZING_ENGINE_CONFIGURATION_JSON") {
+            return Ok(config);
+        }
+
+        // Use a single shared database path for all tests to avoid Senzing library conflicts
+        // The isolation will come from destroying and recreating the environment between tests
+        static SHARED_DB_PATH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+        let db_path = SHARED_DB_PATH.get_or_init(|| {
+            let path = Self::setup_test_database()
+                .unwrap_or_else(|_| "/tmp/senzing_shared_test.db".to_string());
+            println!("Using shared test database: {}", path);
+            path
+        });
+
+        let config = format!(
+            r#"{{"PIPELINE":{{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}","DEBUGLEVEL":"2"}}}}"#,
+            db_path
+        );
+
+        Ok(config)
+    }
+
+    /// Get the standard Senzing configuration for examples with shared database
     fn get_configuration() -> SzResult<String> {
         if let Ok(config) = std::env::var("SENZING_ENGINE_CONFIGURATION_JSON") {
             return Ok(config);
@@ -286,10 +315,10 @@ impl ExampleEnvironment {
 
     /// Initialize with verbose logging for debugging using singleton pattern
     pub fn initialize_verbose(instance_name: &str) -> SzResult<std::sync::Arc<SzEnvironmentCore>> {
-        let settings = Self::get_configuration()?;
+        let settings = Self::get_configuration_verbose()?;
 
         // Try with verbose logging enabled using singleton pattern
-        match SzEnvironmentCore::get_instance(instance_name, &settings, false) {
+        match SzEnvironmentCore::get_instance(instance_name, &settings, true) {
             Ok(env) => Ok(env),
             Err(e) => {
                 // Use proper error hierarchy instead of string matching

@@ -9,7 +9,7 @@ fn main() -> SzResult<()> {
     println!("=== Test Config Manager via SzEnvironment Trait ===\n");
 
     // Remove any existing environment configuration to use isolated database
-    std::env::remove_var("SENZING_ENGINE_CONFIGURATION_JSON");
+    unsafe { std::env::remove_var("SENZING_ENGINE_CONFIGURATION_JSON") };
 
     println!("Testing configuration setup via singleton environment trait...");
 

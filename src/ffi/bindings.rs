@@ -75,7 +75,7 @@ unsafe extern "C" {
     ) -> SzPointerResult;
 
     pub fn Sz_deleteRecord(data_source_code: *const c_char, record_id: *const c_char)
-        -> c_longlong;
+    -> c_longlong;
 
     pub fn Sz_deleteRecordWithInfo_helper(
         data_source_code: *const c_char,
@@ -134,6 +134,30 @@ unsafe extern "C" {
 
     pub fn Sz_countRedoRecords() -> c_longlong;
 
+    // Critical missing stewardship and analysis functions for 100% C# SDK parity
+    pub fn Sz_reevaluateEntityWithInfo_helper(
+        entity_id: c_longlong,
+        flags: c_longlong,
+    ) -> SzPointerResult;
+
+    pub fn Sz_reevaluateRecordWithInfo_helper(
+        data_source_code: *const c_char,
+        record_id: *const c_char,
+        flags: c_longlong,
+    ) -> SzPointerResult;
+
+    pub fn Sz_whyRecordInEntity_helper(
+        data_source_code: *const c_char,
+        record_id: *const c_char,
+        flags: c_longlong,
+    ) -> SzPointerResult;
+
+    pub fn Sz_whyEntities_helper(
+        entity_id1: c_longlong,
+        entity_id2: c_longlong,
+        flags: c_longlong,
+    ) -> SzPointerResult;
+
     // Config functions
     pub fn SzConfig_init(
         module_name: *const c_char,
@@ -145,12 +169,11 @@ unsafe extern "C" {
 
     pub fn SzConfig_close_helper(config_handle: *const c_char) -> c_longlong;
 
-    pub fn SzConfig_load_helper(
-        config_handle: *const c_char,
-        config_definition: *const c_char,
-    ) -> c_longlong;
+    pub fn SzConfig_load_helper(config_definition: *const c_char) -> SzPointerResult;
 
     pub fn SzConfig_export_helper(config_handle: *const c_char) -> SzPointerResult;
+
+    pub fn SzConfig_getDataSourceRegistry_helper(config_handle: *const c_char) -> SzPointerResult;
 
     pub fn SzConfig_registerDataSource(
         config_handle: *const c_char,

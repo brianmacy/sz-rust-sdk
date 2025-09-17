@@ -1,0 +1,12 @@
+[package]
+name = "load_via_loop_threadpool"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
+[dependencies]
+sz-rust-sdk = { path = "../../../../.." }
+serde_json = "1.0"

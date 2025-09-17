@@ -10,7 +10,7 @@ fn main() -> SzResult<()> {
     println!("=== Debug Settings String ===\n");
 
     // Remove any existing environment configuration to use isolated database
-    std::env::remove_var("SENZING_ENGINE_CONFIGURATION_JSON");
+    unsafe { std::env::remove_var("SENZING_ENGINE_CONFIGURATION_JSON") };
 
     // Generate an isolated database configuration
     // Note: This example tests string handling and direct Sz_init calls
@@ -126,7 +126,9 @@ fn main() -> SzResult<()> {
 
             // Check if this is the expected SENZ7220 configuration error
             if error_msg.contains("SENZ7220") {
-                println!("✅ Got expected SENZ7220 error - string handling and FFI calls working correctly");
+                println!(
+                    "✅ Got expected SENZ7220 error - string handling and FFI calls working correctly"
+                );
                 println!("   This demonstrates the debug utility is working properly");
             } else {
                 // Sz_init failed with an unexpected error, so this test should fail

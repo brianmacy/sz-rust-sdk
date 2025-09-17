@@ -24,7 +24,7 @@ fn main() -> SzResult<()> {
     // Test 2: Create first instance with specific parameters
     println!("\n2. Creating first instance with specific parameters...");
     // Remove any existing environment configuration
-    std::env::remove_var("SENZING_ENGINE_CONFIGURATION_JSON");
+    unsafe { std::env::remove_var("SENZING_ENGINE_CONFIGURATION_JSON") };
 
     // Use a test settings string since this test is focused on singleton pattern validation
     // not actual database connectivity. The settings don't need to be valid for this test.
@@ -68,18 +68,31 @@ fn main() -> SzResult<()> {
         return Err(SzError::unknown("Different instances returned".to_string()));
     }
 
-    // Test 5: Try to call get_instance with different module name - should fail
+    // Test 5: Try to call get_instance with different module name - should succeed (module name can differ)
     println!("\n5. Testing get_instance() with different module name...");
     match SzEnvironmentCore::get_instance("test-module-2", settings, true) {
-        Ok(_) => {
-            println!("❌ ERROR: get_instance() with different module name should have failed!");
-            return Err(SzError::unknown("Parameter validation failed".to_string()));
+        Ok(env3) => {
+            println!(
+                "✅ get_instance() with different module name succeeded (module names can differ)"
+            );
+
+            // Should return the same instance since settings and verbose match
+            let same_as_first = std::sync::Arc::ptr_eq(&env1, &env3);
+            if same_as_first {
+                println!("✅ Returned the same singleton instance despite different module name");
+            } else {
+                println!("❌ ERROR: Should have returned the same singleton instance");
+                return Err(SzError::unknown(
+                    "Different instances returned for same critical parameters".to_string(),
+                ));
+            }
         }
         Err(e) => {
             println!(
-                "✅ get_instance() with different module name correctly failed: {}",
+                "❌ ERROR: get_instance() with different module name should have succeeded: {}",
                 e
             );
+            return Err(e);
         }
     }
 

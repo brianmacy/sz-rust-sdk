@@ -36,7 +36,7 @@ use sz_rust_sdk::prelude::*;
 /// Main entry point for the performance check example
 fn main() -> SzResult<()> {
     // Enable backtrace for Senzing error debugging
-    std::env::set_var("RUST_BACKTRACE", "1");
+    unsafe { std::env::set_var("RUST_BACKTRACE", "1") };
 
     if let Err(e) = run_performance_check() {
         // Use Senzing SDK's enhanced error reporting

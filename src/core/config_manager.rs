@@ -27,9 +27,12 @@ impl SzConfigManagerCore {
                     existing_env.get_verbose_logging(),
                 )
             }
-            Err(_) => {
-                // No existing environment, fallback to default empty config
-                Self::new_with_params("SzRustSDK-ConfigMgr", "{}", false)
+            Err(e) => {
+                // Error if no environment exists - don't create fake objects
+                Err(crate::error::SzError::configuration(format!(
+                    "Cannot create config manager without initialized environment: {}",
+                    e
+                )))
             }
         }
     }
@@ -59,18 +62,34 @@ impl SzConfigManagerCore {
 
 impl SzConfigManager for SzConfigManagerCore {
     fn create_config(&self) -> SzResult<Box<dyn SzConfig>> {
-        // Create config with empty settings - the config module will use defaults
-        let config_core = super::config::SzConfigCore::new_with_params(
-            "SzRustSDK-Config",
-            "{}",  // Empty settings for config creation
-            false, // Use quiet logging to match environment
-        )?;
-        Ok(Box::new(config_core))
+        // Get current environment to use its full configuration
+        match super::environment::SzEnvironmentCore::get_existing_instance() {
+            Ok(existing_env) => {
+                // Use the same parameters as the environment
+                let config_core = super::config::SzConfigCore::new_with_params(
+                    "SzRustSDK-Config",
+                    existing_env.get_ini_params(), // Full environment config
+                    existing_env.get_verbose_logging(), // Correct verbose setting
+                )?;
+                Ok(Box::new(config_core))
+            }
+            Err(e) => {
+                // Error if no environment exists - don't create fake objects
+                Err(crate::error::SzError::configuration(format!(
+                    "Cannot create config without initialized environment: {}",
+                    e
+                )))
+            }
+        }
     }
 
     fn create_config_from_id(&self, config_id: ConfigId) -> SzResult<Box<dyn SzConfig>> {
+        // Get the configuration definition from the config manager
         let result = unsafe { crate::ffi::bindings::SzConfigMgr_getConfig_helper(config_id) };
-        let config_definition = unsafe { crate::ffi::helpers::process_pointer_result(result) }?;
+        let config_definition =
+            unsafe { crate::ffi::helpers::process_config_mgr_pointer_result(result) }?;
+
+        // Create a new config and then load the definition
         let config_core = super::config::SzConfigCore::new_with_definition(&config_definition)?;
         Ok(Box::new(config_core))
     }
@@ -143,9 +162,11 @@ impl SzConfigManager for SzConfigManagerCore {
 
 impl Drop for SzConfigManagerCore {
     fn drop(&mut self) {
-        // Config manager handles its own destruction as it's not tied to environment lifecycle
+        // NOTE: SzConfigMgr_destroy() should only be called when the entire process is shutting down
+        // or when we're certain no other SzConfigManager instances will be needed.
+        // For now, we only clear exceptions.
+        // Module destruction should be handled by a singleton manager or at process exit.
         unsafe {
-            let _ = crate::ffi::bindings::SzConfigMgr_destroy();
             crate::ffi::bindings::SzConfigMgr_clearLastException();
         }
     }

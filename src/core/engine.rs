@@ -102,8 +102,14 @@ impl SzEngine for SzEngineCore {
         entity_id: EntityId,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // This would require a specific FFI function for reevaluate entity
-        Err(SzError::unknown("reevaluate_entity not yet implemented"))
+        let flags_value =
+            flags.unwrap_or(SzFlags::REEVALUATE_ENTITY_DEFAULT).bits() as libc::c_longlong;
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_reevaluateEntityWithInfo_helper(entity_id, flags_value)
+        };
+
+        unsafe { crate::ffi::helpers::process_pointer_result(result) }
     }
 
     fn search_by_attributes(
@@ -276,8 +282,13 @@ impl SzEngine for SzEngineCore {
         entity_id2: EntityId,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // This would require a specific FFI function for why entity
-        Err(SzError::unknown("why_entity not yet implemented"))
+        let flags_value = flags.unwrap_or(SzFlags::WHY_ENTITY_DEFAULT).bits() as libc::c_longlong;
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_whyEntities_helper(entity_id1, entity_id2, flags_value)
+        };
+
+        unsafe { crate::ffi::helpers::process_pointer_result(result) }
     }
 
     fn why_records(

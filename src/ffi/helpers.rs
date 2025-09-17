@@ -33,7 +33,7 @@ pub unsafe fn c_str_to_string(ptr: *mut c_char) -> SzResult<String> {
         return Ok(String::new());
     }
 
-    let c_str = CStr::from_ptr(ptr);
+    let c_str = unsafe { CStr::from_ptr(ptr) };
     let result = match c_str.to_str() {
         Ok(s) => Ok(s.to_string()),
         Err(_) => {
@@ -45,7 +45,7 @@ pub unsafe fn c_str_to_string(ptr: *mut c_char) -> SzResult<String> {
     };
 
     // Free the C string memory using Senzing's free function
-    super::bindings::Sz_free(ptr);
+    unsafe { super::bindings::Sz_free(ptr) };
 
     result
 }
@@ -61,7 +61,7 @@ pub unsafe fn c_str_to_string_no_free(ptr: *mut c_char) -> SzResult<String> {
         return Ok(String::new());
     }
 
-    let c_str = CStr::from_ptr(ptr);
+    let c_str = unsafe { CStr::from_ptr(ptr) };
     match c_str.to_str() {
         Ok(s) => Ok(s.to_string()),
         Err(_) => {
@@ -82,7 +82,7 @@ pub unsafe fn process_pointer_result(result: super::bindings::SzPointerResult) -
         return Err(SzError::from_code(result.return_code));
     }
 
-    c_str_to_string(result.response)
+    unsafe { c_str_to_string(result.response) }
 }
 
 /// Processes an SzPointerResult from config helper functions
@@ -99,7 +99,7 @@ pub unsafe fn process_config_pointer_result(
         unreachable!("check_config_return_code should have returned an error");
     }
 
-    c_str_to_string(result.response)
+    unsafe { c_str_to_string(result.response) }
 }
 
 /// Processes an SzPointerResult from config helper functions and returns raw bytes
@@ -116,7 +116,7 @@ pub unsafe fn process_config_pointer_result_bytes(
         unreachable!("check_config_return_code should have returned an error");
     }
 
-    c_str_to_bytes(result.response)
+    unsafe { c_str_to_bytes(result.response) }
 }
 
 /// Processes an SzPointerResult from engine helper functions
@@ -133,7 +133,7 @@ pub unsafe fn process_engine_pointer_result(
         unreachable!("check_return_code should have returned an error");
     }
 
-    c_str_to_string(result.response)
+    unsafe { c_str_to_string(result.response) }
 }
 
 /// Converts C string to raw bytes for handle storage
@@ -147,11 +147,11 @@ pub unsafe fn c_str_to_bytes(ptr: *mut c_char) -> SzResult<Vec<u8>> {
         return Ok(Vec::new());
     }
 
-    let c_str = CStr::from_ptr(ptr);
+    let c_str = unsafe { CStr::from_ptr(ptr) };
     let bytes = c_str.to_bytes().to_vec();
 
     // Free the C string memory using Senzing's free function
-    super::bindings::Sz_free(ptr);
+    unsafe { super::bindings::Sz_free(ptr) };
 
     Ok(bytes)
 }
@@ -170,7 +170,7 @@ pub unsafe fn process_config_mgr_pointer_result(
         unreachable!("check_config_mgr_return_code should have returned an error");
     }
 
-    c_str_to_string(result.response)
+    unsafe { c_str_to_string(result.response) }
 }
 
 /// Processes an SzLongResult from config manager helper functions
