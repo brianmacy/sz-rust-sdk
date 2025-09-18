@@ -150,7 +150,7 @@ Each snippet follows these principles:
 The snippets use automatic database configuration, but you can override with:
 
 ```bash
-export SENZING_ENGINE_CONFIGURATION_JSON='{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"},"SQL":{"CONNECTION":"sqlite3://na:na@/tmp/G2C.db"}}'
+export SENZING_ENGINE_CONFIGURATION_JSON='{% raw %}{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"},"SQL":{"CONNECTION":"sqlite3://na:na@/tmp/G2C.db"}}{% endraw %}'
 ```
 
 ## Performance Notes

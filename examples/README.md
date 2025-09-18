@@ -16,13 +16,13 @@ Before running these examples, ensure you have:
 Set the required environment variable:
 
 ```bash
-export SENZING_ENGINE_CONFIGURATION_JSON='{"PIPELINE": {"CONFIGPATH": "/path/to/config", "RESOURCEPATH": "/path/to/resources", "SUPPORTPATH": "/path/to/support"}}'
+export SENZING_ENGINE_CONFIGURATION_JSON='{% raw %}{"PIPELINE": {"CONFIGPATH": "/path/to/config", "RESOURCEPATH": "/path/to/resources", "SUPPORTPATH": "/path/to/support"}}{% endraw %}'
 ```
 
 Or create a `.env` file in the project root:
 
 ```env
-SENZING_ENGINE_CONFIGURATION_JSON={"PIPELINE": {"CONFIGPATH": "/path/to/config", "RESOURCEPATH": "/path/to/resources", "SUPPORTPATH": "/path/to/support"}}
+SENZING_ENGINE_CONFIGURATION_JSON={% raw %}{"PIPELINE": {"CONFIGPATH": "/path/to/config", "RESOURCEPATH": "/path/to/resources", "SUPPORTPATH": "/path/to/support"}}{% endraw %}
 ```
 
 ## Running Examples

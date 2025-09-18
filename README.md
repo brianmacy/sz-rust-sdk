@@ -221,7 +221,7 @@ Senzing configuration can be provided through:
 
 1. **Environment Variable**:
    ```bash
-   export SENZING_ENGINE_CONFIGURATION_JSON='{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing",...}}'
+   export SENZING_ENGINE_CONFIGURATION_JSON='{% raw %}{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing",...}}{% endraw %}'
    ```
 
 2. **Automatic Setup**: The SDK will automatically configure appropriate settings for development and testing.
