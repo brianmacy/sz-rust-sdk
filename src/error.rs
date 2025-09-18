@@ -15,6 +15,13 @@
 //! * [`SzError::Retryable`] - Temporary errors that can be retried
 //! * [`SzError::Unrecoverable`] - Fatal errors requiring reinitialization
 //! * [`SzError::License`] - Licensing issues
+//! * [`SzError::NotInitialized`] - System not initialized errors
+//! * [`SzError::DatabaseConnectionLost`] - Database connectivity lost
+//! * [`SzError::DatabaseTransient`] - Temporary database issues
+//! * [`SzError::ReplaceConflict`] - Data replacement conflicts
+//! * [`SzError::RetryTimeoutExceeded`] - Retry timeout exceeded
+//! * [`SzError::Unhandled`] - Unhandled errors
+//! * [`SzError::UnknownDataSource`] - Unknown data source errors
 //! * [`SzError::Unknown`] - Unexpected or unclassified errors
 //!
 //! # Examples
@@ -130,6 +137,62 @@ pub enum SzError {
         source: Option<Box<dyn std::error::Error + Send + Sync>>,
     },
 
+    /// System not initialized errors
+    #[error("Not initialized: {message}")]
+    NotInitialized {
+        message: String,
+        #[source]
+        source: Option<Box<dyn std::error::Error + Send + Sync>>,
+    },
+
+    /// Database connection lost errors
+    #[error("Database connection lost: {message}")]
+    DatabaseConnectionLost {
+        message: String,
+        #[source]
+        source: Option<Box<dyn std::error::Error + Send + Sync>>,
+    },
+
+    /// Database transient errors
+    #[error("Database transient error: {message}")]
+    DatabaseTransient {
+        message: String,
+        #[source]
+        source: Option<Box<dyn std::error::Error + Send + Sync>>,
+    },
+
+    /// Replace conflict errors
+    #[error("Replace conflict: {message}")]
+    ReplaceConflict {
+        message: String,
+        #[source]
+        source: Option<Box<dyn std::error::Error + Send + Sync>>,
+    },
+
+    /// Retry timeout exceeded errors
+    #[error("Retry timeout exceeded: {message}")]
+    RetryTimeoutExceeded {
+        message: String,
+        #[source]
+        source: Option<Box<dyn std::error::Error + Send + Sync>>,
+    },
+
+    /// Unhandled errors
+    #[error("Unhandled error: {message}")]
+    Unhandled {
+        message: String,
+        #[source]
+        source: Option<Box<dyn std::error::Error + Send + Sync>>,
+    },
+
+    /// Unknown data source errors
+    #[error("Unknown data source: {message}")]
+    UnknownDataSource {
+        message: String,
+        #[source]
+        source: Option<Box<dyn std::error::Error + Send + Sync>>,
+    },
+
     /// FFI-related errors
     #[error("FFI error: {message}")]
     Ffi {
@@ -220,6 +283,62 @@ impl SzError {
         }
     }
 
+    /// Creates a new NotInitialized error
+    pub fn not_initialized<S: Into<String>>(message: S) -> Self {
+        Self::NotInitialized {
+            message: message.into(),
+            source: None,
+        }
+    }
+
+    /// Creates a new DatabaseConnectionLost error
+    pub fn database_connection_lost<S: Into<String>>(message: S) -> Self {
+        Self::DatabaseConnectionLost {
+            message: message.into(),
+            source: None,
+        }
+    }
+
+    /// Creates a new DatabaseTransient error
+    pub fn database_transient<S: Into<String>>(message: S) -> Self {
+        Self::DatabaseTransient {
+            message: message.into(),
+            source: None,
+        }
+    }
+
+    /// Creates a new ReplaceConflict error
+    pub fn replace_conflict<S: Into<String>>(message: S) -> Self {
+        Self::ReplaceConflict {
+            message: message.into(),
+            source: None,
+        }
+    }
+
+    /// Creates a new RetryTimeoutExceeded error
+    pub fn retry_timeout_exceeded<S: Into<String>>(message: S) -> Self {
+        Self::RetryTimeoutExceeded {
+            message: message.into(),
+            source: None,
+        }
+    }
+
+    /// Creates a new Unhandled error
+    pub fn unhandled<S: Into<String>>(message: S) -> Self {
+        Self::Unhandled {
+            message: message.into(),
+            source: None,
+        }
+    }
+
+    /// Creates a new UnknownDataSource error
+    pub fn unknown_data_source<S: Into<String>>(message: S) -> Self {
+        Self::UnknownDataSource {
+            message: message.into(),
+            source: None,
+        }
+    }
+
     /// Returns true if this error indicates the operation should be retried
     pub fn is_retryable(&self) -> bool {
         matches!(self, SzError::Retryable { .. })
@@ -230,19 +349,26 @@ impl SzError {
         matches!(self, SzError::Unrecoverable { .. })
     }
 
-    /// Creates an error from a return code
-    pub fn from_code(return_code: i64) -> Self {
-        let error_msg = format!("Native error (code: {})", return_code);
+    /// Creates an error from getLastExceptionCode()
+    pub fn from_code(error_code: i64) -> Self {
+        let error_msg = format!("Native error (code: {})", error_code);
 
-        match return_code {
-            -1 => Self::unknown(error_msg),
-            -2 => Self::configuration(error_msg),
-            -3 => Self::bad_input(error_msg),
-            -4 => Self::retryable(error_msg),
-            -5 => Self::unrecoverable(error_msg),
-            -6 => Self::not_found(error_msg),
-            -7 => Self::license(error_msg),
-            -8 => Self::database(error_msg),
+        match error_code {
+            // Specific error codes that map to new error types (check these first)
+            47..=63 => Self::not_initialized(error_msg), // Not initialized errors
+
+            // Detailed error code ranges from getLastExceptionCode()
+            0..=46 | 64..=100 => Self::bad_input(error_msg), // Bad input range (excluding not_initialized)
+            999 => Self::license(error_msg),                 // License error
+            1000..=1020 => Self::database(error_msg),        // Database errors
+            2000..=2300 => Self::configuration(error_msg),   // Configuration errors
+            7200..=7299 => Self::configuration(error_msg),   // Configuration errors (extended)
+            7301..=7400 => Self::bad_input(error_msg),       // Bad input errors (extended)
+            8500..=8600 => Self::database(error_msg),        // Secure storage/database
+            9000..=9099 | 9201..=9999 => Self::license(error_msg), // License errors (extended)
+            9100..=9200 => Self::configuration(error_msg),   // Configuration errors (extended)
+
+            // Default to unknown for any other codes
             _ => Self::unknown(error_msg),
         }
     }
@@ -281,5 +407,73 @@ pub(crate) unsafe fn c_str_to_sz_error(c_str: *const i8) -> SzError {
     match unsafe { CStr::from_ptr(c_str) }.to_str() {
         Ok(error_msg) => SzError::unknown(error_msg),
         Err(_) => SzError::ffi("Failed to convert C string to Rust string"),
+    }
+}
+
+#[cfg(test)]
+mod test_error_mapping {
+    use super::*;
+
+    #[test]
+    fn test_error_code_7220_maps_to_configuration() {
+        let error = SzError::from_code(7220);
+        match error {
+            SzError::Configuration { message, .. } => {
+                assert_eq!(message, "Native error (code: 7220)");
+            }
+            _ => panic!(
+                "Error code 7220 should map to Configuration, got: {:?}",
+                error
+            ),
+        }
+    }
+
+    #[test]
+    fn test_not_initialized_error_codes() {
+        for code in 47..=63 {
+            let error = SzError::from_code(code);
+            match error {
+                SzError::NotInitialized { .. } => {
+                    // Expected
+                }
+                _ => panic!(
+                    "Error code {} should map to NotInitialized, got: {:?}",
+                    code, error
+                ),
+            }
+        }
+    }
+
+    #[test]
+    fn test_license_error_code_999() {
+        let error = SzError::from_code(999);
+        match error {
+            SzError::License { .. } => {
+                // Expected
+            }
+            _ => panic!("Error code 999 should map to License, got: {:?}", error),
+        }
+    }
+
+    #[test]
+    fn test_database_error_range() {
+        let error = SzError::from_code(1010);
+        match error {
+            SzError::Database { .. } => {
+                // Expected
+            }
+            _ => panic!("Error code 1010 should map to Database, got: {:?}", error),
+        }
+    }
+
+    #[test]
+    fn test_unknown_error_default() {
+        let error = SzError::from_code(99999);
+        match error {
+            SzError::Unknown { .. } => {
+                // Expected
+            }
+            _ => panic!("Error code 99999 should map to Unknown, got: {:?}", error),
+        }
     }
 }
