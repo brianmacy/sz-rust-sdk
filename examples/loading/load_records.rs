@@ -1,9 +1,4 @@
-//! Load Records Example
-//!
-//! This example demonstrates how to load records into the Senzing repository
-//! for entity resolution processing.
-//!
-//! Run with: cargo run --example load_records
+//! Load records into the Senzing repository for entity resolution
 
 use std::collections::HashMap;
 use sz_rust_sdk::helpers::ExampleEnvironment;

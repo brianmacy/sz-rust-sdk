@@ -1,13 +1,4 @@
-//! Load Records Example
-//!
-//! This example demonstrates the basic Senzing SDK pattern for loading records.
-//!
-//! Key Senzing SDK concepts demonstrated:
-//! - Environment initialization with database configuration
-//! - Getting an engine instance for data operations
-//! - Adding records using add_record() method
-//! - Proper error handling with SzResult
-//! - Resource cleanup
+//! Load records into Senzing repository
 
 use serde_json::json;
 use sz_rust_sdk::prelude::*;

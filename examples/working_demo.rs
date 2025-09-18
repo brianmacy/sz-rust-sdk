@@ -3,7 +3,6 @@
 //! This example demonstrates SDK functionality that works with basic configuration.
 //! It focuses on operations that succeed with the current setup.
 //!
-//! Run with: cargo run --example working_demo
 
 use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;

@@ -3,7 +3,6 @@
 //! This example demonstrates basic SDK initialization and successful operations.
 //! It uses the ExampleEnvironment helper for reliable setup.
 //!
-//! Run with: cargo run --example simple_demo
 
 use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;

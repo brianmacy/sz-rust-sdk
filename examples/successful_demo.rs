@@ -1,9 +1,8 @@
-//! Successful Demo Example
+//! Successful Demo
 //!
 //! This example demonstrates how to use the ExampleEnvironment helper
 //! to create a working Senzing environment and perform operations successfully.
 //!
-//! Run with: cargo run --example successful_demo
 
 use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;

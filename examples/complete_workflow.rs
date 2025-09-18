@@ -1,9 +1,8 @@
-//! Complete Workflow Example
+//! Complete Workflow
 //!
 //! This example demonstrates a complete end-to-end workflow with the Senzing Rust SDK,
 //! including initialization, searching, and analysis using working operations.
 //!
-//! Run with: cargo run --example complete_workflow
 
 use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;

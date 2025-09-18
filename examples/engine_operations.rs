@@ -1,9 +1,8 @@
-//! Engine Operations Example
+//! Engine Operations
 //!
 //! This example demonstrates successful Senzing engine operations
 //! including search and network analysis operations.
 //!
-//! Run with: cargo run --example engine_operations
 
 use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;

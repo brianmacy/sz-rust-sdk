@@ -1,9 +1,4 @@
-//! Search Records Example
-//!
-//! This example demonstrates how to search for entities by attributes
-//! using the Senzing search functionality.
-//!
-//! Run with: cargo run --example search_records
+//! Search for entities by attributes using Senzing search functionality
 
 use serde_json::Value;
 use sz_rust_sdk::helpers::ExampleEnvironment;

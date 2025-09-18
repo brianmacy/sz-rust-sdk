@@ -131,3 +131,4 @@ This is a Rust SDK for Senzing entity resolution engine following the same patte
 - DEMAND that all native SDK errors are caught and mapped to SzErrors
 - DEMAND code-snippets are minimal demonstrations of a single concept and should limit themselves to the minimal needed to know to accomplish the specific task.  Also, document the Senzing SDK usage well.
 - DEMAND all SDK methods must be implemented and tested
+- DEMAND read both user and project requirements

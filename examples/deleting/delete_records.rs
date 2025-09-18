@@ -1,9 +1,8 @@
-//! Delete Records Example
+//! Delete Records
 //!
 //! This example demonstrates how to delete records from the Senzing repository
 //! and observe the impact on entity resolution.
 //!
-//! Run with: cargo run --example delete_records
 
 use serde_json::Value;
 use std::collections::HashMap;
