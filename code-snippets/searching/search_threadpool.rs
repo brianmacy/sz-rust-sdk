@@ -341,7 +341,7 @@ fn analyze_search_results(results: &[SearchResult], total_time: Duration) {
 
     let total_matches: usize = results.iter().map(|r| r.match_count).sum();
     let avg_search_time: f64 =
-        results.iter().map(|r| r.search_time_ms as f64).sum::<f64>() / results.len() as f64;
+        results.iter().map(|r| r.search_time_ms).sum::<f64>() / results.len() as f64;
 
     let fastest = results.iter().min_by(|a, b| a.search_time_ms.partial_cmp(&b.search_time_ms).unwrap_or(std::cmp::Ordering::Equal)).unwrap();
     let slowest = results.iter().max_by(|a, b| a.search_time_ms.partial_cmp(&b.search_time_ms).unwrap_or(std::cmp::Ordering::Equal)).unwrap();

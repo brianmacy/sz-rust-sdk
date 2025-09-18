@@ -164,7 +164,7 @@ impl SzEngine for SzEngineCore {
     ) -> SzResult<JsonString> {
         let attributes_c = crate::ffi::helpers::str_to_c_string(attributes)?;
         let search_profile_c = search_profile
-            .map(|profile| crate::ffi::helpers::str_to_c_string(profile))
+            .map(crate::ffi::helpers::str_to_c_string)
             .transpose()?;
         let search_profile_ptr = search_profile_c
             .as_ref()
