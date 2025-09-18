@@ -267,12 +267,13 @@ impl SzError {
     }
 }
 
-/// Utility function to convert C string errors to SzError
+/// Utility function to convert C string errors to SzError (Internal)
 ///
 /// # Safety
 ///
 /// The caller must ensure that `c_str` is either null or points to a valid null-terminated C string.
-pub unsafe fn c_str_to_sz_error(c_str: *const i8) -> SzError {
+#[allow(dead_code)]
+pub(crate) unsafe fn c_str_to_sz_error(c_str: *const i8) -> SzError {
     if c_str.is_null() {
         return SzError::unknown("Unknown error occurred");
     }

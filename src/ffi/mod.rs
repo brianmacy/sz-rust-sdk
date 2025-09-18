@@ -5,11 +5,12 @@
 //! and not part of the public API.
 
 #[allow(unused_imports, dead_code)]
-pub mod bindings;
+pub(crate) mod bindings;
 #[allow(unused_imports, dead_code)]
-pub mod helpers;
+pub(crate) mod helpers;
 
+// Re-export for internal crate use only
 #[allow(unused_imports)]
-pub use bindings::*;
+pub(crate) use bindings::*;
 #[allow(unused_imports)]
-pub use helpers::*;
+pub(crate) use helpers::*;

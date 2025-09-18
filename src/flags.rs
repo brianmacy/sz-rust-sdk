@@ -2,11 +2,17 @@
 //!
 //! This module defines the bitflags used to control the behavior of various
 //! Senzing SDK operations, mirroring the C# SDK's SzFlag enumeration.
+//!
+//! For comprehensive flag documentation and usage examples, see:
+//! <https://www.senzing.com/docs/flags/4/>
 
 use bitflags::bitflags;
 
 bitflags! {
     /// Bitflags for controlling Senzing SDK operations
+    ///
+    /// For detailed flag descriptions and usage patterns, see the official documentation:
+    /// <https://www.senzing.com/docs/flags/4/>
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     #[repr(transparent)]
     pub struct SzFlags: u64 {

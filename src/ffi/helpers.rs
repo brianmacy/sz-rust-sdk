@@ -5,13 +5,13 @@ use libc::{c_char, size_t};
 use std::ffi::{CStr, CString};
 use std::ptr;
 
-/// Converts a Rust string to a C string
-pub fn str_to_c_string(s: &str) -> SzResult<CString> {
+/// Converts a Rust string to a C string (Internal)
+pub(crate) fn str_to_c_string(s: &str) -> SzResult<CString> {
     CString::new(s).map_err(SzError::from)
 }
 
 /// Converts an optional Rust string to a C string pointer
-pub fn optional_str_to_c_ptr(s: Option<&str>) -> SzResult<*const c_char> {
+pub(crate) fn optional_str_to_c_ptr(s: Option<&str>) -> SzResult<*const c_char> {
     match s {
         Some(s) => {
             let c_string = str_to_c_string(s)?;
@@ -28,7 +28,7 @@ pub fn optional_str_to_c_ptr(s: Option<&str>) -> SzResult<*const c_char> {
 ///
 /// The caller must ensure that `ptr` is either null or a valid pointer to a null-terminated C string
 /// that was allocated by the Senzing library and can be freed with `Sz_free`.
-pub unsafe fn c_str_to_string(ptr: *mut c_char) -> SzResult<String> {
+pub(crate) unsafe fn c_str_to_string(ptr: *mut c_char) -> SzResult<String> {
     if ptr.is_null() {
         return Ok(String::new());
     }
@@ -56,7 +56,7 @@ pub unsafe fn c_str_to_string(ptr: *mut c_char) -> SzResult<String> {
 ///
 /// The caller must ensure that ptr is either null or points to a valid
 /// null-terminated C string. This function does NOT free the memory.
-pub unsafe fn c_str_to_string_no_free(ptr: *mut c_char) -> SzResult<String> {
+pub(crate) unsafe fn c_str_to_string_no_free(ptr: *mut c_char) -> SzResult<String> {
     if ptr.is_null() {
         return Ok(String::new());
     }
@@ -77,7 +77,9 @@ pub unsafe fn c_str_to_string_no_free(ptr: *mut c_char) -> SzResult<String> {
 /// # Safety
 ///
 /// The caller must ensure that the SzPointerResult contains valid data
-pub unsafe fn process_pointer_result(result: super::bindings::SzPointerResult) -> SzResult<String> {
+pub(crate) unsafe fn process_pointer_result(
+    result: super::bindings::SzPointerResult,
+) -> SzResult<String> {
     if result.return_code != 0 {
         return Err(SzError::from_code(result.return_code));
     }
@@ -91,7 +93,7 @@ pub unsafe fn process_pointer_result(result: super::bindings::SzPointerResult) -
 ///
 /// The caller must ensure that the SzPointerResult contains valid data
 /// and that any response pointer is valid and null-terminated.
-pub unsafe fn process_config_pointer_result(
+pub(crate) unsafe fn process_config_pointer_result(
     result: super::bindings::SzPointerResult,
 ) -> SzResult<String> {
     if result.return_code != 0 {
@@ -108,7 +110,7 @@ pub unsafe fn process_config_pointer_result(
 ///
 /// The caller must ensure that the SzPointerResult contains valid data
 /// and that any response pointer is valid.
-pub unsafe fn process_config_pointer_result_bytes(
+pub(crate) unsafe fn process_config_pointer_result_bytes(
     result: super::bindings::SzPointerResult,
 ) -> SzResult<Vec<u8>> {
     if result.return_code != 0 {
@@ -125,7 +127,7 @@ pub unsafe fn process_config_pointer_result_bytes(
 ///
 /// The caller must ensure that the SzPointerResult contains valid data
 /// and that any response pointer is valid and null-terminated.
-pub unsafe fn process_engine_pointer_result(
+pub(crate) unsafe fn process_engine_pointer_result(
     result: super::bindings::SzPointerResult,
 ) -> SzResult<String> {
     if result.return_code != 0 {
@@ -142,7 +144,7 @@ pub unsafe fn process_engine_pointer_result(
 ///
 /// The caller must ensure that ptr is either null or points to a valid
 /// null-terminated C string that can be safely freed with Sz_free.
-pub unsafe fn c_str_to_bytes(ptr: *mut c_char) -> SzResult<Vec<u8>> {
+pub(crate) unsafe fn c_str_to_bytes(ptr: *mut c_char) -> SzResult<Vec<u8>> {
     if ptr.is_null() {
         return Ok(Vec::new());
     }
@@ -162,7 +164,7 @@ pub unsafe fn c_str_to_bytes(ptr: *mut c_char) -> SzResult<Vec<u8>> {
 ///
 /// The caller must ensure that the SzPointerResult contains valid data
 /// and that any response pointer is valid and null-terminated.
-pub unsafe fn process_config_mgr_pointer_result(
+pub(crate) unsafe fn process_config_mgr_pointer_result(
     result: super::bindings::SzPointerResult,
 ) -> SzResult<String> {
     if result.return_code != 0 {
@@ -174,7 +176,9 @@ pub unsafe fn process_config_mgr_pointer_result(
 }
 
 /// Processes an SzLongResult from config manager helper functions
-pub fn process_config_mgr_long_result(result: super::bindings::SzLongResult) -> SzResult<i64> {
+pub(crate) fn process_config_mgr_long_result(
+    result: super::bindings::SzLongResult,
+) -> SzResult<i64> {
     if result.return_code != 0 {
         check_config_mgr_return_code(result.return_code)?;
         unreachable!("check_config_mgr_return_code should have returned an error");
@@ -184,7 +188,7 @@ pub fn process_config_mgr_long_result(result: super::bindings::SzLongResult) -> 
 }
 
 /// Processes an SzLongResult from helper functions
-pub fn process_long_result(result: super::bindings::SzLongResult) -> SzResult<i64> {
+pub(crate) fn process_long_result(result: super::bindings::SzLongResult) -> SzResult<i64> {
     if result.return_code != 0 {
         return Err(SzError::from_code(result.return_code));
     }
@@ -193,7 +197,7 @@ pub fn process_long_result(result: super::bindings::SzLongResult) -> SzResult<i6
 }
 
 /// Handles memory allocation for FFI response strings
-pub struct ResponseBuffer {
+pub(crate) struct ResponseBuffer {
     pub ptr: *mut c_char,
     pub size: size_t,
 }
@@ -205,14 +209,14 @@ impl Default for ResponseBuffer {
 }
 
 impl ResponseBuffer {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             ptr: ptr::null_mut(),
             size: 0,
         }
     }
 
-    pub fn as_string(&self) -> SzResult<String> {
+    pub(crate) fn as_string(&self) -> SzResult<String> {
         unsafe { c_str_to_string(self.ptr) }
     }
 }
@@ -228,7 +232,7 @@ impl Drop for ResponseBuffer {
 }
 
 /// Checks the return code from Senzing FFI functions
-pub fn check_return_code(return_code: i64) -> SzResult<()> {
+pub(crate) fn check_return_code(return_code: i64) -> SzResult<()> {
     if return_code == 0 {
         Ok(())
     } else {
@@ -270,7 +274,7 @@ pub fn check_return_code(return_code: i64) -> SzResult<()> {
 }
 
 /// Checks the return code from Senzing Config FFI functions
-pub fn check_config_return_code(return_code: i64) -> SzResult<()> {
+pub(crate) fn check_config_return_code(return_code: i64) -> SzResult<()> {
     if return_code == 0 {
         Ok(())
     } else {
@@ -312,7 +316,7 @@ pub fn check_config_return_code(return_code: i64) -> SzResult<()> {
 }
 
 /// Checks the return code from Senzing ConfigMgr FFI functions
-pub fn check_config_mgr_return_code(return_code: i64) -> SzResult<()> {
+pub(crate) fn check_config_mgr_return_code(return_code: i64) -> SzResult<()> {
     if return_code == 0 {
         Ok(())
     } else {
@@ -354,7 +358,7 @@ pub fn check_config_mgr_return_code(return_code: i64) -> SzResult<()> {
 }
 
 /// Checks the return code from SzProduct FFI functions
-pub fn check_product_return_code(return_code: i64) -> SzResult<()> {
+pub(crate) fn check_product_return_code(return_code: i64) -> SzResult<()> {
     if return_code == 0 {
         Ok(())
     } else {
@@ -397,7 +401,7 @@ pub fn check_product_return_code(return_code: i64) -> SzResult<()> {
 
 /// Checks the return code from Senzing FFI functions (deprecated alias)
 #[deprecated(note = "Use check_return_code directly")]
-pub fn check_return_code_i64(return_code: i64) -> SzResult<()> {
+pub(crate) fn check_return_code_i64(return_code: i64) -> SzResult<()> {
     check_return_code(return_code)
 }
 
