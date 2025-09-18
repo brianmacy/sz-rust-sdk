@@ -146,6 +146,9 @@ impl SzFlags {
     /// Default flags for why record operations
     pub const WHY_RECORD_DEFAULT: SzFlags = SzFlags::WHY_ENTITIES_DEFAULT_FLAGS;
 
+    /// Default flags for why search operations
+    pub const WHY_SEARCH_DEFAULT: SzFlags = SzFlags::WHY_ENTITIES_DEFAULT_FLAGS;
+
     /// Default flags for how entity operations
     pub const HOW_ENTITY_DEFAULT: SzFlags = SzFlags::HOW_ENTITY_DEFAULT_FLAGS;
 

@@ -1,460 +1,147 @@
 #!/bin/bash
 
-#
-# Senzing Rust SDK Code Snippets Runner
-#
-# This script runs all Rust code snippet examples in order, providing
-# detailed output and error handling for each example.
-#
+# Run all code snippets and capture results
+# This script runs all code snippets from the simplified structure
 
-set -e  # Exit on error
+set -e
 
-# Color codes for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
 NC='\033[0m' # No Color
 
-# Script configuration
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CODE_SNIPPETS_DIR="$SCRIPT_DIR/code-snippets/rust/snippets"
-LOG_FILE="$SCRIPT_DIR/code_snippets_run.log"
-RESULTS_FILE="$SCRIPT_DIR/code_snippets_results.txt"
-
 # Statistics
-TOTAL_COUNT=0
-SUCCESS_COUNT=0
-FAILED_COUNT=0
-SKIPPED_COUNT=0
+TOTAL_SNIPPETS=0
+SUCCESSFUL_SNIPPETS=0
+FAILED_SNIPPETS=0
+TIMEOUT_SNIPPETS=0
 
-# Arrays to track results
-declare -a SUCCESSFUL_EXAMPLES=()
-declare -a FAILED_EXAMPLES=()
-declare -a SKIPPED_EXAMPLES=()
+# Output file
+OUTPUT_FILE="code_snippets_results.txt"
+LOG_FILE="code_snippets_run.log"
 
-#
-# Utility Functions
-#
+echo "=== Senzing Rust SDK Code Snippets Test Run ===" > "$OUTPUT_FILE"
+echo "Started: $(date)" >> "$OUTPUT_FILE"
+echo "" >> "$OUTPUT_FILE"
 
-print_header() {
-    echo -e "${BLUE}${BOLD}"
-    echo "=================================================================="
-    echo "         Senzing Rust SDK Code Snippets Runner"
-    echo "=================================================================="
-    echo -e "${NC}"
-    echo "Script: $(basename "$0")"
-    echo "Date: $(date)"
-    echo "Directory: $CODE_SNIPPETS_DIR"
-    echo "Log file: $LOG_FILE"
-    echo "Results file: $RESULTS_FILE"
-    echo
-}
+echo "=== Senzing Rust SDK Code Snippets Test Run ==="
+echo "Started: $(date)"
+echo ""
 
-print_section() {
-    local title="$1"
-    echo -e "${CYAN}${BOLD}"
-    echo "--- $title ---"
-    echo -e "${NC}"
-}
+# Function to run a single snippet
+run_snippet() {
+    local bin_name="$1"
+    local category="$2"
+    local snippet_name="$3"
 
-print_success() {
-    echo -e "${GREEN}✅ $1${NC}"
-}
+    echo -e "${YELLOW}Testing: $category/$snippet_name${NC}"
+    echo "Testing: $category/$snippet_name" >> "$OUTPUT_FILE"
 
-print_error() {
-    echo -e "${RED}❌ $1${NC}"
-}
+    TOTAL_SNIPPETS=$((TOTAL_SNIPPETS + 1))
 
-print_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
-}
+    # Change to code-snippets directory and run the specific binary
+    pushd code-snippets > /dev/null 2>&1
 
-print_info() {
-    echo -e "${BLUE}ℹ️  $1${NC}"
-}
-
-#
-# Validation Functions
-#
-
-check_prerequisites() {
-    print_section "Checking Prerequisites"
-
-    # Check if running from correct directory
-    if [[ ! -d "$CODE_SNIPPETS_DIR" ]]; then
-        print_error "Code snippets directory not found: $CODE_SNIPPETS_DIR"
-        print_info "Please run this script from the sz-rust-sdk root directory"
-        exit 1
-    fi
-
-    # Check for required environment variable
-    if [[ -z "$SENZING_ENGINE_CONFIGURATION_JSON" ]]; then
-        print_warning "SENZING_ENGINE_CONFIGURATION_JSON not set"
-        print_info "Setting default configuration for SQLite..."
-        export SENZING_ENGINE_CONFIGURATION_JSON='{
-            "PIPELINE": {
-                "CONFIGPATH": "/etc/opt/senzing",
-                "RESOURCEPATH": "/opt/senzing/er/resources",
-                "SUPPORTPATH": "/opt/senzing/data"
-            },
-            "SQL": {
-                "CONNECTION": "sqlite3://na:na@/tmp/G2C.db"
-            }
-        }'
-        echo "Environment variable set to default SQLite configuration"
+    # Run with timeout
+    if timeout 30 cargo run --bin "$bin_name" >> "../$LOG_FILE" 2>&1; then
+        echo -e "  ${GREEN}✓ SUCCESS${NC}"
+        echo "  ✓ SUCCESS" >> "../$OUTPUT_FILE"
+        SUCCESSFUL_SNIPPETS=$((SUCCESSFUL_SNIPPETS + 1))
     else
-        print_success "SENZING_ENGINE_CONFIGURATION_JSON is configured"
-    fi
-
-    # Check for Rust/Cargo
-    if ! command -v cargo &> /dev/null; then
-        print_error "Cargo (Rust package manager) not found"
-        print_info "Please install Rust: https://rustup.rs/"
-        exit 1
-    fi
-    print_success "Cargo found: $(cargo --version)"
-
-    # Check for Senzing installation
-    if [[ ! -d "/opt/senzing/er" ]]; then
-        print_warning "Senzing SDK not found at /opt/senzing/er"
-        print_info "Some examples may fail without proper Senzing installation"
-    else
-        print_success "Senzing SDK installation detected"
-    fi
-
-    echo
-}
-
-#
-# Example Discovery and Organization
-#
-
-discover_examples() {
-    print_section "Discovering Code Snippets"
-
-    # Define the order to run examples (dependencies first)
-    declare -a EXAMPLE_ORDER=(
-        "information/get_version"
-        "information/get_license"
-        "initialization/environment_and_hubs"
-        "initialization/engine_priming"
-        "configuration/init_default_config"
-        "configuration/register_data_sources"
-        "loading/load_records"
-        "loading/load_via_loop"
-        "loading/load_via_loop_threadpool"
-        "searching/search_records"
-        "searching/search_threadpool"
-        "searching/why_search"
-        "information/database_demo"
-        "deleting/delete_records"
-        "deleting/delete_via_loop"
-        "redo/load_with_redo_via_loop"
-        "redo/redo_continuous"
-        "redo/redo_continuous_via_futures"
-        "redo/redo_with_info_continuous"
-        "stewardship/force_resolve"
-        "stewardship/force_unresolve"
-        "initialization/purge_repository"
-    )
-
-    # Verify all examples exist
-    for example in "${EXAMPLE_ORDER[@]}"; do
-        local example_dir="$CODE_SNIPPETS_DIR/$example"
-        if [[ -d "$example_dir" && -f "$example_dir/Cargo.toml" ]]; then
-            TOTAL_COUNT=$((TOTAL_COUNT + 1))
-            print_success "Found: $example"
+        exit_code=$?
+        if [ $exit_code -eq 124 ]; then
+            echo -e "  ${YELLOW}⏰ TIMEOUT (30s)${NC}"
+            echo "  ⏰ TIMEOUT (30s)" >> "../$OUTPUT_FILE"
+            TIMEOUT_SNIPPETS=$((TIMEOUT_SNIPPETS + 1))
         else
-            print_warning "Missing: $example"
+            echo -e "  ${RED}✗ FAILED${NC}"
+            echo "  ✗ FAILED" >> "../$OUTPUT_FILE"
+            FAILED_SNIPPETS=$((FAILED_SNIPPETS + 1))
         fi
-    done
-
-    echo "Total examples found: $TOTAL_COUNT"
-    echo
-}
-
-#
-# Example Execution
-#
-
-run_single_example() {
-    local example_path="$1"
-    local example_name="$(basename "$example_path")"
-    local category="$(basename "$(dirname "$example_path")")"
-    local full_name="$category/$example_name"
-
-    print_info "Running: $full_name"
-    echo "----------------------------------------"
-
-    # Change to example directory
-    local example_dir="$CODE_SNIPPETS_DIR/$example_path"
-    if [[ ! -d "$example_dir" ]]; then
-        print_error "Directory not found: $example_dir"
-        FAILED_EXAMPLES+=("$full_name (directory not found)")
-        FAILED_COUNT=$((FAILED_COUNT + 1))
-        return 1
     fi
 
-    cd "$example_dir"
-
-    # Check if Cargo.toml exists
-    if [[ ! -f "Cargo.toml" ]]; then
-        print_error "Cargo.toml not found in $example_dir"
-        FAILED_EXAMPLES+=("$full_name (no Cargo.toml)")
-        FAILED_COUNT=$((FAILED_COUNT + 1))
-        return 1
-    fi
-
-    # Compile the example first
-    echo "Compiling $full_name..."
-    if ! cargo check &>> "$LOG_FILE"; then
-        print_error "Compilation failed for $full_name"
-        FAILED_EXAMPLES+=("$full_name (compilation failed)")
-        FAILED_COUNT=$((FAILED_COUNT + 1))
-        return 1
-    fi
-
-    # Run the example with timeout
-    echo "Executing $full_name..."
-    local start_time=$(date +%s)
-
-    # Determine timeout based on example type
-    local timeout_seconds=30
-    case "$full_name" in
-        */redo_continuous|*/redo_continuous_via_futures|*/redo_with_info_continuous)
-            # Continuous processing examples are designed to run for ~30 seconds
-            # Give them extra time to avoid race conditions
-            timeout_seconds=35
-            ;;
-    esac
-
-    # Determine run arguments based on example type
-    local run_args=""
-    case "$full_name" in
-        */purge_repository)
-            # Purge repository requires confirmation - auto-confirm for testing
-            run_args="-- --auto-confirm"
-            ;;
-    esac
-
-    # Use timeout to prevent hanging
-    if timeout ${timeout_seconds}s cargo run $run_args &>> "$LOG_FILE"; then
-        local end_time=$(date +%s)
-        local duration=$((end_time - start_time))
-        print_success "$full_name completed successfully (${duration}s)"
-        SUCCESSFUL_EXAMPLES+=("$full_name (${duration}s)")
-        SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-        return 0
-    else
-        local exit_code=$?
-        if [[ $exit_code == 124 ]]; then
-            print_error "$full_name timed out (>${timeout_seconds}s)"
-            FAILED_EXAMPLES+=("$full_name (timeout >${timeout_seconds}s)")
-        else
-            print_error "$full_name failed with exit code $exit_code"
-            FAILED_EXAMPLES+=("$full_name (exit code $exit_code)")
-        fi
-        FAILED_COUNT=$((FAILED_COUNT + 1))
-        return 1
-    fi
+    popd > /dev/null 2>&1
+    echo "" >> "$OUTPUT_FILE"
+    echo ""
 }
 
-run_all_examples() {
-    print_section "Running All Code Snippets"
+# Clear previous logs
+> "$LOG_FILE"
 
-    # Initialize log file
-    echo "Code Snippets Execution Log - $(date)" > "$LOG_FILE"
-    echo "================================================" >> "$LOG_FILE"
+echo "Scanning for code snippets..." >> "$OUTPUT_FILE"
+echo "Scanning for code snippets..."
 
-    # Define execution order
-    local examples=(
-        "information/get_version"
-        "information/get_license"
-        "initialization/environment_and_hubs"
-        "initialization/engine_priming"
-        "configuration/init_default_config"
-        "configuration/register_data_sources"
-        "loading/load_records"
-        "loading/load_via_loop"
-        "loading/load_via_loop_threadpool"
-        "searching/search_records"
-        "searching/search_threadpool"
-        "searching/why_search"
-        "information/database_demo"
-        "deleting/delete_records"
-        "deleting/delete_via_loop"
-        "redo/load_with_redo_via_loop"
-        "redo/redo_continuous"
-        "redo/redo_continuous_via_futures"
-        "redo/redo_with_info_continuous"
-        "stewardship/force_resolve"
-        "stewardship/force_unresolve"
-        "initialization/purge_repository"
-    )
+# Run all snippets by category in alphabetical order
+# Configuration snippets
+run_snippet "init_default_config" "configuration" "init_default_config.rs"
+run_snippet "register_data_sources" "configuration" "register_data_sources.rs"
 
-    local current=1
-    for example in "${examples[@]}"; do
-        echo
-        echo "[$current/$TOTAL_COUNT] Processing: $example"
-        echo "[$current/$TOTAL_COUNT] Processing: $example" >> "$LOG_FILE"
-        echo "======================================" >> "$LOG_FILE"
+# Deleting snippets
+run_snippet "delete_records" "deleting" "delete_records.rs"
+run_snippet "delete_via_loop" "deleting" "delete_via_loop.rs"
 
-        run_single_example "$example"
+# Information snippets
+run_snippet "database_demo" "information" "database_demo.rs"
+run_snippet "get_license" "information" "get_license.rs"
+run_snippet "get_version" "information" "get_version.rs"
 
-        # Brief pause between examples
-        sleep 1
-        current=$((current + 1))
-    done
+# Initialization snippets
+run_snippet "engine_priming" "initialization" "engine_priming.rs"
+run_snippet "environment_and_hubs" "initialization" "environment_and_hubs.rs"
+run_snippet "purge_repository" "initialization" "purge_repository.rs"
 
-    # Return to original directory
-    cd "$SCRIPT_DIR"
-}
+# Loading snippets
+run_snippet "load_records" "loading" "load_records.rs"
+run_snippet "load_via_loop" "loading" "load_via_loop.rs"
+run_snippet "load_via_loop_threadpool" "loading" "load_via_loop_threadpool.rs"
 
-#
-# Results and Cleanup
-#
+# Redo snippets
+run_snippet "load_with_redo_via_loop" "redo" "load_with_redo_via_loop.rs"
+run_snippet "redo_continuous" "redo" "redo_continuous.rs"
+run_snippet "redo_continuous_via_futures" "redo" "redo_continuous_via_futures.rs"
+run_snippet "redo_with_info_continuous" "redo" "redo_with_info_continuous.rs"
 
-generate_results_report() {
-    print_section "Generating Results Report"
+# Searching snippets
+run_snippet "search_records" "searching" "search_records.rs"
+run_snippet "search_threadpool" "searching" "search_threadpool.rs"
+run_snippet "why_search" "searching" "why_search.rs"
 
-    # Create detailed results file
-    cat > "$RESULTS_FILE" << EOF
-Senzing Rust SDK Code Snippets Execution Report
-===============================================
-Date: $(date)
-Script: $(basename "$0")
-Directory: $CODE_SNIPPETS_DIR
+# Stewardship snippets
+run_snippet "force_resolve" "stewardship" "force_resolve.rs"
+run_snippet "force_unresolve" "stewardship" "force_unresolve.rs"
 
-SUMMARY
--------
-Total Examples: $TOTAL_COUNT
-Successful: $SUCCESS_COUNT
-Failed: $FAILED_COUNT
-Skipped: $SKIPPED_COUNT
-Success Rate: $(( SUCCESS_COUNT * 100 / TOTAL_COUNT ))%
+# Summary
+echo "=== SUMMARY ===" >> "$OUTPUT_FILE"
+echo "=== SUMMARY ==="
+echo "Total snippets: $TOTAL_SNIPPETS" >> "$OUTPUT_FILE"
+echo "Successful: $SUCCESSFUL_SNIPPETS" >> "$OUTPUT_FILE"
+echo "Failed: $FAILED_SNIPPETS" >> "$OUTPUT_FILE"
+echo "Timeouts: $TIMEOUT_SNIPPETS" >> "$OUTPUT_FILE"
+echo "Completed: $(date)" >> "$OUTPUT_FILE"
 
-SUCCESSFUL EXAMPLES ($SUCCESS_COUNT)
-$(printf '%s\n' "${SUCCESSFUL_EXAMPLES[@]}" | sed 's/^/  ✅ /')
+echo "Total snippets: $TOTAL_SNIPPETS"
+echo -e "Successful: ${GREEN}$SUCCESSFUL_SNIPPETS${NC}"
+echo -e "Failed: ${RED}$FAILED_SNIPPETS${NC}"
+echo -e "Timeouts: ${YELLOW}$TIMEOUT_SNIPPETS${NC}"
+echo "Completed: $(date)"
 
-FAILED EXAMPLES ($FAILED_COUNT)
-$(printf '%s\n' "${FAILED_EXAMPLES[@]}" | sed 's/^/  ❌ /')
+# Success rate
+if [ $TOTAL_SNIPPETS -gt 0 ]; then
+    success_rate=$((SUCCESSFUL_SNIPPETS * 100 / TOTAL_SNIPPETS))
+    echo "Success rate: ${success_rate}%" >> "$OUTPUT_FILE"
+    echo "Success rate: ${success_rate}%"
+fi
 
-DETAILED LOG
-============
-See: $LOG_FILE
+echo ""
+echo "Results saved to: $OUTPUT_FILE"
+echo "Detailed logs saved to: $LOG_FILE"
 
-EOF
-
-    # Display summary
-    echo
-    echo -e "${BOLD}EXECUTION SUMMARY${NC}"
-    echo "=================================="
-    echo "Total Examples: $TOTAL_COUNT"
-    echo -e "Successful: ${GREEN}$SUCCESS_COUNT${NC}"
-    echo -e "Failed: ${RED}$FAILED_COUNT${NC}"
-    echo -e "Success Rate: ${CYAN}$(( SUCCESS_COUNT * 100 / TOTAL_COUNT ))%${NC}"
-    echo
-
-    if [[ $SUCCESS_COUNT -gt 0 ]]; then
-        echo -e "${GREEN}${BOLD}Successful Examples:${NC}"
-        printf '%s\n' "${SUCCESSFUL_EXAMPLES[@]}" | sed 's/^/  ✅ /'
-        echo
-    fi
-
-    if [[ $FAILED_COUNT -gt 0 ]]; then
-        echo -e "${RED}${BOLD}Failed Examples:${NC}"
-        printf '%s\n' "${FAILED_EXAMPLES[@]}" | sed 's/^/  ❌ /'
-        echo
-    fi
-
-    print_info "Detailed results written to: $RESULTS_FILE"
-    print_info "Execution log written to: $LOG_FILE"
-}
-
-show_usage() {
-    echo "Usage: $0 [OPTIONS]"
-    echo
-    echo "Options:"
-    echo "  -h, --help     Show this help message"
-    echo "  -v, --verbose  Enable verbose output"
-    echo "  -l, --list     List all available examples without running"
-    echo "  -c, --check    Only check compilation, don't run examples"
-    echo
-    echo "Examples:"
-    echo "  $0                    # Run all code snippets"
-    echo "  $0 --list            # List all available examples"
-    echo "  $0 --check           # Only compile, don't execute"
-    echo
-}
-
-#
-# Main Execution
-#
-
-main() {
-    local action="run"
-    local verbose=false
-
-    # Parse command line arguments
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            -h|--help)
-                show_usage
-                exit 0
-                ;;
-            -v|--verbose)
-                verbose=true
-                shift
-                ;;
-            -l|--list)
-                action="list"
-                shift
-                ;;
-            -c|--check)
-                action="check"
-                shift
-                ;;
-            *)
-                echo "Unknown option: $1"
-                show_usage
-                exit 1
-                ;;
-        esac
-    done
-
-    # Always show header
-    print_header
-
-    # Check prerequisites
-    check_prerequisites
-
-    # Discover examples
-    discover_examples
-
-    case $action in
-        "list")
-            print_section "Available Code Snippets"
-            find "$CODE_SNIPPETS_DIR" -name "Cargo.toml" -exec dirname {} \; | \
-                sed "s|$CODE_SNIPPETS_DIR/||" | sort
-            ;;
-        "check")
-            print_section "Checking Compilation Only"
-            # Implement compilation check logic here
-            ;;
-        "run")
-            run_all_examples
-            generate_results_report
-
-            # Exit with error code if any examples failed
-            if [[ $FAILED_COUNT -gt 0 ]]; then
-                exit 1
-            fi
-            ;;
-    esac
-}
-
-# Execute main function with all arguments
-main "$@"
+# Exit with appropriate code
+if [ $FAILED_SNIPPETS -gt 0 ]; then
+    exit 1
+elif [ $TIMEOUT_SNIPPETS -gt 0 ]; then
+    exit 2
+else
+    exit 0
+fi

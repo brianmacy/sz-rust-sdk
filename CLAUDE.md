@@ -124,8 +124,10 @@ This is a Rust SDK for Senzing entity resolution engine following the same patte
 - Look to the C# code for guidance on which native functions to use for FFI.
 - Do not create mock tests for use without the native library.  All tests should require the native library.
 - All the examples must run successfully (target: 22/22 = 100%)
+- Code-snippets are located in simplified structure: `code-snippets/category/example.rs`
 - If the Senzing SDK function returns -2, create the proper error from the appropriate *_getLastException function.
 - Make sure all error checking and processing is happening in all the core functions
 - Make sure the tests are aligned with the detailed C# test analysis.
 - DEMAND that all native SDK errors are caught and mapped to SzErrors
 - DEMAND code-snippets are minimal demonstrations of a single concept and should limit themselves to the minimal needed to know to accomplish the specific task.  Also, document the Senzing SDK usage well.
+- DEMAND all SDK methods must be implemented and tested

@@ -90,6 +90,17 @@ unsafe extern "C" {
         record_id: *const c_char,
     ) -> SzPointerResult;
 
+    pub fn Sz_getRecord_helper(
+        data_source_code: *const c_char,
+        record_id: *const c_char,
+        flags: c_longlong,
+    ) -> SzPointerResult;
+
+    pub fn Sz_getRecordPreview_helper(
+        record_definition: *const c_char,
+        flags: c_longlong,
+    ) -> SzPointerResult;
+
     pub fn Sz_searchByAttributes_helper(attributes: *const c_char) -> SzPointerResult;
 
     pub fn Sz_searchByAttributes_V3_helper(
@@ -132,6 +143,13 @@ unsafe extern "C" {
 
     pub fn Sz_processRedoRecord() -> *mut c_char;
 
+    pub fn Sz_processRedoRecordWithInfo_helper(
+        redo_record: *const c_char,
+        flags: c_longlong,
+    ) -> SzPointerResult;
+
+    pub fn Sz_getRedoRecord_helper() -> SzPointerResult;
+
     pub fn Sz_countRedoRecords() -> c_longlong;
 
     // Critical missing stewardship and analysis functions for 100% C# SDK parity
@@ -156,6 +174,42 @@ unsafe extern "C" {
         entity_id1: c_longlong,
         entity_id2: c_longlong,
         flags: c_longlong,
+    ) -> SzPointerResult;
+
+    pub fn Sz_whySearch_helper(
+        attributes: *const c_char,
+        entity_id: c_longlong,
+        search_profile: *const c_char,
+        flags: c_longlong,
+    ) -> SzPointerResult;
+
+    pub fn Sz_findInterestingEntitiesByEntityID_helper(
+        entity_id: c_longlong,
+        flags: c_longlong,
+    ) -> SzPointerResult;
+
+    pub fn Sz_findInterestingEntitiesByRecordID_helper(
+        data_source_code: *const c_char,
+        record_id: *const c_char,
+        flags: c_longlong,
+    ) -> SzPointerResult;
+
+    pub fn Sz_whyRecords_helper(
+        data_source_code1: *const c_char,
+        record_id1: *const c_char,
+        data_source_code2: *const c_char,
+        record_id2: *const c_char,
+        flags: c_longlong,
+    ) -> SzPointerResult;
+
+    pub fn Sz_howEntityByEntityID_helper(
+        entity_id: c_longlong,
+        flags: c_longlong,
+    ) -> SzPointerResult;
+
+    pub fn Sz_getVirtualEntityByRecordID_helper(
+        data_source_code: *const c_char,
+        record_id: *const c_char,
     ) -> SzPointerResult;
 
     // Config functions

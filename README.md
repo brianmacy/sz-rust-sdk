@@ -120,11 +120,11 @@ The SDK provides comprehensive code snippets organized by category, providing co
 ### Loading Operations
 - **`loading/load_records`** - Basic record loading
 - **`loading/load_via_loop`** - Batch loading with monitoring
-- **`loading/load_via_loop_async`** - Asynchronous batch loading coordination
+- **`loading/load_via_loop_threadpool`** - Thread pool batch loading
 
 ### Search Operations
 - **`searching/search_records`** - Entity search by attributes
-- **`searching/search_async`** - Asynchronous search coordination
+- **`searching/search_threadpool`** - Thread pool search operations
 - **`searching/why_search`** - Understanding search results
 
 ### Deletion Operations
@@ -134,7 +134,7 @@ The SDK provides comprehensive code snippets organized by category, providing co
 ### Redo Processing
 - **`redo/load_with_redo_via_loop`** - Loading with redo processing phases
 - **`redo/redo_continuous`** - Continuous redo monitoring
-- **`redo/redo_continuous_via_futures`** - Async redo processing with tokio
+- **`redo/redo_continuous_via_futures`** - Thread pool redo processing
 - **`redo/redo_with_info_continuous`** - Comprehensive redo tracking
 
 ### Stewardship Operations

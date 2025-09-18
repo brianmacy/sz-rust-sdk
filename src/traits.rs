@@ -176,18 +176,33 @@ pub trait SzEngine {
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString>;
 
+    /// Analyzes why a record is in an entity
+    fn why_record_in_entity(
+        &self,
+        data_source_code: &str,
+        record_id: &str,
+        flags: Option<SzFlags>,
+    ) -> SzResult<JsonString>;
+
     /// Analyzes how an entity was resolved
     fn how_entity(&self, entity_id: EntityId, flags: Option<SzFlags>) -> SzResult<JsonString>;
 
     /// Gets a virtual entity based on record definitions
     fn get_virtual_entity(
         &self,
-        record_definitions: &[&str],
+        record_keys: &[(String, String)],
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString>;
 
-    /// Processes the next redo record
-    fn process_redo_record(&self) -> SzResult<JsonString>;
+    /// Processes a redo record
+    fn process_redo_record(
+        &self,
+        redo_record: &str,
+        flags: Option<SzFlags>,
+    ) -> SzResult<JsonString>;
+
+    /// Gets the next redo record
+    fn get_redo_record(&self) -> SzResult<JsonString>;
 
     /// Counts the number of redo records
     fn count_redo_records(&self) -> SzResult<i64>;
@@ -207,9 +222,6 @@ pub trait SzEngine {
 
     /// Closes an export operation
     fn close_export(&self, export_handle: ExportHandle) -> SzResult<()>;
-
-    /// Gets statistics about the current export
-    fn get_export_stats(&self, export_handle: ExportHandle) -> SzResult<JsonString>;
 }
 
 /// Configuration management operations

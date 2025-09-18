@@ -61,9 +61,14 @@ impl SzEngine for SzEngineCore {
         record_definition: &str,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // This would require a specific FFI function for record preview
-        // For now, return a placeholder implementation
-        Err(SzError::unknown("get_record_preview not yet implemented"))
+        let record_def_c = crate::ffi::helpers::str_to_c_string(record_definition)?;
+        let flags_bits = flags.unwrap_or(SzFlags::GET_RECORD_DEFAULT).bits() as i64;
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_getRecordPreview_helper(record_def_c.as_ptr(), flags_bits)
+        };
+
+        unsafe { crate::ffi::helpers::process_pointer_result(result) }
     }
 
     fn delete_record(
@@ -93,8 +98,19 @@ impl SzEngine for SzEngineCore {
         record_id: &str,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // This would require a specific FFI function for reevaluate record
-        Err(SzError::unknown("reevaluate_record not yet implemented"))
+        let data_source_c = crate::ffi::helpers::str_to_c_string(data_source_code)?;
+        let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
+        let flags_bits = flags.unwrap_or(SzFlags::REEVALUATE_RECORD_DEFAULT).bits() as i64;
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_reevaluateRecordWithInfo_helper(
+                data_source_c.as_ptr(),
+                record_id_c.as_ptr(),
+                flags_bits,
+            )
+        };
+
+        unsafe { crate::ffi::helpers::process_pointer_result(result) }
     }
 
     fn reevaluate_entity(
@@ -146,8 +162,26 @@ impl SzEngine for SzEngineCore {
         search_profile: Option<&str>,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // This would require a specific FFI function for why search
-        Err(SzError::unknown("why_search not yet implemented"))
+        let attributes_c = crate::ffi::helpers::str_to_c_string(attributes)?;
+        let search_profile_c = search_profile
+            .map(|profile| crate::ffi::helpers::str_to_c_string(profile))
+            .transpose()?;
+        let search_profile_ptr = search_profile_c
+            .as_ref()
+            .map(|c_str| c_str.as_ptr())
+            .unwrap_or(std::ptr::null());
+        let flags_bits = flags.unwrap_or(SzFlags::WHY_SEARCH_DEFAULT).bits() as i64;
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_whySearch_helper(
+                attributes_c.as_ptr(),
+                entity_id,
+                search_profile_ptr,
+                flags_bits,
+            )
+        };
+
+        unsafe { crate::ffi::helpers::process_pointer_result(result) }
     }
 
     fn get_entity(&self, entity_id: EntityId, flags: Option<SzFlags>) -> SzResult<JsonString> {
@@ -182,8 +216,23 @@ impl SzEngine for SzEngineCore {
         record_id: &str,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // This would require a specific FFI function for get record
-        Err(SzError::unknown("get_record not yet implemented"))
+        let data_source_c = crate::ffi::helpers::str_to_c_string(data_source_code)?;
+        let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
+        let flags_value = flags.map(|f| f.bits() as i64).unwrap_or(0);
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_getRecord_helper(
+                data_source_c.as_ptr(),
+                record_id_c.as_ptr(),
+                flags_value,
+            )
+        };
+
+        if result.return_code != 0 {
+            crate::ffi::helpers::check_return_code(result.return_code)?;
+        }
+
+        unsafe { crate::ffi::helpers::c_str_to_string(result.response) }
     }
 
     fn find_interesting_entities_by_entity_id(
@@ -191,10 +240,15 @@ impl SzEngine for SzEngineCore {
         entity_id: EntityId,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // This would require a specific FFI function for find interesting entities
-        Err(SzError::unknown(
-            "find_interesting_entities_by_entity_id not yet implemented",
-        ))
+        let flags_bits = flags
+            .unwrap_or(SzFlags::FIND_INTERESTING_ENTITIES_DEFAULT)
+            .bits() as i64;
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_findInterestingEntitiesByEntityID_helper(entity_id, flags_bits)
+        };
+
+        unsafe { crate::ffi::helpers::process_pointer_result(result) }
     }
 
     fn find_interesting_entities_by_record(
@@ -203,10 +257,21 @@ impl SzEngine for SzEngineCore {
         record_id: &str,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // This would require a specific FFI function for find interesting entities by record
-        Err(SzError::unknown(
-            "find_interesting_entities_by_record not yet implemented",
-        ))
+        let data_source_c = crate::ffi::helpers::str_to_c_string(data_source_code)?;
+        let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
+        let flags_bits = flags
+            .unwrap_or(SzFlags::FIND_INTERESTING_ENTITIES_DEFAULT)
+            .bits() as i64;
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_findInterestingEntitiesByRecordID_helper(
+                data_source_c.as_ptr(),
+                record_id_c.as_ptr(),
+                flags_bits,
+            )
+        };
+
+        unsafe { crate::ffi::helpers::process_pointer_result(result) }
     }
 
     fn find_path(
@@ -299,32 +364,116 @@ impl SzEngine for SzEngineCore {
         record_id2: &str,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // This would require a specific FFI function for why records
-        Err(SzError::unknown("why_records not yet implemented"))
+        let data_source1_c = crate::ffi::helpers::str_to_c_string(data_source_code1)?;
+        let record_id1_c = crate::ffi::helpers::str_to_c_string(record_id1)?;
+        let data_source2_c = crate::ffi::helpers::str_to_c_string(data_source_code2)?;
+        let record_id2_c = crate::ffi::helpers::str_to_c_string(record_id2)?;
+        let flags_bits = flags.unwrap_or(SzFlags::WHY_RECORD_DEFAULT).bits() as i64;
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_whyRecords_helper(
+                data_source1_c.as_ptr(),
+                record_id1_c.as_ptr(),
+                data_source2_c.as_ptr(),
+                record_id2_c.as_ptr(),
+                flags_bits,
+            )
+        };
+
+        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+    }
+
+    fn why_record_in_entity(
+        &self,
+        data_source_code: &str,
+        record_id: &str,
+        flags: Option<SzFlags>,
+    ) -> SzResult<JsonString> {
+        let data_source_c = crate::ffi::helpers::str_to_c_string(data_source_code)?;
+        let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
+        let flags_bits = flags.unwrap_or(SzFlags::WHY_RECORD_DEFAULT).bits() as i64;
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_whyRecordInEntity_helper(
+                data_source_c.as_ptr(),
+                record_id_c.as_ptr(),
+                flags_bits,
+            )
+        };
+
+        unsafe { crate::ffi::helpers::process_pointer_result(result) }
     }
 
     fn how_entity(&self, entity_id: EntityId, flags: Option<SzFlags>) -> SzResult<JsonString> {
-        // This would require a specific FFI function for how entity
-        Err(SzError::unknown("how_entity not yet implemented"))
+        let flags_bits = flags.unwrap_or(SzFlags::HOW_ENTITY_DEFAULT).bits() as i64;
+
+        let result =
+            unsafe { crate::ffi::bindings::Sz_howEntityByEntityID_helper(entity_id, flags_bits) };
+
+        unsafe { crate::ffi::helpers::process_pointer_result(result) }
     }
 
     fn get_virtual_entity(
         &self,
-        record_definitions: &[&str],
+        record_keys: &[(String, String)],
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // This would require a specific FFI function for get virtual entity
-        Err(SzError::unknown("get_virtual_entity not yet implemented"))
+        // The C# SDK expects ISet<(string dataSourceCode, string recordID)> recordKeys
+        // We need to iterate through the record keys and call getVirtualEntityByRecordID for each
+        // However, the native library only has Sz_getVirtualEntityByRecordID for single records
+        // This method might need to aggregate results or use a different approach
+        if record_keys.is_empty() {
+            return Err(SzError::configuration("No record keys provided"));
+        }
+
+        // For now, if only one record key is provided, use the native function
+        if record_keys.len() == 1 {
+            let (data_source, record_id) = &record_keys[0];
+            let data_source_c = crate::ffi::helpers::str_to_c_string(data_source)?;
+            let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
+
+            let result = unsafe {
+                crate::ffi::bindings::Sz_getVirtualEntityByRecordID_helper(
+                    data_source_c.as_ptr(),
+                    record_id_c.as_ptr(),
+                )
+            };
+
+            unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        } else {
+            // Multiple record keys - this needs special handling
+            Err(SzError::configuration(
+                "Multiple record keys for get_virtual_entity not yet supported. Native library only supports single record.",
+            ))
+        }
     }
 
-    fn process_redo_record(&self) -> SzResult<JsonString> {
-        // This would require a specific FFI function for process redo record
-        Err(SzError::unknown("process_redo_record not yet implemented"))
+    fn process_redo_record(
+        &self,
+        redo_record: &str,
+        flags: Option<SzFlags>,
+    ) -> SzResult<JsonString> {
+        let redo_record_c = crate::ffi::helpers::str_to_c_string(redo_record)?;
+        let flags_bits = flags.unwrap_or_default().bits() as i64;
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_processRedoRecordWithInfo_helper(
+                redo_record_c.as_ptr(),
+                flags_bits,
+            )
+        };
+
+        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+    }
+
+    fn get_redo_record(&self) -> SzResult<JsonString> {
+        let result = unsafe { crate::ffi::bindings::Sz_getRedoRecord_helper() };
+        unsafe { crate::ffi::helpers::process_pointer_result(result) }
     }
 
     fn count_redo_records(&self) -> SzResult<i64> {
-        // This would require a specific FFI function for count redo records
-        Err(SzError::unknown("count_redo_records not yet implemented"))
+        let count = unsafe { crate::ffi::bindings::Sz_countRedoRecords() };
+        Ok(count)
     }
 
     fn export_json_entity_report(&self, flags: Option<SzFlags>) -> SzResult<ExportHandle> {
@@ -346,10 +495,23 @@ impl SzEngine for SzEngineCore {
         csv_column_list: &str,
         flags: Option<SzFlags>,
     ) -> SzResult<ExportHandle> {
-        // This would require a specific FFI function for CSV export
-        Err(SzError::unknown(
-            "export_csv_entity_report not yet implemented",
-        ))
+        let csv_columns_c = crate::ffi::helpers::str_to_c_string(csv_column_list)?;
+        let flags_bits = flags.unwrap_or_default().bits() as i64;
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_exportCSVEntityReport_helper(
+                csv_columns_c.as_ptr(),
+                flags_bits,
+            )
+        };
+
+        let export_handle_str =
+            unsafe { crate::ffi::helpers::process_engine_pointer_result(result) }?;
+
+        // Convert the string handle to an i64 for our API
+        export_handle_str
+            .parse()
+            .map_err(|_| SzError::ffi("Invalid export handle"))
     }
 
     fn fetch_next(&self, export_handle: ExportHandle) -> SzResult<JsonString> {
@@ -369,11 +531,6 @@ impl SzEngine for SzEngineCore {
             handle_c.as_ptr()
         ));
         Ok(())
-    }
-
-    fn get_export_stats(&self, export_handle: ExportHandle) -> SzResult<JsonString> {
-        // This would require a specific FFI function for export stats
-        Err(SzError::unknown("get_export_stats not yet implemented"))
     }
 }
 

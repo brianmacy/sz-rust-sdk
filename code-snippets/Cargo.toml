@@ -1,0 +1,97 @@
+[package]
+name = "senzing-snippets"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sz-rust-sdk = { path = ".." }
+serde_json = "1.0"
+ctrlc = "3.4"
+
+[[bin]]
+name = "load_records"
+path = "loading/load_records.rs"
+
+[[bin]]
+name = "delete_records"
+path = "deleting/delete_records.rs"
+
+[[bin]]
+name = "search_records"
+path = "searching/search_records.rs"
+
+[[bin]]
+name = "get_version"
+path = "information/get_version.rs"
+
+[[bin]]
+name = "register_data_sources"
+path = "configuration/register_data_sources.rs"
+
+[[bin]]
+name = "init_default_config"
+path = "configuration/init_default_config.rs"
+
+[[bin]]
+name = "delete_via_loop"
+path = "deleting/delete_via_loop.rs"
+
+[[bin]]
+name = "database_demo"
+path = "information/database_demo.rs"
+
+[[bin]]
+name = "get_license"
+path = "information/get_license.rs"
+
+[[bin]]
+name = "engine_priming"
+path = "initialization/engine_priming.rs"
+
+[[bin]]
+name = "environment_and_hubs"
+path = "initialization/environment_and_hubs.rs"
+
+[[bin]]
+name = "purge_repository"
+path = "initialization/purge_repository.rs"
+
+[[bin]]
+name = "load_via_loop"
+path = "loading/load_via_loop.rs"
+
+[[bin]]
+name = "load_via_loop_threadpool"
+path = "loading/load_via_loop_threadpool.rs"
+
+[[bin]]
+name = "load_with_redo_via_loop"
+path = "redo/load_with_redo_via_loop.rs"
+
+[[bin]]
+name = "redo_continuous"
+path = "redo/redo_continuous.rs"
+
+[[bin]]
+name = "redo_continuous_via_futures"
+path = "redo/redo_continuous_via_futures.rs"
+
+[[bin]]
+name = "redo_with_info_continuous"
+path = "redo/redo_with_info_continuous.rs"
+
+[[bin]]
+name = "search_threadpool"
+path = "searching/search_threadpool.rs"
+
+[[bin]]
+name = "why_search"
+path = "searching/why_search.rs"
+
+[[bin]]
+name = "force_resolve"
+path = "stewardship/force_resolve.rs"
+
+[[bin]]
+name = "force_unresolve"
+path = "stewardship/force_unresolve.rs"
