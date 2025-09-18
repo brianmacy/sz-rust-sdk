@@ -54,7 +54,7 @@ if !registry.contains(data_source) {
 }
 
 // Step 4: Verify engine functionality
-let test_record = format!(r#"{{"DATA_SOURCE": "{}", "RECORD_ID": "TEST"}}"#, data_source);
+let test_record = format!(r#"{{% raw %}}{{"DATA_SOURCE": "{}", "RECORD_ID": "TEST"}}{{% endraw %}}"#, data_source);
 engine.add_record(data_source, "TEST", &test_record, None)?; // Must succeed or fail test
 ```
 
