@@ -3,8 +3,8 @@
 //! This example tests error message handling to verify that
 //! null bytes are properly excluded from error messages.
 
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
     println!("=== Test Error Messages ===\n");

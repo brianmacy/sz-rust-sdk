@@ -6,8 +6,8 @@
 //! Run with: cargo run --example engine_priming
 
 use std::time::Instant;
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
     // Initialize the Senzing environment using ExampleEnvironment helper

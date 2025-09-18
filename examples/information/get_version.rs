@@ -5,8 +5,8 @@
 //!
 //! Run with: cargo run --example get_version
 
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
     // Initialize Senzing SDK using ExampleEnvironment helper

@@ -5,8 +5,8 @@
 //!
 //! Run with: cargo run --example database_demo
 
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
     println!("=== Senzing Database Demo ===\n");

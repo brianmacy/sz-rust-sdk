@@ -6,8 +6,8 @@
 //! Run with: cargo run --example simple_working_demo
 
 use std::sync::Arc;
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
     println!("=== Senzing SDK Working Demo ===\n");

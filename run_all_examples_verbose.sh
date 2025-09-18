@@ -16,7 +16,6 @@ examples=(
     "manage_configuration"
     "register_data_sources"
     "database_demo"
-    "debug_settings"
     "delete_records"
     "engine_operations"
     "check_datastore_performance"
@@ -37,7 +36,6 @@ examples=(
     "test_get_existing_instance"
     "test_senz7220"
     "test_singleton"
-    "verbose_debug"
     "working_demo"
 )
 

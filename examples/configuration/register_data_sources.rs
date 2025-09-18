@@ -12,8 +12,8 @@
 //!
 //! Run with: cargo run --example register_data_sources
 
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
     // Enable verbose logging to debug the native SDK behavior

@@ -7,8 +7,8 @@
 
 use serde_json::Value;
 use std::collections::HashMap;
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 /// Get sample records for loading with detailed tracking
 fn get_records_with_info() -> HashMap<(String, String), String> {

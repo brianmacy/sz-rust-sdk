@@ -4,8 +4,8 @@
 //! to ensure only one instance exists per process.
 
 use std::sync::Arc;
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
     println!("=== Test Singleton Pattern ===\n");

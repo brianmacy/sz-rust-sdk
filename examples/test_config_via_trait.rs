@@ -3,8 +3,8 @@
 //! This example tests that the ExampleEnvironment uses the SzEnvironment trait
 //! to get the ConfigManager instead of creating it directly.
 
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
     println!("=== Test Config Manager via SzEnvironment Trait ===\n");

@@ -3,8 +3,8 @@
 //! This example tests the automatic configuration setup functionality
 //! to ensure that default configurations are registered when none exist.
 
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
     println!("=== Test Configuration Setup ===\n");
