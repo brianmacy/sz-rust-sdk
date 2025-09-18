@@ -406,6 +406,7 @@ pub(crate) fn check_return_code_i64(return_code: i64) -> SzResult<()> {
 }
 
 /// Macro for safely calling FFI functions with proper error handling
+#[doc(hidden)]
 #[macro_export]
 macro_rules! ffi_call {
     ($ffi_fn:expr) => {{
@@ -416,6 +417,7 @@ macro_rules! ffi_call {
 }
 
 /// Macro for safely calling Config FFI functions with proper error handling
+#[doc(hidden)]
 #[macro_export]
 macro_rules! ffi_call_config {
     ($ffi_fn:expr) => {{
@@ -426,6 +428,7 @@ macro_rules! ffi_call_config {
 }
 
 /// Macro for safely calling ConfigMgr FFI functions with proper error handling
+#[doc(hidden)]
 #[macro_export]
 macro_rules! ffi_call_config_mgr {
     ($ffi_fn:expr) => {{
@@ -436,6 +439,7 @@ macro_rules! ffi_call_config_mgr {
 }
 
 /// Macro for safely calling Product FFI functions with proper error handling
+#[doc(hidden)]
 #[macro_export]
 macro_rules! ffi_call_product {
     ($ffi_fn:expr) => {{
@@ -446,6 +450,7 @@ macro_rules! ffi_call_product {
 }
 
 /// Macro for safely calling FFI functions that return i64
+#[doc(hidden)]
 #[macro_export]
 macro_rules! ffi_call_i64 {
     ($ffi_fn:expr) => {{
@@ -456,6 +461,7 @@ macro_rules! ffi_call_i64 {
 }
 
 /// Macro for FFI calls that return response data
+#[doc(hidden)]
 #[macro_export]
 macro_rules! ffi_call_with_response {
     ($ffi_fn:expr) => {{

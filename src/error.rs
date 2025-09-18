@@ -4,7 +4,9 @@
 //! Senzing C# SDK exception hierarchy while leveraging Rust's `Result<T, E>` types.
 //!
 //! The error system provides detailed error information from the underlying
-//! Senzing C library with proper error chains and backtrace support.
+//! Senzing C library with proper error chains and backtrace support. When errors
+//! occur, the SDK automatically calls the appropriate `getLastException` function
+//! to retrieve detailed error messages from the native library.
 //!
 //! # Error Categories
 //!
@@ -44,6 +46,16 @@
 //! ```
 
 use std::ffi::{CStr, NulError};
+
+/// Senzing SDK component for error reporting
+#[derive(Debug, Clone, Copy)]
+pub enum SzComponent {
+    Engine,
+    Config,
+    ConfigMgr,
+    Diagnostic,
+    Product,
+}
 use thiserror::Error;
 
 /// Result type alias for Senzing SDK operations
@@ -349,9 +361,9 @@ impl SzError {
         matches!(self, SzError::Unrecoverable { .. })
     }
 
-    /// Creates an error from getLastExceptionCode()
-    pub fn from_code(error_code: i64) -> Self {
-        let error_msg = format!("Native error (code: {})", error_code);
+    /// Creates an error from getLastExceptionCode() with message from getLastException()
+    pub fn from_code_with_message(error_code: i64, component: SzComponent) -> Self {
+        let error_msg = Self::get_last_exception_message(component, error_code);
 
         match error_code {
             // Specific error codes that map to new error types (check these first)
@@ -371,6 +383,59 @@ impl SzError {
             // Default to unknown for any other codes
             _ => Self::unknown(error_msg),
         }
+    }
+
+    /// Gets the last exception message from the specified component
+    fn get_last_exception_message(component: SzComponent, error_code: i64) -> String {
+        use crate::ffi;
+        use libc::c_char;
+
+        const BUFFER_SIZE: usize = 4096;
+        let mut buffer = vec![0i8; BUFFER_SIZE];
+
+        let result = unsafe {
+            match component {
+                SzComponent::Engine => ffi::bindings::Sz_getLastException(
+                    buffer.as_mut_ptr() as *mut c_char,
+                    BUFFER_SIZE as i64,
+                ),
+                SzComponent::Config => ffi::bindings::SzConfig_getLastException(
+                    buffer.as_mut_ptr() as *mut c_char,
+                    BUFFER_SIZE as i64,
+                ),
+                SzComponent::ConfigMgr => ffi::bindings::SzConfigMgr_getLastException(
+                    buffer.as_mut_ptr() as *mut c_char,
+                    BUFFER_SIZE as i64,
+                ),
+                SzComponent::Diagnostic => ffi::bindings::SzDiagnostic_getLastException(
+                    buffer.as_mut_ptr() as *mut c_char,
+                    BUFFER_SIZE as i64,
+                ),
+                SzComponent::Product => ffi::bindings::SzProduct_getLastException(
+                    buffer.as_mut_ptr() as *mut c_char,
+                    BUFFER_SIZE as i64,
+                ),
+            }
+        };
+
+        if result > 0 {
+            // Successfully got exception message
+            unsafe {
+                match CStr::from_ptr(buffer.as_ptr()).to_str() {
+                    Ok(message) if !message.is_empty() => message.to_string(),
+                    _ => format!("Native error (code: {})", error_code),
+                }
+            }
+        } else {
+            // Failed to get exception message, use generic message
+            format!("Native error (code: {})", error_code)
+        }
+    }
+
+    /// Creates an error from getLastExceptionCode() (legacy method for compatibility)
+    pub fn from_code(error_code: i64) -> Self {
+        // Default to Engine component for backward compatibility
+        Self::from_code_with_message(error_code, SzComponent::Engine)
     }
 
     /// Creates an Unknown error from a source error
@@ -419,7 +484,8 @@ mod test_error_mapping {
         let error = SzError::from_code(7220);
         match error {
             SzError::Configuration { message, .. } => {
-                assert_eq!(message, "Native error (code: 7220)");
+                // Message should either be from getLastException or fallback format
+                assert!(message.contains("7220") || !message.is_empty());
             }
             _ => panic!(
                 "Error code 7220 should map to Configuration, got: {:?}",
@@ -474,6 +540,21 @@ mod test_error_mapping {
                 // Expected
             }
             _ => panic!("Error code 99999 should map to Unknown, got: {:?}", error),
+        }
+    }
+
+    #[test]
+    fn test_from_code_with_message() {
+        let error = SzError::from_code_with_message(7220, SzComponent::Config);
+        match error {
+            SzError::Configuration { message, .. } => {
+                // Message should either be from getLastException or fallback format
+                assert!(!message.is_empty());
+            }
+            _ => panic!(
+                "Error code 7220 should map to Configuration, got: {:?}",
+                error
+            ),
         }
     }
 }

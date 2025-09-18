@@ -6,6 +6,7 @@
 use libc::{c_char, c_longlong};
 
 /// Result structure for helper functions that return pointers
+#[doc(hidden)]
 #[repr(C)]
 #[derive(Debug)]
 pub struct SzPointerResult {
@@ -14,6 +15,7 @@ pub struct SzPointerResult {
 }
 
 /// Result structure for helper functions that return long values
+#[doc(hidden)]
 #[repr(C)]
 #[derive(Debug)]
 pub struct SzLongResult {
@@ -22,6 +24,7 @@ pub struct SzLongResult {
 }
 
 /// Network analysis result structure
+#[doc(hidden)]
 #[repr(C)]
 #[derive(Debug)]
 pub struct SzNetworkResult {
