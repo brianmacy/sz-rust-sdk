@@ -7,6 +7,7 @@
 
 use std::collections::HashMap;
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 /// Get sample records for loading into the repository
 fn get_records() -> HashMap<(String, String), String> {

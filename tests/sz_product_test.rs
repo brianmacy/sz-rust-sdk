@@ -4,6 +4,7 @@
 //! mirroring the C# SzProductTest.cs test patterns.
 
 use serial_test::serial;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 /// Test get product version

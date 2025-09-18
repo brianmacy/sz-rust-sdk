@@ -6,6 +6,7 @@
 //! Run with: cargo run --example engine_operations
 
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 fn main() -> SzResult<()> {
     println!("=== Senzing Engine Operations ===\n");

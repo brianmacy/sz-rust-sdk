@@ -4,6 +4,7 @@
 //! null bytes are properly excluded from error messages.
 
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 fn main() -> SzResult<()> {
     println!("=== Test Error Messages ===\n");

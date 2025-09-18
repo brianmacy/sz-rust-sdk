@@ -1,4 +1,5 @@
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 fn main() -> SzResult<()> {
     // Initialize environment

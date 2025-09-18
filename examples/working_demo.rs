@@ -6,6 +6,7 @@
 //! Run with: cargo run --example working_demo
 
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 fn main() -> SzResult<()> {
     println!("=== Working Senzing SDK Demo ===\n");

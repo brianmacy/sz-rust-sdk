@@ -5,6 +5,7 @@
 //! Note: These tests focus on error handling due to singleton architecture constraints.
 
 use serial_test::serial;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 /// Test find path between non-existent entities

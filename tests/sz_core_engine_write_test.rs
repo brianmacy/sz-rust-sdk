@@ -4,6 +4,7 @@
 //! mirroring the C# SzCoreEngineWriteTest.cs test patterns.
 
 use serial_test::serial;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 /// Test add record with invalid data source

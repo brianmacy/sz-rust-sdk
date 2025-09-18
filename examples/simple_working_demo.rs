@@ -7,6 +7,7 @@
 
 use std::sync::Arc;
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 fn main() -> SzResult<()> {
     println!("=== Senzing SDK Working Demo ===\n");

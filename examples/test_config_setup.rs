@@ -4,6 +4,7 @@
 //! to ensure that default configurations are registered when none exist.
 
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 fn main() -> SzResult<()> {
     println!("=== Test Configuration Setup ===\n");

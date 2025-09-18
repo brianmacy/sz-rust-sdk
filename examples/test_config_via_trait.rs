@@ -4,6 +4,7 @@
 //! to get the ConfigManager instead of creating it directly.
 
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 fn main() -> SzResult<()> {
     println!("=== Test Config Manager via SzEnvironment Trait ===\n");

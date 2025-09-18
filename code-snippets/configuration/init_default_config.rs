@@ -6,6 +6,7 @@
 //!
 //! Rust equivalent of C# SzConfigManagerDemo.SetDefaultConfig pattern
 
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {

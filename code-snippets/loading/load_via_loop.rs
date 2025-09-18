@@ -12,6 +12,7 @@ use std::fs::File;
 use std::io::Write;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 // Constants for processing
 const RETRY_PREFIX: &str = "retry-";

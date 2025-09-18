@@ -32,6 +32,7 @@
 use serde_json::Value;
 use std::time::Instant;
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 /// Main entry point for the performance check example
 fn main() -> SzResult<()> {

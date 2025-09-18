@@ -4,6 +4,7 @@
 //! that null bytes are properly handled in this error message.
 
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 fn main() -> SzResult<()> {
     println!("=== Test SENZ7220 Error ===\n");

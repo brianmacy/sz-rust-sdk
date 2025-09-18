@@ -4,6 +4,7 @@
 //! repository information, and system diagnostics, mirroring the C# SzDiagnosticTest.cs test patterns.
 
 use serial_test::serial;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 /// Test get repository information

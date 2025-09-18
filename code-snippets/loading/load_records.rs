@@ -11,6 +11,7 @@
 
 use serde_json::json;
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 fn main() -> SzResult<()> {
     // Step 1: Get a configured Senzing environment

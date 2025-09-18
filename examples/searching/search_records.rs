@@ -7,6 +7,7 @@
 
 use serde_json::Value;
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 /// Get sample search criteria for testing different search scenarios
 fn get_search_criteria() -> Vec<String> {

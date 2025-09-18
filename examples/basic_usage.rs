@@ -7,6 +7,7 @@
 //!
 //! Run with: cargo run --example basic_usage
 
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {

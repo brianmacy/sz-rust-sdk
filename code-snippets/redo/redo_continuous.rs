@@ -13,6 +13,7 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 /// Initialize the Senzing environment for the redo continuous example
 fn get_environment() -> SzResult<std::sync::Arc<SzEnvironmentCore>> {

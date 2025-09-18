@@ -3,6 +3,7 @@
 //! This example performs the absolute minimum to test if basic operations work
 //! without triggering segfaults.
 
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {

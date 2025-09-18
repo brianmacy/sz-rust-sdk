@@ -8,6 +8,7 @@
 
 use serde_json::Value;
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 fn main() -> SzResult<()> {
     // Create a descriptive instance name (can be anything)

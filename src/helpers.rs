@@ -1,10 +1,13 @@
-//! Helper utilities for examples and common operations
+//! Internal helper utilities for examples only
 //!
-//! This module provides common functionality used across examples,
-//! including environment setup and configuration management.
+//! **⚠️ INTERNAL MODULE - NOT PART OF PUBLIC API**
+//!
+//! This module provides internal utilities used by examples and code snippets.
+//! These functions are not intended for use by SDK consumers and should not be
+//! considered part of the stable public API.
 //!
 //! The primary utility is [`ExampleEnvironment`] which handles the complex
-//! initialization process for Senzing, including automatic configuration
+//! initialization process for Senzing examples, including automatic configuration
 //! setup when needed.
 
 use crate::prelude::*;

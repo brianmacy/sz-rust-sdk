@@ -6,6 +6,7 @@
 //! Rust equivalent of: initialization/EnvironmentAndHubs/Program.cs
 
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 fn main() -> SzResult<()> {
     // Create a descriptive instance name (can be anything)

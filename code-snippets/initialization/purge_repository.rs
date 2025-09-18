@@ -7,6 +7,7 @@
 
 use std::io::{self, Write};
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 const PURGE_MESSAGE: &str = r#"
 

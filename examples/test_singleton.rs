@@ -5,6 +5,7 @@
 
 use std::sync::Arc;
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 fn main() -> SzResult<()> {
     println!("=== Test Singleton Pattern ===\n");

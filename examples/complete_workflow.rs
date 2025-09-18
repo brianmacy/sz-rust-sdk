@@ -6,6 +6,7 @@
 //! Run with: cargo run --example complete_workflow
 
 use sz_rust_sdk::prelude::*;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 
 fn main() -> SzResult<()> {
     println!("=== Senzing Rust SDK Complete Workflow Demo ===\n");

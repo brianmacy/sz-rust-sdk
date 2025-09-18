@@ -51,14 +51,17 @@ pub mod core;
 pub mod error;
 mod ffi; // Internal FFI module - not part of public API
 pub mod flags;
-pub mod helpers;
 pub mod traits;
 pub mod types;
+
+// Internal helpers module - only for examples and tests, not part of public API
+// Hidden from documentation but accessible for internal use
+#[doc(hidden)]
+pub mod helpers;
 
 pub use core::*;
 pub use error::*;
 pub use flags::*;
-pub use helpers::*;
 pub use traits::*;
 pub use types::*;
 
@@ -67,7 +70,6 @@ pub mod prelude {
     pub use crate::core::*;
     pub use crate::error::*;
     pub use crate::flags::*;
-    pub use crate::helpers::*;
     pub use crate::traits::*;
     pub use crate::types::*;
 }
