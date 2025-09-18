@@ -49,7 +49,7 @@
 
 pub mod core;
 pub mod error;
-pub mod ffi;
+mod ffi; // Internal FFI module - not part of public API
 pub mod flags;
 pub mod helpers;
 pub mod traits;

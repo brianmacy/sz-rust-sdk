@@ -18,7 +18,8 @@ pub trait SzEnvironment {
     fn is_destroyed(&self) -> bool;
 
     /// Reinitializes the environment with a specific configuration
-    fn reinitialize(&mut self, config_id: ConfigId) -> SzResult<()>;
+    /// Note: Sz_reinit is thread-safe, so this doesn't require a mutable reference
+    fn reinitialize(&self, config_id: ConfigId) -> SzResult<()>;
 
     /// Gets the currently active configuration ID
     fn get_active_config_id(&self) -> SzResult<ConfigId>;

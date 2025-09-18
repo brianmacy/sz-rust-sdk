@@ -238,7 +238,7 @@ impl SzEnvironment for SzEnvironmentCore {
         self.is_destroyed.load(Ordering::Relaxed)
     }
 
-    fn reinitialize(&mut self, config_id: ConfigId) -> SzResult<()> {
+    fn reinitialize(&self, config_id: ConfigId) -> SzResult<()> {
         if self.is_destroyed() {
             return Err(SzError::unrecoverable("Environment has been destroyed"));
         }

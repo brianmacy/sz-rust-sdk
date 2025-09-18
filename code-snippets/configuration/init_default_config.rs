@@ -1,9 +1,10 @@
 //! Initialize Default Configuration Example
 //!
-//! This example shows how to initialize and verify the default configuration
-//! for a Senzing repository using automatic setup.
+//! This example demonstrates how to create and set a default Senzing configuration
+//! using the SetDefaultConfig method, which creates, registers, and sets the
+//! configuration as default in a single operation.
 //!
-//! Rust equivalent of: configuration/InitDefaultConfig/Program.cs
+//! Rust equivalent of C# SzConfigManagerDemo.SetDefaultConfig pattern
 
 use sz_rust_sdk::prelude::*;
 
@@ -14,33 +15,50 @@ fn main() -> SzResult<()> {
     // Remove any existing environment configuration to use isolated database
     unsafe { std::env::remove_var("SENZING_ENGINE_CONFIGURATION_JSON") };
 
-    println!("Initializing default configuration...");
+    println!("Initialize Default Configuration Example");
+    println!("=======================================");
 
-    // Initialize the Senzing environment with automatic configuration setup
-    let environment = match ExampleEnvironment::initialize(instance_name) {
-        Ok(env) => env,
-        Err(e) => {
-            eprintln!("Failed to initialize environment: {}", e);
-            return Err(e);
-        }
-    };
+    // Initialize the Senzing environment
+    let environment = ExampleEnvironment::initialize(instance_name)?;
 
-    // Get the engine with automatic setup which ensures default configuration exists
-    let _engine = ExampleEnvironment::get_engine_with_setup(&environment)?;
-    println!("✅ Engine initialized with default configuration");
+    // Get configuration manager to manage default configuration
+    let config_manager = environment.get_config_manager()?;
 
-    // Get the current active configuration ID to verify setup
-    let current_config_id = environment.get_active_config_id()?;
-    println!("Active configuration ID: {}", current_config_id);
+    // Step 1: Check current default configuration (if any)
+    println!("1. Checking for existing default configuration...");
+    let current_default = config_manager.get_default_config_id()?;
+    if current_default > 0 {
+        println!("   Current default configuration ID: {}", current_default);
+    } else {
+        println!("   No default configuration currently set");
+    }
 
-    // Test that configuration is working by performing a simple operation
-    println!("Testing configuration with a simple search...");
-    let results =
-        _engine.search_by_attributes(r#"{"NAME_LAST": "TestConfiguration"}"#, None, None)?;
-    println!("✅ Configuration test successful");
-    println!("Search results: {}", results);
+    // Step 2: Create a basic default configuration
+    println!("2. Creating new default configuration...");
+    let config = config_manager.create_config()?;
+    let config_json = config.export()?;
+    println!("   Configuration created ({} bytes)", config_json.len());
 
-    println!("✅ Default configuration has been initialized and verified");
+    // Step 3: Set this as the default configuration using SetDefaultConfig
+    // This method creates, registers, and sets as default in one operation
+    println!("3. Setting new configuration as default...");
+    let config_comment = format!("Default configuration initialized by {}", instance_name);
+    let new_default_id = config_manager.set_default_config(&config_json, Some(&config_comment))?;
+    println!("✅ New default configuration set with ID: {}", new_default_id);
+
+    // Step 4: Verify the default configuration
+    println!("4. Verifying default configuration...");
+    let verified_default = config_manager.get_default_config_id()?;
+    println!("✅ Verified default configuration ID: {}", verified_default);
+
+    // Step 5: Reinitialize environment with new default configuration
+    println!("5. Reinitializing environment with new default...");
+    environment.reinitialize(new_default_id)?;
+    println!("✅ Environment reinitialized with new default configuration");
+
+    println!("\n✅ Default configuration successfully initialized!");
+    println!("   Configuration ID: {}", new_default_id);
+    println!("   The Senzing environment now has a properly initialized default configuration.");
 
     // Clean up resources
     ExampleEnvironment::cleanup()?;
