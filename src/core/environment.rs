@@ -69,7 +69,6 @@ impl SzEnvironmentCore {
             Some(existing_env) => {
                 // Check if the existing environment is still valid
                 if existing_env.is_destroyed() {
-                    println!("Previous environment was destroyed, creating new one...");
                     let new_env = Arc::new(Self::new(module_name, ini_params, verbose_logging)?);
                     *env_guard = Some(new_env.clone());
                     Ok(new_env)
@@ -89,7 +88,6 @@ impl SzEnvironmentCore {
             }
             None => {
                 // Create the first instance
-                println!("Creating singleton SzEnvironmentCore instance...");
                 let new_env = Arc::new(Self::new(module_name, ini_params, verbose_logging)?);
                 *env_guard = Some(new_env.clone());
                 Ok(new_env)
@@ -146,15 +144,12 @@ impl SzEnvironmentCore {
                 Ok(guard) => guard,
                 Err(poisoned) => {
                     // Recover from poisoned mutex
-                    println!("Warning: Mutex was poisoned, recovering...");
                     poisoned.into_inner()
                 }
             };
             if let Some(env) = env_guard.take() {
                 // Ensure complete destruction of all Senzing modules
                 if !env.is_destroyed() {
-                    println!("Destroying global SzEnvironmentCore instance and all modules...");
-
                     // Mark the environment as destroyed
                     env.is_destroyed
                         .store(true, std::sync::atomic::Ordering::Relaxed);
@@ -173,8 +168,6 @@ impl SzEnvironmentCore {
                         crate::ffi::bindings::SzDiagnostic_clearLastException();
                         crate::ffi::bindings::SzProduct_clearLastException();
                     }
-
-                    println!("✅ Global SzEnvironmentCore instance destroyed completely");
 
                     // Give the native library time to fully clean up internal state
                     std::thread::sleep(std::time::Duration::from_millis(100));
