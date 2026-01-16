@@ -160,4 +160,13 @@ impl SzFlags {
 
     /// Default flags for virtual entity operations
     pub const GET_VIRTUAL_ENTITY_DEFAULT: SzFlags = SzFlags::VIRTUAL_ENTITY_DEFAULT_FLAGS;
+
+    /// Converts optional flags to i64 for FFI calls
+    ///
+    /// This helper consolidates the common pattern of converting `Option<SzFlags>`
+    /// to the i64 value expected by FFI functions.
+    #[inline]
+    pub fn to_ffi(flags: Option<SzFlags>, default: SzFlags) -> i64 {
+        flags.unwrap_or(default).bits() as i64
+    }
 }

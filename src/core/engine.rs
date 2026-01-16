@@ -1,5 +1,4 @@
 //! Core implementation of SzEngine trait
-#![allow(unused_variables)]
 
 use crate::{
     error::{SzError, SzResult},
@@ -184,7 +183,8 @@ impl SzEngine for SzEngineCore {
         unsafe { crate::ffi::helpers::process_pointer_result(result) }
     }
 
-    fn get_entity(&self, entity_id: EntityId, flags: Option<SzFlags>) -> SzResult<JsonString> {
+    fn get_entity(&self, entity_id: EntityId, _flags: Option<SzFlags>) -> SzResult<JsonString> {
+        // TODO: Pass flags to FFI when supported
         let result = unsafe { crate::ffi::bindings::Sz_getEntityByEntityID_helper(entity_id) };
 
         unsafe { crate::ffi::helpers::process_engine_pointer_result(result) }
@@ -194,11 +194,11 @@ impl SzEngine for SzEngineCore {
         &self,
         data_source_code: &str,
         record_id: &str,
-        flags: Option<SzFlags>,
+        _flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
+        // TODO: Pass flags to FFI when supported
         let data_source_c = crate::ffi::helpers::str_to_c_string(data_source_code)?;
         let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
-        let flags_bits = flags.unwrap_or(SzFlags::GET_ENTITY_DEFAULT).bits() as i64;
 
         let result = unsafe {
             crate::ffi::bindings::Sz_getEntityByRecordID_helper(
@@ -279,10 +279,11 @@ impl SzEngine for SzEngineCore {
         start_entity_id: EntityId,
         end_entity_id: EntityId,
         max_degrees: i64,
-        avoid_entity_ids: Option<&HashSet<EntityId>>,
-        required_data_sources: Option<&HashSet<String>>,
+        _avoid_entity_ids: Option<&HashSet<EntityId>>,
+        _required_data_sources: Option<&HashSet<String>>,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
+        // TODO: Pass avoid_entity_ids and required_data_sources to FFI when supported
         let flags_bits = flags.unwrap_or(SzFlags::FIND_PATH_DEFAULT).bits() as i64;
 
         let result_ptr = unsafe {
@@ -416,8 +417,9 @@ impl SzEngine for SzEngineCore {
     fn get_virtual_entity(
         &self,
         record_keys: &[(String, String)],
-        flags: Option<SzFlags>,
+        _flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
+        // TODO: Pass flags to FFI when supported
         // The C# SDK expects ISet<(string dataSourceCode, string recordID)> recordKeys
         // We need to iterate through the record keys and call getVirtualEntityByRecordID for each
         // However, the native library only has Sz_getVirtualEntityByRecordID for single records

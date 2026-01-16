@@ -128,12 +128,7 @@ impl Drop for SzConfigCore {
                 let _ = crate::ffi::bindings::SzConfig_close_helper(self.handle);
             }
         }
-        // NOTE: SzConfig_destroy() should only be called when the entire process is shutting down
-        // or when we're certain no other SzConfig instances will be needed.
-        // For now, we only clean up the handle and clear exceptions.
-        // Module destruction should be handled by a singleton manager or at process exit.
-        unsafe {
-            crate::ffi::bindings::SzConfig_clearLastException();
-        }
+        // Config cleanup is handled by the native library at process exit.
+        // No explicit destroy call needed.
     }
 }

@@ -6,13 +6,12 @@ use crate::{
     traits::{SzConfig, SzConfigManager},
     types::{ConfigId, JsonString},
 };
-use std::ptr;
 
 /// Core implementation of the SzConfigManager trait
-pub struct SzConfigManagerCore {
-    #[allow(dead_code)]
-    handle: *mut std::ffi::c_void,
-}
+///
+/// This is a zero-sized type as the config manager uses module-level
+/// functions in the native library after initialization.
+pub struct SzConfigManagerCore;
 
 impl SzConfigManagerCore {
     pub fn new() -> SzResult<Self> {
@@ -53,10 +52,7 @@ impl SzConfigManagerCore {
             verbose
         ));
 
-        // Config manager doesn't need a handle for the new API
-        Ok(Self {
-            handle: ptr::null_mut(),
-        })
+        Ok(Self)
     }
 }
 
@@ -157,17 +153,5 @@ impl SzConfigManager for SzConfigManagerCore {
             config_id
         ));
         Ok(())
-    }
-}
-
-impl Drop for SzConfigManagerCore {
-    fn drop(&mut self) {
-        // NOTE: SzConfigMgr_destroy() should only be called when the entire process is shutting down
-        // or when we're certain no other SzConfigManager instances will be needed.
-        // For now, we only clear exceptions.
-        // Module destruction should be handled by a singleton manager or at process exit.
-        unsafe {
-            crate::ffi::bindings::SzConfigMgr_clearLastException();
-        }
     }
 }

@@ -10,9 +10,6 @@ fn main() {
     // Link against the Senzing library
     println!("cargo:rustc-link-lib=dylib=Sz");
 
-    // Set the library path for runtime
-    println!("cargo:rustc-env=LD_LIBRARY_PATH={}", senzing_lib_path);
-
     // Tell cargo to invalidate the built crate whenever the wrapper changes
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-env-changed=SENZING_LIB_PATH");

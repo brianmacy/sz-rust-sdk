@@ -125,10 +125,90 @@ This is a Rust SDK for Senzing entity resolution engine following the same patte
 - Do not create mock tests for use without the native library.  All tests should require the native library.
 - All the examples must run successfully (target: 22/22 = 100%)
 - Code-snippets are located in simplified structure: `code-snippets/category/example.rs`
-- If the Senzing SDK function returns -2, create the proper error from the appropriate *_getLastException function.
 - Make sure all error checking and processing is happening in all the core functions
 - Make sure the tests are aligned with the detailed C# test analysis.
 - DEMAND that all native SDK errors are caught and mapped to SzErrors
+
+## Error Handling Architecture
+
+### CRITICAL: Return Codes vs Exception Codes
+
+Native Senzing functions return **simple return codes** (0, -1, -2, etc.) that only indicate whether an error occurred, NOT the actual error type. The return codes are:
+- `0` = Success
+- Non-zero = Error occurred (check getLastExceptionCode for details)
+
+**WRONG approach:**
+```rust
+// DO NOT map simple return codes directly to error types!
+match return_code {
+    -1 => Err(SzError::unknown(...)),    // WRONG!
+    -2 => Err(SzError::configuration(...)), // WRONG!
+}
+```
+
+**CORRECT approach:**
+```rust
+if return_code != 0 {
+    // Call getLastExceptionCode() to get the ACTUAL Senzing error code
+    let actual_error_code = unsafe { Sz_getLastExceptionCode() };
+    // Map the actual code (e.g., 7220, 999, 2000) to the correct error type
+    Err(SzError::from_code_with_message(actual_error_code, SzComponent::Engine))
+}
+```
+
+### Required FFI Bindings for Error Handling
+
+Each component MUST have these error functions bound:
+- `Sz_getLastException()` / `Sz_getLastExceptionCode()` - Engine
+- `SzConfig_getLastException()` / `SzConfig_getLastExceptionCode()` - Config
+- `SzConfigMgr_getLastException()` / `SzConfigMgr_getLastExceptionCode()` - ConfigMgr
+- `SzDiagnostic_getLastException()` / `SzDiagnostic_getLastExceptionCode()` - Diagnostic
+- `SzProduct_getLastException()` / `SzProduct_getLastExceptionCode()` - Product
+
+### Error Hierarchy (Matching C# SDK)
+
+The Rust SDK error types MUST mirror the C# SDK exception hierarchy:
+
+```
+SzError (base)
+├── BadInput                        // SzBadInputException
+│   ├── NotFound                    // SzNotFoundException (extends BadInput)
+│   └── UnknownDataSource           // SzUnknownDataSourceException (extends BadInput)
+├── Configuration                   // SzConfigurationException
+├── Retryable                       // SzRetryableException
+│   ├── DatabaseConnectionLost      // SzDatabaseConnectionLostException (extends Retryable)
+│   ├── DatabaseTransient           // SzDatabaseTransientException (extends Retryable)
+│   └── RetryTimeoutExceeded        // SzRetryTimeoutExceededException (extends Retryable)
+├── Unrecoverable                   // SzUnrecoverableException
+│   ├── Database                    // SzDatabaseException (extends Unrecoverable)
+│   ├── License                     // SzLicenseException (extends Unrecoverable)
+│   ├── NotInitialized              // SzNotInitializedException (extends Unrecoverable)
+│   └── Unhandled                   // SzUnhandledException (extends Unrecoverable)
+├── ReplaceConflict                 // SzReplaceConflictException
+├── EnvironmentDestroyed            // SzEnvironmentDestroyedException
+└── Unknown                         // Catch-all for unmapped errors
+```
+
+### Error Code Ranges (from getLastExceptionCode)
+
+Map actual Senzing error codes to error types:
+- `0-46, 64-100` → BadInput
+- `47-63` → NotInitialized
+- `999` → License
+- `1000-1020` → Database
+- `2000-2300` → Configuration
+- `7200-7299` → Configuration
+- `7301-7400` → BadInput
+- `8500-8600` → Database
+- `9000-9099, 9201-9999` → License
+- `9100-9200` → Configuration
+
+### Helper Methods Required
+
+Each error type should support:
+- `is_retryable()` - Returns true for Retryable and its subtypes
+- `is_unrecoverable()` - Returns true for Unrecoverable and its subtypes
+- `is_bad_input()` - Returns true for BadInput and its subtypes
 - DEMAND code-snippets are minimal demonstrations of a single concept and should limit themselves to the minimal needed to know to accomplish the specific task.  Also, document the Senzing SDK usage well.
 - DEMAND all SDK methods must be implemented and tested
 - DEMAND read both user and project requirements

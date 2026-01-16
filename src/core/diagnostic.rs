@@ -6,21 +6,18 @@ use crate::{
     traits::SzDiagnostic,
     types::{FeatureId, JsonString},
 };
-use std::ptr;
 
 /// Core implementation of the SzDiagnostic trait
-pub struct SzDiagnosticCore {
-    #[allow(dead_code)]
-    handle: *mut std::ffi::c_void,
-}
+///
+/// This is a zero-sized type as the diagnostic component uses module-level
+/// functions in the native library after environment initialization.
+pub struct SzDiagnosticCore;
 
 impl SzDiagnosticCore {
     pub fn new() -> SzResult<Self> {
         // Don't call SzDiagnostic_init - rely on the main environment initialization
         // The diagnostic functions should work once the main Sz_init has been called
-        Ok(Self {
-            handle: ptr::null_mut(),
-        })
+        Ok(Self)
     }
 
     pub fn new_with_params(
@@ -58,11 +55,5 @@ impl SzDiagnostic for SzDiagnosticCore {
     fn purge_repository(&self) -> SzResult<()> {
         ffi_call!(crate::ffi::bindings::SzDiagnostic_purgeRepository());
         Ok(())
-    }
-}
-
-impl Drop for SzDiagnosticCore {
-    fn drop(&mut self) {
-        // Diagnostic doesn't need cleanup in the new API
     }
 }

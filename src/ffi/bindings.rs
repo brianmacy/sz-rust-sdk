@@ -314,17 +314,25 @@ unsafe extern "C" {
 
     pub fn SzConfig_getLastException(buf: *mut c_char, length: c_longlong) -> c_longlong;
 
+    pub fn SzConfig_getLastExceptionCode() -> c_longlong;
+
     pub fn SzConfig_clearLastException();
 
     pub fn SzConfigMgr_getLastException(buf: *mut c_char, length: c_longlong) -> c_longlong;
+
+    pub fn SzConfigMgr_getLastExceptionCode() -> c_longlong;
 
     pub fn SzConfigMgr_clearLastException();
 
     pub fn SzDiagnostic_getLastException(buf: *mut c_char, length: c_longlong) -> c_longlong;
 
+    pub fn SzDiagnostic_getLastExceptionCode() -> c_longlong;
+
     pub fn SzDiagnostic_clearLastException();
 
     pub fn SzProduct_getLastException(buf: *mut c_char, length: c_longlong) -> c_longlong;
+
+    pub fn SzProduct_getLastExceptionCode() -> c_longlong;
 
     pub fn SzProduct_clearLastException();
 }

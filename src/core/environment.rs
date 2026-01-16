@@ -6,6 +6,7 @@ use crate::{
     traits::*,
     types::*,
 };
+use std::mem::ManuallyDrop;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 
@@ -22,7 +23,10 @@ pub struct SzEnvironmentCore {
 }
 
 // Singleton storage for the global SzEnvironmentCore instance
-static GLOBAL_ENVIRONMENT: OnceLock<Mutex<Option<Arc<SzEnvironmentCore>>>> = OnceLock::new();
+// Using ManuallyDrop to prevent static destructor from running at exit,
+// which avoids conflicts with Senzing's internal static mutex destruction order
+static GLOBAL_ENVIRONMENT: OnceLock<ManuallyDrop<Mutex<Option<Arc<SzEnvironmentCore>>>>> =
+    OnceLock::new();
 
 impl SzEnvironmentCore {
     /// Creates a new SzEnvironment instance
@@ -62,7 +66,7 @@ impl SzEnvironmentCore {
         ini_params: &str,
         verbose_logging: bool,
     ) -> SzResult<Arc<Self>> {
-        let global_env = GLOBAL_ENVIRONMENT.get_or_init(|| Mutex::new(None));
+        let global_env = GLOBAL_ENVIRONMENT.get_or_init(|| ManuallyDrop::new(Mutex::new(None)));
         let mut env_guard = global_env.lock().unwrap();
 
         match env_guard.as_ref() {
@@ -104,7 +108,7 @@ impl SzEnvironmentCore {
     ///
     /// Returns the existing singleton instance or an error if none exists.
     pub fn get_existing_instance() -> SzResult<Arc<Self>> {
-        let global_env = GLOBAL_ENVIRONMENT.get_or_init(|| Mutex::new(None));
+        let global_env = GLOBAL_ENVIRONMENT.get_or_init(|| ManuallyDrop::new(Mutex::new(None)));
         let env_guard = global_env.lock().unwrap();
 
         match env_guard.as_ref() {

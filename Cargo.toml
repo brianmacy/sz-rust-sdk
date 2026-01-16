@@ -2,6 +2,7 @@
 name = "sz-rust-sdk"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.88"
 authors = ["Senzing Community"]
 license = "Apache-2.0"
 description = "Rust SDK for Senzing entity resolution engine"
@@ -16,7 +17,7 @@ crate-type = ["cdylib", "rlib"]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 bitflags = "2.4"
-thiserror = "1.0"
+thiserror = "2.0"
 libc = "0.2"
 hex = "0.4"
 

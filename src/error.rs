@@ -8,27 +8,29 @@
 //! occur, the SDK automatically calls the appropriate `getLastException` function
 //! to retrieve detailed error messages from the native library.
 //!
-//! # Error Categories
+//! # Error Categories (Matching C# SDK Hierarchy)
 //!
-//! * [`SzError::Configuration`] - Configuration and setup errors
-//! * [`SzError::BadInput`] - Invalid input parameters or data
-//! * [`SzError::Database`] - Database connection or operation errors
-//! * [`SzError::NotFound`] - Resource or entity not found
-//! * [`SzError::Retryable`] - Temporary errors that can be retried
-//! * [`SzError::Unrecoverable`] - Fatal errors requiring reinitialization
-//! * [`SzError::License`] - Licensing issues
-//! * [`SzError::NotInitialized`] - System not initialized errors
-//! * [`SzError::DatabaseConnectionLost`] - Database connectivity lost
-//! * [`SzError::DatabaseTransient`] - Temporary database issues
-//! * [`SzError::ReplaceConflict`] - Data replacement conflicts
-//! * [`SzError::RetryTimeoutExceeded`] - Retry timeout exceeded
-//! * [`SzError::Unhandled`] - Unhandled errors
-//! * [`SzError::UnknownDataSource`] - Unknown data source errors
+//! **Base errors:**
+//! * [`SzError::BadInput`] - Invalid input parameters or data (SzBadInputException)
+//!   * [`SzError::NotFound`] - Resource or entity not found (extends BadInput)
+//!   * [`SzError::UnknownDataSource`] - Unknown data source errors (extends BadInput)
+//! * [`SzError::Configuration`] - Configuration and setup errors (SzConfigurationException)
+//! * [`SzError::Retryable`] - Temporary errors that can be retried (SzRetryableException)
+//!   * [`SzError::DatabaseConnectionLost`] - Database connectivity lost (extends Retryable)
+//!   * [`SzError::DatabaseTransient`] - Temporary database issues (extends Retryable)
+//!   * [`SzError::RetryTimeoutExceeded`] - Retry timeout exceeded (extends Retryable)
+//! * [`SzError::Unrecoverable`] - Fatal errors requiring reinitialization (SzUnrecoverableException)
+//!   * [`SzError::Database`] - Database operation errors (extends Unrecoverable)
+//!   * [`SzError::License`] - Licensing issues (extends Unrecoverable)
+//!   * [`SzError::NotInitialized`] - System not initialized errors (extends Unrecoverable)
+//!   * [`SzError::Unhandled`] - Unhandled errors (extends Unrecoverable)
+//! * [`SzError::ReplaceConflict`] - Data replacement conflicts (SzReplaceConflictException)
+//! * [`SzError::EnvironmentDestroyed`] - Environment already destroyed (SzEnvironmentDestroyedException)
 //! * [`SzError::Unknown`] - Unexpected or unclassified errors
 //!
 //! # Examples
 //!
-//! ```
+//! ```no_run
 //! use sz_rust_sdk::error::{SzError, SzResult};
 //!
 //! fn example_function() -> SzResult<String> {
@@ -65,7 +67,7 @@ use thiserror::Error;
 ///
 /// # Examples
 ///
-/// ```
+/// ```no_run
 /// use sz_rust_sdk::error::SzResult;
 ///
 /// fn senzing_operation() -> SzResult<String> {
@@ -200,6 +202,18 @@ pub enum SzError {
     /// Unknown data source errors
     #[error("Unknown data source: {message}")]
     UnknownDataSource {
+        message: String,
+        #[source]
+        source: Option<Box<dyn std::error::Error + Send + Sync>>,
+    },
+
+    /// Environment has been destroyed
+    ///
+    /// Corresponds to SzEnvironmentDestroyedException in C# SDK.
+    /// This error occurs when attempting to use an environment that has already
+    /// been destroyed.
+    #[error("Environment destroyed: {message}")]
+    EnvironmentDestroyed {
         message: String,
         #[source]
         source: Option<Box<dyn std::error::Error + Send + Sync>>,
@@ -351,14 +365,58 @@ impl SzError {
         }
     }
 
+    /// Creates a new EnvironmentDestroyed error
+    pub fn environment_destroyed<S: Into<String>>(message: S) -> Self {
+        Self::EnvironmentDestroyed {
+            message: message.into(),
+            source: None,
+        }
+    }
+
     /// Returns true if this error indicates the operation should be retried
+    ///
+    /// This includes Retryable and its subtypes:
+    /// - DatabaseConnectionLost
+    /// - DatabaseTransient
+    /// - RetryTimeoutExceeded
     pub fn is_retryable(&self) -> bool {
-        matches!(self, SzError::Retryable { .. })
+        matches!(
+            self,
+            SzError::Retryable { .. }
+                | SzError::DatabaseConnectionLost { .. }
+                | SzError::DatabaseTransient { .. }
+                | SzError::RetryTimeoutExceeded { .. }
+        )
     }
 
     /// Returns true if this error is unrecoverable
+    ///
+    /// This includes Unrecoverable and its subtypes:
+    /// - Database
+    /// - License
+    /// - NotInitialized
+    /// - Unhandled
     pub fn is_unrecoverable(&self) -> bool {
-        matches!(self, SzError::Unrecoverable { .. })
+        matches!(
+            self,
+            SzError::Unrecoverable { .. }
+                | SzError::Database { .. }
+                | SzError::License { .. }
+                | SzError::NotInitialized { .. }
+                | SzError::Unhandled { .. }
+        )
+    }
+
+    /// Returns true if this error is a bad input error
+    ///
+    /// This includes BadInput and its subtypes:
+    /// - NotFound
+    /// - UnknownDataSource
+    pub fn is_bad_input(&self) -> bool {
+        matches!(
+            self,
+            SzError::BadInput { .. } | SzError::NotFound { .. } | SzError::UnknownDataSource { .. }
+        )
     }
 
     /// Creates an error from getLastExceptionCode() with message from getLastException()
@@ -455,23 +513,6 @@ impl SzError {
             message: message.into(),
             source: Some(source),
         }
-    }
-}
-
-/// Utility function to convert C string errors to SzError (Internal)
-///
-/// # Safety
-///
-/// The caller must ensure that `c_str` is either null or points to a valid null-terminated C string.
-#[allow(dead_code)]
-pub(crate) unsafe fn c_str_to_sz_error(c_str: *const i8) -> SzError {
-    if c_str.is_null() {
-        return SzError::unknown("Unknown error occurred");
-    }
-
-    match unsafe { CStr::from_ptr(c_str) }.to_str() {
-        Ok(error_msg) => SzError::unknown(error_msg),
-        Err(_) => SzError::ffi("Failed to convert C string to Rust string"),
     }
 }
 

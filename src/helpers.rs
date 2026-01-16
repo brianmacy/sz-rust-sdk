@@ -15,6 +15,28 @@ use std::cell::RefCell;
 use std::fs;
 use std::path::Path;
 
+/// Get the Senzing CONFIGPATH from environment variable or default
+fn get_config_path() -> String {
+    std::env::var("SENZING_CONFIGPATH")
+        .unwrap_or_else(|_| "/opt/senzing/er/resources/templates".to_string())
+}
+
+/// Get the Senzing RESOURCEPATH from environment variable or default
+fn get_resource_path() -> String {
+    std::env::var("SENZING_RESOURCEPATH")
+        .unwrap_or_else(|_| "/opt/senzing/er/resources".to_string())
+}
+
+/// Get the Senzing SUPPORTPATH from environment variable or default
+fn get_support_path() -> String {
+    std::env::var("SENZING_SUPPORTPATH").unwrap_or_else(|_| "/opt/senzing/data".to_string())
+}
+
+/// Get the Senzing template database path from environment variable or default
+fn get_template_db_path() -> String {
+    std::env::var("SENZING_TEMPLATE_DB").unwrap_or_else(|_| format!("{}/G2C.db", get_config_path()))
+}
+
 // Thread-local storage for test database cleanup
 thread_local! {
     static CURRENT_TEST_DB: RefCell<Option<String>> = const { RefCell::new(None) };
@@ -113,13 +135,14 @@ impl ExampleEnvironment {
     /// Set up a new random database from the template with default configuration
     fn setup_test_database() -> SzResult<String> {
         let db_path = Self::generate_random_db_path();
-        let template_path = "/opt/senzing/er/resources/templates/G2C.db";
+        let template_path = get_template_db_path();
 
         // Check if template exists
-        if !Path::new(template_path).exists() {
-            return Err(SzError::configuration(
-                "Template database not found at /opt/senzing/er/resources/templates/G2C.db",
-            ));
+        if !Path::new(&template_path).exists() {
+            return Err(SzError::configuration(format!(
+                "Template database not found at {}. Set SENZING_TEMPLATE_DB or SENZING_CONFIGPATH environment variable.",
+                template_path
+            )));
         }
 
         // Copy template to random location
@@ -147,7 +170,10 @@ impl ExampleEnvironment {
     /// This uses a separate, temporary config manager instance that doesn't interfere with the main environment
     fn setup_initial_configuration(db_path: &str) -> SzResult<()> {
         let settings = format!(
-            r#"{{"PIPELINE":{{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,
+            r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,
+            get_config_path(),
+            get_resource_path(),
+            get_support_path(),
             db_path
         );
 
@@ -181,9 +207,7 @@ impl ExampleEnvironment {
             config_id
         );
 
-        // Clean up the setup instances to avoid conflicts with main environment
-        drop(config_mgr);
-        drop(config);
+        // config_mgr and config will be cleaned up automatically when they go out of scope
 
         Ok(())
     }
@@ -285,7 +309,10 @@ impl ExampleEnvironment {
         });
 
         let config = format!(
-            r#"{{"PIPELINE":{{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}","DEBUGLEVEL":"2"}}}}"#,
+            r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}","DEBUGLEVEL":"2"}}}}"#,
+            get_config_path(),
+            get_resource_path(),
+            get_support_path(),
             db_path
         );
 
@@ -309,7 +336,10 @@ impl ExampleEnvironment {
         });
 
         let config = format!(
-            r#"{{"PIPELINE":{{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,
+            r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,
+            get_config_path(),
+            get_resource_path(),
+            get_support_path(),
             db_path
         );
 
