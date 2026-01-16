@@ -94,27 +94,56 @@ sz-rust-sdk = { git = "https://github.com/brianmacy/sz-rust-sdk", tag = "v0.1.0"
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
-    // Initialize the Senzing environment
-    let env = ExampleEnvironment::initialize("my-app")?;
+    // Build settings JSON (paths vary by platform - see Prerequisites above)
+    let settings = r#"{
+        "PIPELINE": {
+            "CONFIGPATH": "/opt/homebrew/opt/senzing/runtime/er/etc",
+            "RESOURCEPATH": "/opt/homebrew/opt/senzing/runtime/er/resources",
+            "SUPPORTPATH": "/opt/homebrew/opt/senzing/runtime/data"
+        },
+        "SQL": {"CONNECTION": "sqlite3://na:na@/tmp/my_senzing.db"}
+    }"#;
 
-    // Get the engine for entity operations
-    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    // Initialize - SzEnvironmentCore is the only concrete type you use directly
+    let env = SzEnvironmentCore::get_instance("my-app", settings, false)?;
+
+    // All other interfaces are traits (Box<dyn SzEngine>, Box<dyn SzConfig>, etc.)
+    let engine = env.get_engine()?;
+    let config_mgr = env.get_config_manager()?;
+
+    // Register a data source via config
+    let config = config_mgr.create_config()?;
+    config.register_data_source("CUSTOMERS")?;
+    let config_json = config.export()?;
+    config_mgr.set_default_config(&config_json, Some("Added CUSTOMERS"))?;
 
     // Add a record
     let record = r#"{"NAME_FULL": "John Smith", "EMAIL_ADDRESS": "john@example.com"}"#;
-    let result = engine.add_record("CUSTOMERS", "CUST001", record, None)?;
+    engine.add_record("CUSTOMERS", "CUST001", record, None)?;
 
     // Search for similar entities
     let search_attrs = r#"{"NAME_FULL": "Jon Smith"}"#;
     let results = engine.search_by_attributes(search_attrs, None, None)?;
 
     println!("Search results: {}", results);
-
-    // Clean up
-    ExampleEnvironment::cleanup()?;
     Ok(())
 }
 ```
+
+## Usage Pattern
+
+The SDK follows a "concrete entry point, trait interfaces" pattern:
+
+| Component | Type | Purpose |
+|-----------|------|---------|
+| `SzEnvironmentCore` | Concrete struct | Entry point - use `get_instance()` to initialize |
+| `SzEngine` | Trait (`Box<dyn SzEngine>`) | Entity resolution operations |
+| `SzConfig` | Trait (`Box<dyn SzConfig>`) | Configuration editing |
+| `SzConfigManager` | Trait (`Box<dyn SzConfigManager>`) | Configuration lifecycle |
+| `SzDiagnostic` | Trait (`Box<dyn SzDiagnostic>`) | Diagnostics and performance |
+| `SzProduct` | Trait (`Box<dyn SzProduct>`) | Version and license info |
+
+This allows your code to depend on traits rather than concrete implementations, improving testability and flexibility.
 
 ## Examples
 
