@@ -8,7 +8,7 @@ use crate::{
 };
 use std::mem::ManuallyDrop;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::{Arc, Mutex, Once, OnceLock};
 
 /// Core implementation of the SzEnvironment trait
 ///
@@ -16,7 +16,18 @@ use std::sync::{Arc, Mutex, OnceLock};
 /// as a factory for obtaining instances of other SDK components.
 pub struct SzEnvironmentCore {
     is_destroyed: Arc<AtomicBool>,
-    is_initialized: Arc<AtomicBool>,
+    /// Guards Sz_init() - ensures it runs exactly once and other threads wait
+    init_once: Arc<Once>,
+    /// Stores any error that occurred during Sz_init
+    init_error: Arc<Mutex<Option<String>>>,
+    /// Guards SzConfigMgr_init() - ensures it runs exactly once and other threads wait
+    config_mgr_init_once: Arc<Once>,
+    /// Stores any error that occurred during SzConfigMgr_init
+    config_mgr_init_error: Arc<Mutex<Option<String>>>,
+    /// Guards SzProduct_init() - ensures it runs exactly once and other threads wait
+    product_init_once: Arc<Once>,
+    /// Stores any error that occurred during SzProduct_init
+    product_init_error: Arc<Mutex<Option<String>>>,
     module_name: String,
     ini_params: String,
     verbose_logging: bool,
@@ -39,7 +50,12 @@ impl SzEnvironmentCore {
     pub fn new(module_name: &str, ini_params: &str, verbose_logging: bool) -> SzResult<Self> {
         Ok(Self {
             is_destroyed: Arc::new(AtomicBool::new(false)),
-            is_initialized: Arc::new(AtomicBool::new(false)),
+            init_once: Arc::new(Once::new()),
+            init_error: Arc::new(Mutex::new(None)),
+            config_mgr_init_once: Arc::new(Once::new()),
+            config_mgr_init_error: Arc::new(Mutex::new(None)),
+            product_init_once: Arc::new(Once::new()),
+            product_init_error: Arc::new(Mutex::new(None)),
             module_name: module_name.to_string(),
             ini_params: ini_params.to_string(),
             verbose_logging,
@@ -193,27 +209,148 @@ impl SzEnvironmentCore {
 
     /// Ensures Sz_init has been called - should be called before any engine operations
     ///
-    /// This method is thread-safe and will only call Sz_init once.
+    /// This method is thread-safe: the first thread to call this will run Sz_init(),
+    /// and all other threads will block until initialization is complete.
     fn ensure_initialized(&self) -> SzResult<()> {
-        if self.is_initialized.load(Ordering::Relaxed) {
-            return Ok(());
+        // Clone Arcs for use in closure (can't capture &self in call_once)
+        let module_name = self.module_name.clone();
+        let ini_params = self.ini_params.clone();
+        let verbose_logging = self.verbose_logging;
+        let init_error = Arc::clone(&self.init_error);
+
+        // call_once blocks all threads until the closure completes
+        self.init_once.call_once(|| {
+            let result = (|| -> SzResult<()> {
+                let module_name_c = crate::ffi::helpers::str_to_c_string(&module_name)?;
+                let ini_params_c = crate::ffi::helpers::str_to_c_string(&ini_params)?;
+                let verbose = if verbose_logging { 1 } else { 0 };
+
+                ffi_call!(crate::ffi::bindings::Sz_init(
+                    module_name_c.as_ptr(),
+                    ini_params_c.as_ptr(),
+                    verbose as i64
+                ));
+                Ok(())
+            })();
+
+            // Store any error for other threads to see
+            if let Err(e) = result
+                && let Ok(mut guard) = init_error.lock()
+            {
+                *guard = Some(e.to_string());
+            }
+        });
+
+        // Check if initialization failed
+        if let Ok(guard) = self.init_error.lock()
+            && let Some(err_msg) = guard.as_ref()
+        {
+            return Err(SzError::unrecoverable(format!(
+                "Sz_init failed: {}",
+                err_msg
+            )));
         }
 
-        // Use compare-and-swap to ensure only one thread calls Sz_init
-        if self
-            .is_initialized
-            .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
-            .is_ok()
-        {
-            let module_name_c = crate::ffi::helpers::str_to_c_string(&self.module_name)?;
-            let ini_params_c = crate::ffi::helpers::str_to_c_string(&self.ini_params)?;
-            let verbose = if self.verbose_logging { 1 } else { 0 };
+        Ok(())
+    }
 
-            ffi_call!(crate::ffi::bindings::Sz_init(
-                module_name_c.as_ptr(),
-                ini_params_c.as_ptr(),
-                verbose as i64
-            ));
+    /// Ensures SzConfigMgr_init has been called - should be called before any config manager operations
+    ///
+    /// This method is thread-safe: the first thread to call this will run SzConfigMgr_init(),
+    /// and all other threads will block until initialization is complete.
+    fn ensure_config_mgr_initialized(&self) -> SzResult<()> {
+        // Clone Arcs for use in closure (can't capture &self in call_once)
+        let module_name = self.module_name.clone();
+        let ini_params = self.ini_params.clone();
+        let verbose_logging = self.verbose_logging;
+        let init_error = Arc::clone(&self.config_mgr_init_error);
+
+        // call_once blocks all threads until the closure completes
+        self.config_mgr_init_once.call_once(|| {
+            let result = (|| -> SzResult<()> {
+                let module_name_c = crate::ffi::helpers::str_to_c_string(&module_name)?;
+                let ini_params_c = crate::ffi::helpers::str_to_c_string(&ini_params)?;
+                let verbose = if verbose_logging { 1 } else { 0 };
+
+                // Call the FFI directly and check with the proper config_mgr error handler
+                let return_code = unsafe {
+                    crate::ffi::bindings::SzConfigMgr_init(
+                        module_name_c.as_ptr(),
+                        ini_params_c.as_ptr(),
+                        verbose,
+                    )
+                };
+                crate::ffi::helpers::check_config_mgr_return_code(return_code)?;
+                Ok(())
+            })();
+
+            // Store any error for other threads to see
+            if let Err(e) = result
+                && let Ok(mut guard) = init_error.lock()
+            {
+                *guard = Some(e.to_string());
+            }
+        });
+
+        // Check if initialization failed
+        if let Ok(guard) = self.config_mgr_init_error.lock()
+            && let Some(err_msg) = guard.as_ref()
+        {
+            return Err(SzError::unrecoverable(format!(
+                "SzConfigMgr_init failed: {}",
+                err_msg
+            )));
+        }
+
+        Ok(())
+    }
+
+    /// Ensures SzProduct_init has been called - should be called before any product operations
+    ///
+    /// This method is thread-safe: the first thread to call this will run SzProduct_init(),
+    /// and all other threads will block until initialization is complete.
+    fn ensure_product_initialized(&self) -> SzResult<()> {
+        // Clone Arcs for use in closure (can't capture &self in call_once)
+        let module_name = self.module_name.clone();
+        let ini_params = self.ini_params.clone();
+        let verbose_logging = self.verbose_logging;
+        let init_error = Arc::clone(&self.product_init_error);
+
+        // call_once blocks all threads until the closure completes
+        self.product_init_once.call_once(|| {
+            let result = (|| -> SzResult<()> {
+                let module_name_c = crate::ffi::helpers::str_to_c_string(&module_name)?;
+                let ini_params_c = crate::ffi::helpers::str_to_c_string(&ini_params)?;
+                let verbose = if verbose_logging { 1 } else { 0 };
+
+                // Call the FFI directly and check with the proper product error handler
+                let return_code = unsafe {
+                    crate::ffi::bindings::SzProduct_init(
+                        module_name_c.as_ptr(),
+                        ini_params_c.as_ptr(),
+                        verbose,
+                    )
+                };
+                crate::ffi::helpers::check_product_return_code(return_code)?;
+                Ok(())
+            })();
+
+            // Store any error for other threads to see
+            if let Err(e) = result
+                && let Ok(mut guard) = init_error.lock()
+            {
+                *guard = Some(e.to_string());
+            }
+        });
+
+        // Check if initialization failed
+        if let Ok(guard) = self.product_init_error.lock()
+            && let Some(err_msg) = guard.as_ref()
+        {
+            return Err(SzError::unrecoverable(format!(
+                "SzProduct_init failed: {}",
+                err_msg
+            )));
         }
 
         Ok(())
@@ -264,12 +401,11 @@ impl SzEnvironment for SzEnvironmentCore {
             return Err(SzError::unrecoverable("Environment has been destroyed"));
         }
 
-        // Use the same settings as the environment for consistent initialization
-        let product_core = super::product::SzProductCore::new_with_params(
-            &self.module_name,
-            &self.ini_params,
-            self.verbose_logging,
-        )?;
+        // Ensure SzProduct_init has been called (thread-safe, all threads wait for completion)
+        self.ensure_product_initialized()?;
+
+        // Create product instance (init already done, so this is safe)
+        let product_core = super::product::SzProductCore::new()?;
         Ok(Box::new(product_core))
     }
 
@@ -290,13 +426,13 @@ impl SzEnvironment for SzEnvironmentCore {
             return Err(SzError::unrecoverable("Environment has been destroyed"));
         }
 
+        // Ensure SzConfigMgr_init has been called (thread-safe, all threads wait for completion)
         // Note: SzConfigMgr does NOT require Sz_init - it initializes independently
         // This allows config setup before engine initialization
-        let config_mgr_core = super::config_manager::SzConfigManagerCore::new_with_params(
-            &self.module_name,
-            &self.ini_params,
-            self.verbose_logging,
-        )?;
+        self.ensure_config_mgr_initialized()?;
+
+        // Create config manager instance (init already done, so this is safe)
+        let config_mgr_core = super::config_manager::SzConfigManagerCore::new()?;
         Ok(Box::new(config_mgr_core))
     }
 

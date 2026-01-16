@@ -351,3 +351,71 @@ fn test_environment_error_recovery() -> SzResult<()> {
     ExampleEnvironment::cleanup()?;
     Ok(())
 }
+
+/// Test concurrent engine initialization (race condition fix)
+/// Tests that multiple threads can call get_engine() concurrently without
+/// "SDK not initialized" errors. This validates the fix for the race condition
+/// where threads could proceed before Sz_init() completed.
+#[test]
+#[serial]
+fn test_concurrent_engine_initialization() -> SzResult<()> {
+    use std::sync::Arc;
+    use std::thread;
+
+    // Clean up any existing global instance first
+    let _ = SzEnvironmentCore::destroy_global_instance();
+
+    // Initialize environment
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-concurrent-init-test")?;
+    let env = Arc::new(env);
+
+    // Spawn multiple threads that all try to get_engine() simultaneously
+    const NUM_THREADS: usize = 8;
+    let mut handles = Vec::with_capacity(NUM_THREADS);
+
+    for i in 0..NUM_THREADS {
+        let env_clone = Arc::clone(&env);
+        let handle = thread::spawn(move || -> Result<(), String> {
+            // All threads try to get_engine() at roughly the same time
+            // Before the fix, some threads would get "SDK not initialized"
+            match env_clone.get_engine() {
+                Ok(_engine) => {
+                    eprintln!("Thread {} successfully got engine", i);
+                    Ok(())
+                }
+                Err(e) => {
+                    let err_msg = e.to_string();
+                    eprintln!("Thread {} failed: {}", i, err_msg);
+                    Err(err_msg)
+                }
+            }
+        });
+        handles.push(handle);
+    }
+
+    // Collect results from all threads
+    let mut failures = Vec::new();
+    for (i, handle) in handles.into_iter().enumerate() {
+        match handle.join() {
+            Ok(Ok(())) => {}
+            Ok(Err(e)) => failures.push(format!("Thread {} error: {}", i, e)),
+            Err(_) => failures.push(format!("Thread {} panicked", i)),
+        }
+    }
+
+    ExampleEnvironment::cleanup()?;
+
+    // All threads must succeed
+    if !failures.is_empty() {
+        return Err(SzError::unrecoverable(format!(
+            "Concurrent initialization failed:\n{}",
+            failures.join("\n")
+        )));
+    }
+
+    eprintln!(
+        "All {} threads successfully initialized engine concurrently",
+        NUM_THREADS
+    );
+    Ok(())
+}

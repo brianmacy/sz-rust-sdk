@@ -1,26 +1,14 @@
 //! Core implementation of SzProduct trait
 
-use crate::{error::SzResult, ffi_call_product, traits::SzProduct, types::JsonString};
+use crate::{error::SzResult, traits::SzProduct, types::JsonString};
 
 /// Core implementation of the SzProduct trait
 pub struct SzProductCore;
 
 impl SzProductCore {
-    pub fn new_with_params(
-        module_name: &str,
-        ini_params: &str,
-        verbose_logging: bool,
-    ) -> SzResult<Self> {
-        // Initialize the product module with parameters
-        let module_name_c = crate::ffi::helpers::str_to_c_string(module_name)?;
-        let ini_params_c = crate::ffi::helpers::str_to_c_string(ini_params)?;
-        let verbose = if verbose_logging { 1 } else { 0 };
-
-        ffi_call_product!(crate::ffi::bindings::SzProduct_init(
-            module_name_c.as_ptr(),
-            ini_params_c.as_ptr(),
-            verbose
-        ));
+    /// Creates a new SzProductCore without initializing the native library.
+    /// Caller must ensure SzProduct_init has already been called.
+    pub(crate) fn new() -> SzResult<Self> {
         Ok(Self)
     }
 }

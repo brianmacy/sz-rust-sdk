@@ -89,7 +89,7 @@ fn main() -> SzResult<()> {
             data_source_code,
             record_id,
             record_definition,
-            Some(SzFlags::ADD_RECORD_DEFAULT),
+            Some(SzFlags::ADD_RECORD_DEFAULT_FLAGS),
         )?;
 
         println!("Record {} from {} added", record_id, data_source_code);

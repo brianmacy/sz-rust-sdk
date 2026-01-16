@@ -211,9 +211,8 @@ fn test_flags_constant_why_entities_default_flags() {
     // Test that the flag has a non-zero value
     assert_ne!(flag.bits(), 0);
 
-    // Test string representation
-    let flag_string = format!("{:?}", flag);
-    assert!(flag_string.contains("WHY_ENTITIES_DEFAULT_FLAGS"));
+    // Test that it contains the expected underlying flags (per C# SDK)
+    assert!(flag.contains(SzFlags::INCLUDE_FEATURE_SCORES));
 }
 
 #[test]
@@ -224,9 +223,8 @@ fn test_flags_constant_search_by_attributes_all() {
     // Test that the flag has a non-zero value
     assert_ne!(flag.bits(), 0);
 
-    // Test string representation
-    let flag_string = format!("{:?}", flag);
-    assert!(flag_string.contains("SEARCH_BY_ATTRIBUTES_ALL"));
+    // Test that it contains the expected underlying flags
+    assert!(flag.contains(SzFlags::SEARCH_INCLUDE_RESOLVED));
 }
 
 #[test]
@@ -237,9 +235,8 @@ fn test_flags_constant_search_by_attributes_strong() {
     // Test that the flag has a non-zero value
     assert_ne!(flag.bits(), 0);
 
-    // Test string representation
-    let flag_string = format!("{:?}", flag);
-    assert!(flag_string.contains("SEARCH_BY_ATTRIBUTES_STRONG"));
+    // Test that it contains the expected underlying flags
+    assert!(flag.contains(SzFlags::SEARCH_INCLUDE_RESOLVED));
 }
 
 #[test]
@@ -250,9 +247,8 @@ fn test_flags_constant_search_by_attributes_minimal_all() {
     // Test that the flag has a non-zero value
     assert_ne!(flag.bits(), 0);
 
-    // Test string representation
-    let flag_string = format!("{:?}", flag);
-    assert!(flag_string.contains("SEARCH_BY_ATTRIBUTES_MINIMAL_ALL"));
+    // Test that it contains the expected underlying flags
+    assert!(flag.contains(SzFlags::SEARCH_INCLUDE_RESOLVED));
 }
 
 #[test]
@@ -263,9 +259,8 @@ fn test_flags_constant_search_by_attributes_minimal_strong() {
     // Test that the flag has a non-zero value
     assert_ne!(flag.bits(), 0);
 
-    // Test string representation
-    let flag_string = format!("{:?}", flag);
-    assert!(flag_string.contains("SEARCH_BY_ATTRIBUTES_MINIMAL_STRONG"));
+    // Test that it contains the expected underlying flags
+    assert!(flag.contains(SzFlags::SEARCH_INCLUDE_RESOLVED));
 }
 
 #[test]
@@ -302,9 +297,9 @@ fn test_flags_constant_entity_default_flags() {
     // Test that the flag has a non-zero value
     assert_ne!(flag.bits(), 0);
 
-    // Test string representation
-    let flag_string = format!("{:?}", flag);
-    assert!(flag_string.contains("ENTITY_DEFAULT_FLAGS"));
+    // Test that it contains the expected underlying flags
+    assert!(flag.contains(SzFlags::ENTITY_INCLUDE_ENTITY_NAME));
+    assert!(flag.contains(SzFlags::ENTITY_INCLUDE_RECORD_DATA));
 }
 
 /// Test flag combinations using bitwise OR
@@ -468,11 +463,8 @@ fn test_default_flag_composition() {
     assert!(SzFlags::ENTITY_DEFAULT_FLAGS.contains(SzFlags::ENTITY_INCLUDE_RECORD_DATA));
     assert!(SzFlags::ENTITY_DEFAULT_FLAGS.contains(SzFlags::ENTITY_INCLUDE_RECORD_MATCHING_INFO));
 
-    // WHY_ENTITIES_DEFAULT_FLAGS should contain entity name and record summary
-    assert!(SzFlags::WHY_ENTITIES_DEFAULT_FLAGS.contains(SzFlags::WHY_ENTITY_INCLUDE_ENTITY_NAME));
-    assert!(
-        SzFlags::WHY_ENTITIES_DEFAULT_FLAGS.contains(SzFlags::WHY_ENTITY_INCLUDE_RECORD_SUMMARY)
-    );
+    // WHY_ENTITIES_DEFAULT_FLAGS should contain feature scores (per C# SDK)
+    assert!(SzFlags::WHY_ENTITIES_DEFAULT_FLAGS.contains(SzFlags::INCLUDE_FEATURE_SCORES));
 
     // SEARCH_BY_ATTRIBUTES_DEFAULT_FLAGS should equal SEARCH_BY_ATTRIBUTES_ALL
     assert_eq!(

@@ -160,7 +160,7 @@ fn load_test_records(
             data_source,
             record_id,
             record_definition,
-            Some(SzFlags::ADD_RECORD_DEFAULT),
+            Some(SzFlags::ADD_RECORD_DEFAULT_FLAGS),
         )?;
 
         println!("  ✓ Loaded: {} from {}", record_id, data_source);
@@ -199,8 +199,11 @@ fn verify_loaded_records(
     ];
 
     for (data_source, record_id) in test_records {
-        match engine.get_entity_by_record(data_source, record_id, Some(SzFlags::GET_ENTITY_DEFAULT))
-        {
+        match engine.get_entity_by_record(
+            data_source,
+            record_id,
+            Some(SzFlags::ENTITY_DEFAULT_FLAGS),
+        ) {
             Ok(entity_json) => {
                 if let Ok(entity) = serde_json::from_str::<Value>(&entity_json)
                     && let Some(resolved_entity) = entity.get("RESOLVED_ENTITY")
@@ -244,7 +247,11 @@ fn delete_selected_records(engine: &dyn SzEngine) -> SzResult<()> {
     for (data_source, record_id) in records_to_delete {
         println!("  Deleting {} {}...", data_source, record_id);
 
-        match engine.delete_record(data_source, record_id, Some(SzFlags::DELETE_RECORD_DEFAULT)) {
+        match engine.delete_record(
+            data_source,
+            record_id,
+            Some(SzFlags::DELETE_RECORD_DEFAULT_FLAGS),
+        ) {
             Ok(delete_result) => {
                 println!("    ✓ Successfully deleted");
 
@@ -281,8 +288,11 @@ fn verify_deletion_impact(engine: &dyn SzEngine) -> SzResult<()> {
     ];
 
     for (data_source, record_id) in deleted_records {
-        match engine.get_entity_by_record(data_source, record_id, Some(SzFlags::GET_ENTITY_DEFAULT))
-        {
+        match engine.get_entity_by_record(
+            data_source,
+            record_id,
+            Some(SzFlags::ENTITY_DEFAULT_FLAGS),
+        ) {
             Ok(_) => {
                 println!(
                     "    ⚠ Record {} {} still found (unexpected)",
@@ -299,8 +309,11 @@ fn verify_deletion_impact(engine: &dyn SzEngine) -> SzResult<()> {
     }
 
     // Check if remaining related records are still resolved
-    match engine.get_entity_by_record("TEST", "DELETE_TEST_002", Some(SzFlags::GET_ENTITY_DEFAULT))
-    {
+    match engine.get_entity_by_record(
+        "TEST",
+        "DELETE_TEST_002",
+        Some(SzFlags::ENTITY_DEFAULT_FLAGS),
+    ) {
         Ok(entity_json) => {
             if let Ok(entity) = serde_json::from_str::<Value>(&entity_json)
                 && let Some(resolved_entity) = entity.get("RESOLVED_ENTITY")
@@ -332,7 +345,11 @@ fn demonstrate_bulk_deletion(engine: &dyn SzEngine) -> SzResult<()> {
     for i in 100..110 {
         let record_id = format!("BULK_{:03}", i);
 
-        match engine.delete_record("TEST", &record_id, Some(SzFlags::DELETE_RECORD_DEFAULT)) {
+        match engine.delete_record(
+            "TEST",
+            &record_id,
+            Some(SzFlags::DELETE_RECORD_DEFAULT_FLAGS),
+        ) {
             Ok(_) => {
                 deleted_count += 1;
             }

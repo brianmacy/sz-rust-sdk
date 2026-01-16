@@ -14,22 +14,9 @@ use crate::{
 pub struct SzConfigManagerCore;
 
 impl SzConfigManagerCore {
-    pub fn new_with_params(
-        module_name: &str,
-        ini_params: &str,
-        verbose_logging: bool,
-    ) -> SzResult<Self> {
-        // Always initialize the config manager module with parameters
-        let module_name_c = crate::ffi::helpers::str_to_c_string(module_name)?;
-        let ini_params_c = crate::ffi::helpers::str_to_c_string(ini_params)?;
-        let verbose = if verbose_logging { 1 } else { 0 };
-
-        ffi_call_config_mgr!(crate::ffi::bindings::SzConfigMgr_init(
-            module_name_c.as_ptr(),
-            ini_params_c.as_ptr(),
-            verbose
-        ));
-
+    /// Creates a new SzConfigManagerCore without initializing the native library.
+    /// Caller must ensure SzConfigMgr_init has already been called.
+    pub(crate) fn new() -> SzResult<Self> {
         Ok(Self)
     }
 }

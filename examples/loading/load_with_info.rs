@@ -114,7 +114,7 @@ fn main() -> SzResult<()> {
 
     for ((data_source_code, record_id), record_definition) in records.iter() {
         // Use flags to get detailed information about the resolution process
-        let flags = SzFlags::ADD_RECORD_DEFAULT;
+        let flags = SzFlags::ADD_RECORD_DEFAULT_FLAGS;
 
         let result =
             engine.add_record(data_source_code, record_id, record_definition, Some(flags))?;

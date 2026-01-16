@@ -136,7 +136,7 @@ fn main() -> SzResult<()> {
         let result = engine.search_by_attributes(
             criteria,
             None, // No specific search profile
-            Some(SzFlags::SEARCH_BY_ATTRIBUTES_DEFAULT),
+            Some(SzFlags::SEARCH_BY_ATTRIBUTES_DEFAULT_FLAGS),
         )?;
 
         // Print the search results

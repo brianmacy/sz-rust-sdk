@@ -120,7 +120,43 @@ This is a Rust SDK for Senzing entity resolution engine following the same patte
 - **No Async/Await** - Do not use tokio, async/await, or async runtimes. Use std::thread and mpsc channels for coordination
 - **Thread Scaling** - Examples must demonstrate proper scaling with 4+ OS threads showing per-thread performance metrics
 - No mock tests for this project.  Only ones that actually use the SDK.
-- Senzing is installed at /opt/senzing/er/.
+
+### Senzing Installation Paths
+
+#### macOS (Homebrew)
+Installed via: `brew install senzingsdk-runtime-unofficial`
+```
+Base:       /opt/homebrew/opt/senzing/runtime
+Library:    /opt/homebrew/opt/senzing/runtime/er/lib/libSz.dylib
+Config:     /opt/homebrew/opt/senzing/runtime/er/resources/templates
+Resources:  /opt/homebrew/opt/senzing/runtime/er/resources
+Support:    /opt/homebrew/opt/senzing/runtime/data
+```
+
+Environment variables for macOS:
+```bash
+export DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib
+export SENZING_CONFIGPATH=/opt/homebrew/opt/senzing/runtime/er/resources/templates
+export SENZING_RESOURCEPATH=/opt/homebrew/opt/senzing/runtime/er/resources
+export SENZING_SUPPORTPATH=/opt/homebrew/opt/senzing/runtime/data
+```
+
+#### Linux (Standard Installation)
+```
+Base:       /opt/senzing/er
+Library:    /opt/senzing/er/lib/libSz.so
+Config:     /opt/senzing/er/resources/templates
+Resources:  /opt/senzing/er/resources
+Support:    /opt/senzing/data
+```
+
+Environment variables for Linux:
+```bash
+export LD_LIBRARY_PATH=/opt/senzing/er/lib
+export SENZING_CONFIGPATH=/opt/senzing/er/resources/templates
+export SENZING_RESOURCEPATH=/opt/senzing/er/resources
+export SENZING_SUPPORTPATH=/opt/senzing/data
+```
 - Look to the C# code for guidance on which native functions to use for FFI.
 - Do not create mock tests for use without the native library.  All tests should require the native library.
 - All the examples must run successfully (target: 22/22 = 100%)

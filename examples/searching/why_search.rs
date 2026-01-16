@@ -30,7 +30,7 @@ fn main() -> SzResult<()> {
     let search_result = engine.search_by_attributes(
         search_criteria,
         None,
-        Some(SzFlags::SEARCH_BY_ATTRIBUTES_DEFAULT),
+        Some(SzFlags::SEARCH_BY_ATTRIBUTES_DEFAULT_FLAGS),
     )?;
 
     // Parse the search results to get entity IDs
@@ -78,7 +78,7 @@ fn main() -> SzResult<()> {
                 search_criteria,
                 entity_id,
                 None, // No specific search profile
-                Some(SzFlags::WHY_ENTITY_DEFAULT),
+                Some(SzFlags::WHY_ENTITIES_DEFAULT_FLAGS),
             ) {
                 Ok(why_result) => {
                     // Parse and display the why analysis
@@ -110,7 +110,7 @@ fn main() -> SzResult<()> {
             search_criteria,
             example_entity_id,
             None,
-            Some(SzFlags::WHY_ENTITY_DEFAULT),
+            Some(SzFlags::WHY_ENTITIES_DEFAULT_FLAGS),
         ) {
             Ok(why_result) => {
                 println!(
