@@ -7,7 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.0] - 2025-01-16
+## [0.3.0] - 2026-01-16
+
+### Changed
+- Rewrite flags.rs to match C# SDK v4 exactly with correct bit positions
+- Update examples and tests for new flag constant names (`*_DEFAULT` → `*_DEFAULT_FLAGS`)
+
+### Added
+- 18+ missing flags: `WITH_INFO`, `INCLUDE_FEATURE_SCORES`, `FIND_PATH_STRICT_AVOID`, `SEARCH_INCLUDE_STATS`, `ENTITY_INCLUDE_RECORD_TYPES`, `ENTITY_INCLUDE_INTERNAL_FEATURES`, `ENTITY_INCLUDE_FEATURE_STATS`, and more
+- `Once` guards for thread-safe ConfigMgr and Product initialization
+- Concurrent initialization tests in sz_environment_test.rs
+- Homebrew vs Linux installation paths documented in CLAUDE.md
+
+### Fixed
+- Incorrect composite flag definitions and bit positions
+- Race condition in component initialization
+
+## [0.2.0] - 2026-01-16
 
 ### Added
 - Cargo.toml metadata for crates.io publishing (repository, homepage, documentation)
@@ -28,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unused `SzConfigManagerCore::new()` method (use `get_config_manager()` instead)
 - Unused `SzProductCore::new()` method (use `get_product()` instead)
 
-## [0.1.0] - 2025-01-16
+## [0.1.0] - 2026-01-16
 
 ### Added
 - Initial Rust SDK release with 100% API parity with C# Senzing v4 SDK
@@ -55,6 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 
-[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/brianmacy/sz-rust-sdk/releases/tag/v0.1.0
