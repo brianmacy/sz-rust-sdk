@@ -31,9 +31,53 @@ The SDK is organized into several core components:
 
 ## Prerequisites
 
-- Rust 2024 edition or later
-- Senzing v4 installed at `/opt/senzing/er/`
+- Rust 1.88+ (2024 edition)
+- Senzing v4 SDK
 - SQLite3 (for database operations)
+
+### Platform-Specific Installation
+
+#### macOS (Homebrew)
+
+```bash
+brew install senzing/tap/senzing
+```
+
+Senzing installs to `/opt/homebrew/opt/senzing/runtime/er/` (Apple Silicon) or `/usr/local/opt/senzing/runtime/er/` (Intel).
+
+**Required environment variables:**
+```bash
+export DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib
+export SENZING_CONFIGPATH=/opt/homebrew/opt/senzing/runtime/er/etc
+export SENZING_RESOURCEPATH=/opt/homebrew/opt/senzing/runtime/er/resources
+export SENZING_SUPPORTPATH=/opt/homebrew/opt/senzing/runtime/data
+```
+
+#### Linux
+
+Install Senzing following the [official instructions](https://senzing.com/). Senzing typically installs to `/opt/senzing/er/`.
+
+**Required environment variables:**
+```bash
+export LD_LIBRARY_PATH=/opt/senzing/er/lib
+export SENZING_CONFIGPATH=/opt/senzing/er/etc
+export SENZING_RESOURCEPATH=/opt/senzing/er/resources
+export SENZING_SUPPORTPATH=/opt/senzing/er/data
+```
+
+### Build Configuration
+
+The SDK's `build.rs` automatically detects Senzing in these locations (in order):
+1. `SENZING_LIB_PATH` environment variable (if set)
+2. Homebrew location: `/opt/homebrew/opt/senzing/runtime/er/lib`
+3. Intel Homebrew: `/usr/local/opt/senzing/runtime/er/lib`
+4. Default Linux: `/opt/senzing/er/lib`
+
+To override, set `SENZING_LIB_PATH` before building:
+```bash
+export SENZING_LIB_PATH=/custom/path/to/senzing/lib
+cargo build
+```
 
 ## Installation
 
@@ -41,7 +85,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-sz-rust-sdk = "0.1.0"
+sz-rust-sdk = { git = "https://github.com/brianmacy/sz-rust-sdk", tag = "v0.1.0" }
 ```
 
 ## Quick Start
@@ -219,12 +263,33 @@ The SDK automatically provides database isolation for testing:
 
 Senzing configuration can be provided through:
 
-1. **Environment Variable**:
+1. **Environment Variables** (recommended for development):
+
+   **macOS (Homebrew):**
    ```bash
-   export SENZING_ENGINE_CONFIGURATION_JSON='{% raw %}{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing",...}}{% endraw %}'
+   export SENZING_ENGINE_CONFIGURATION_JSON='{
+     "PIPELINE": {
+       "CONFIGPATH": "/opt/homebrew/opt/senzing/runtime/er/etc",
+       "RESOURCEPATH": "/opt/homebrew/opt/senzing/runtime/er/resources",
+       "SUPPORTPATH": "/opt/homebrew/opt/senzing/runtime/data"
+     },
+     "SQL": {"CONNECTION": "sqlite3://na:na@/tmp/senzing.db"}
+   }'
    ```
 
-2. **Automatic Setup**: The SDK will automatically configure appropriate settings for development and testing.
+   **Linux:**
+   ```bash
+   export SENZING_ENGINE_CONFIGURATION_JSON='{
+     "PIPELINE": {
+       "CONFIGPATH": "/opt/senzing/er/etc",
+       "RESOURCEPATH": "/opt/senzing/er/resources",
+       "SUPPORTPATH": "/opt/senzing/er/data"
+     },
+     "SQL": {"CONNECTION": "sqlite3://na:na@/tmp/senzing.db"}
+   }'
+   ```
+
+2. **Automatic Setup**: The SDK's `ExampleEnvironment` helper automatically configures appropriate settings for development and testing, detecting the platform and paths.
 
 ## Contributing
 
@@ -235,7 +300,7 @@ Senzing configuration can be provided through:
 
 ## License
 
-[License information would go here]
+Apache-2.0. See [LICENSE](LICENSE) for details.
 
 ## Support
 
