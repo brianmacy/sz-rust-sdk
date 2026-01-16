@@ -1,9 +1,25 @@
 use std::env;
+use std::path::Path;
 
 fn main() {
     // Tell cargo to look for shared libraries in the specified directory
-    let senzing_lib_path =
-        env::var("SENZING_LIB_PATH").unwrap_or_else(|_| "/opt/senzing/er/lib".to_string());
+    // Priority: SENZING_LIB_PATH env var > Homebrew location > default location
+    let senzing_lib_path = env::var("SENZING_LIB_PATH")
+        .ok()
+        .or_else(|| {
+            // Check Homebrew location (macOS)
+            let homebrew_path = "/opt/homebrew/opt/senzing/runtime/er/lib";
+            if Path::new(homebrew_path).join("libSz.dylib").exists() {
+                return Some(homebrew_path.to_string());
+            }
+            // Check Intel Homebrew location
+            let intel_homebrew_path = "/usr/local/opt/senzing/runtime/er/lib";
+            if Path::new(intel_homebrew_path).join("libSz.dylib").exists() {
+                return Some(intel_homebrew_path.to_string());
+            }
+            None
+        })
+        .unwrap_or_else(|| "/opt/senzing/er/lib".to_string());
 
     println!("cargo:rustc-link-search=native={}", senzing_lib_path);
 
