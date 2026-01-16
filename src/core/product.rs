@@ -6,11 +6,6 @@ use crate::{error::SzResult, ffi_call_product, traits::SzProduct, types::JsonStr
 pub struct SzProductCore;
 
 impl SzProductCore {
-    pub fn new() -> SzResult<Self> {
-        // Use minimal settings - product module may not need full database settings
-        Self::new_with_params("SzRustSDK-Product", "{}", false)
-    }
-
     pub fn new_with_params(
         module_name: &str,
         ini_params: &str,

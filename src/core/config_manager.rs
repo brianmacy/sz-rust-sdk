@@ -14,28 +14,6 @@ use crate::{
 pub struct SzConfigManagerCore;
 
 impl SzConfigManagerCore {
-    pub fn new() -> SzResult<Self> {
-        // Instead of initializing with empty config, reuse the existing singleton's configuration
-        // This prevents conflicts when the environment is already initialized
-        match super::environment::SzEnvironmentCore::get_existing_instance() {
-            Ok(existing_env) => {
-                // Reuse the existing environment's configuration
-                Self::new_with_params(
-                    "SzRustSDK-ConfigMgr",
-                    existing_env.get_ini_params(),
-                    existing_env.get_verbose_logging(),
-                )
-            }
-            Err(e) => {
-                // Error if no environment exists - don't create fake objects
-                Err(crate::error::SzError::configuration(format!(
-                    "Cannot create config manager without initialized environment: {}",
-                    e
-                )))
-            }
-        }
-    }
-
     pub fn new_with_params(
         module_name: &str,
         ini_params: &str,

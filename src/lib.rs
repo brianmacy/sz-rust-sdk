@@ -59,15 +59,23 @@ pub mod types;
 #[doc(hidden)]
 pub mod helpers;
 
-pub use core::*;
+// Only export SzEnvironmentCore from core - other Core types are internal
+pub use core::SzEnvironmentCore;
 pub use error::*;
 pub use flags::*;
 pub use traits::*;
 pub use types::*;
 
 /// Prelude module for convenient imports
+///
+/// Import this to get access to all commonly used types:
+/// - [`SzEnvironmentCore`] - The only concrete type you need
+/// - All traits ([`SzEngine`], [`SzConfig`], etc.)
+/// - Error types and result aliases
+/// - Flag types for controlling operations
 pub mod prelude {
-    pub use crate::core::*;
+    // Only SzEnvironmentCore - other Core types accessed via traits
+    pub use crate::core::SzEnvironmentCore;
     pub use crate::error::*;
     pub use crate::flags::*;
     pub use crate::traits::*;

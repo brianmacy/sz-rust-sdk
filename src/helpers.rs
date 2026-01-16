@@ -34,7 +34,8 @@ fn get_support_path() -> String {
 
 /// Get the Senzing template database path from environment variable or default
 fn get_template_db_path() -> String {
-    std::env::var("SENZING_TEMPLATE_DB").unwrap_or_else(|_| format!("{}/G2C.db", get_config_path()))
+    std::env::var("SENZING_TEMPLATE_DB")
+        .unwrap_or_else(|_| format!("{}/templates/G2C.db", get_resource_path()))
 }
 
 // Thread-local storage for test database cleanup
@@ -167,7 +168,7 @@ impl ExampleEnvironment {
     }
 
     /// Set up initial configuration in a fresh database
-    /// This uses a separate, temporary config manager instance that doesn't interfere with the main environment
+    /// Uses a temporary environment to access config components through traits
     fn setup_initial_configuration(db_path: &str) -> SzResult<()> {
         let settings = format!(
             r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,
@@ -179,20 +180,13 @@ impl ExampleEnvironment {
 
         println!("Setting up initial configuration in database...");
 
-        // Use direct config manager creation for setup - separate from main environment
-        let config_mgr = crate::core::config_manager::SzConfigManagerCore::new_with_params(
-            "SzRustSDK-Setup",
-            &settings,
-            false,
-        )?;
+        // Create environment - this works without config being set up yet
+        let temp_env = SzEnvironmentCore::get_instance("SzRustSDK-Setup", &settings, false)?;
 
-        // Create and register default configuration using direct config core creation
-        let config_core = crate::core::config::SzConfigCore::new_with_params(
-            "SzRustSDK-SetupConfig",
-            &settings,
-            false,
-        )?;
-        let config = Box::new(config_core) as Box<dyn crate::traits::SzConfig>;
+        // Get config manager through traits - SzConfigMgr initializes independently of Sz_init
+        let config_mgr = temp_env.get_config_manager()?;
+        let config = config_mgr.create_config()?;
+
         let config_definition = config.export()?;
         let config_id = config_mgr.register_config(
             &config_definition,
@@ -207,7 +201,8 @@ impl ExampleEnvironment {
             config_id
         );
 
-        // config_mgr and config will be cleaned up automatically when they go out of scope
+        // Destroy the temporary environment so the main environment can be created fresh
+        SzEnvironmentCore::destroy_global_instance()?;
 
         Ok(())
     }

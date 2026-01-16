@@ -7,14 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-01-16
+
 ### Added
 - Cargo.toml metadata for crates.io publishing (repository, homepage, documentation)
 - CHANGELOG.md for version history tracking
 - Homebrew installation path auto-detection in build.rs
 - Stale files check in /prep command
+- `simple_usage` example demonstrating the enforced trait pattern
+- Platform-specific installation documentation (Linux vs macOS/Homebrew)
 
 ### Changed
+- **Breaking**: All Core types except `SzEnvironmentCore` are now private
+- Users must access SDK components through traits (`Box<dyn SzEngine>`, etc.)
+- `get_config_manager()` no longer requires `Sz_init`, enabling config setup before engine initialization
 - Updated prep command environment variables for Homebrew Senzing installation
+- Fixed template database path to use `resources/templates/G2C.db`
+
+### Removed
+- Unused `SzConfigManagerCore::new()` method (use `get_config_manager()` instead)
+- Unused `SzProductCore::new()` method (use `get_product()` instead)
 
 ## [0.1.0] - 2025-01-16
 
@@ -43,5 +55,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 
-[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/brianmacy/sz-rust-sdk/releases/tag/v0.1.0

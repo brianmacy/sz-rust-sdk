@@ -290,10 +290,13 @@ impl SzEnvironment for SzEnvironmentCore {
             return Err(SzError::unrecoverable("Environment has been destroyed"));
         }
 
-        // Ensure Sz_init has been called before creating config manager
-        self.ensure_initialized()?;
-
-        let config_mgr_core = super::config_manager::SzConfigManagerCore::new()?;
+        // Note: SzConfigMgr does NOT require Sz_init - it initializes independently
+        // This allows config setup before engine initialization
+        let config_mgr_core = super::config_manager::SzConfigManagerCore::new_with_params(
+            &self.module_name,
+            &self.ini_params,
+            self.verbose_logging,
+        )?;
         Ok(Box::new(config_mgr_core))
     }
 
