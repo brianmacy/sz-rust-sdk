@@ -43,5 +43,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 
-[Unreleased]: https://github.com/senzing-garage/sz-rust-sdk/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/senzing-garage/sz-rust-sdk/releases/tag/v0.1.0
+[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/brianmacy/sz-rust-sdk/releases/tag/v0.1.0
