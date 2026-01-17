@@ -15,7 +15,7 @@ impl SzProductCore {
 
 impl SzProduct for SzProductCore {
     fn get_license(&self) -> SzResult<JsonString> {
-        let license_ptr = unsafe { crate::ffi::bindings::SzProduct_getLicense() };
+        let license_ptr = unsafe { crate::ffi::SzProduct_getLicense() };
         if license_ptr.is_null() {
             return Err(crate::error::SzError::unknown("Failed to get license"));
         }
@@ -23,7 +23,7 @@ impl SzProduct for SzProductCore {
     }
 
     fn get_version(&self) -> SzResult<JsonString> {
-        let version_ptr = unsafe { crate::ffi::bindings::SzProduct_getVersion() };
+        let version_ptr = unsafe { crate::ffi::SzProduct_getVersion() };
         if version_ptr.is_null() {
             return Err(crate::error::SzError::unknown("Failed to get version"));
         }

@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-01-17
+
+### Fixed
+- **Critical**: 9 FFI signature mismatches with actual Senzing C headers causing undefined behavior
+- `why_entities` now correctly passes flags (uses V2 helper)
+- `why_records` now correctly passes flags (uses V2 helper)
+- `why_record_in_entity` now correctly passes flags (uses V2 helper)
+- `why_search` now correctly passes flags (uses V2 helper)
+- `get_record` now correctly passes flags (uses V2 helper)
+- `how_entity` now correctly passes flags (uses V2 helper)
+- `find_path` now correctly passes flags (uses V2 helper)
+- `process_redo_record` signature fixed (C API has no flags parameter)
+- Export functions (`export_json_entity_report`, `export_csv_entity_report`, `fetch_next`, `close_export`) now use correct handle types
+- `Sz_getActiveConfigID` now uses correct out-parameter pattern
+- Buffer size types in error handling changed from `i64` to `usize`
+- Rust 2024 unsafe block compliance in FFI helpers
+
+### Changed
+- FFI bindings now auto-generated from Senzing C headers using bindgen
+- Removed manual `bindings.rs` in favor of `bindings_generated.rs`
+- Memory free function changed from `Sz_free` to `SzHelper_free`
+
+### Added
+- `scripts/generate_bindings.rs` for regenerating FFI bindings
+- Support for `SENZING_SDK_PATH` environment variable override
+- Result processing macros for each component type
+
 ## [0.4.0] - 2026-01-16
 
 ### Fixed
@@ -85,7 +112,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 
-[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.1.0...v0.2.0

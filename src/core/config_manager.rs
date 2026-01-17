@@ -2,7 +2,7 @@
 
 use crate::{
     error::SzResult,
-    ffi_call_config_mgr,
+    ffi_call_config_mgr, process_config_mgr_long_result, process_config_mgr_result,
     traits::{SzConfig, SzConfigManager},
     types::{ConfigId, JsonString},
 };
@@ -23,34 +23,26 @@ impl SzConfigManagerCore {
 
 impl SzConfigManager for SzConfigManagerCore {
     fn create_config(&self) -> SzResult<Box<dyn SzConfig>> {
-        // Get current environment to use its full configuration
         match super::environment::SzEnvironmentCore::get_existing_instance() {
             Ok(existing_env) => {
-                // Use the same parameters as the environment
                 let config_core = super::config::SzConfigCore::new_with_params(
                     "SzRustSDK-Config",
-                    existing_env.get_ini_params(), // Full environment config
-                    existing_env.get_verbose_logging(), // Correct verbose setting
+                    existing_env.get_ini_params(),
+                    existing_env.get_verbose_logging(),
                 )?;
                 Ok(Box::new(config_core))
             }
-            Err(e) => {
-                // Error if no environment exists - don't create fake objects
-                Err(crate::error::SzError::configuration(format!(
-                    "Cannot create config without initialized environment: {}",
-                    e
-                )))
-            }
+            Err(e) => Err(crate::error::SzError::configuration(format!(
+                "Cannot create config without initialized environment: {}",
+                e
+            ))),
         }
     }
 
     fn create_config_from_id(&self, config_id: ConfigId) -> SzResult<Box<dyn SzConfig>> {
-        // Get the configuration definition from the config manager
-        let result = unsafe { crate::ffi::bindings::SzConfigMgr_getConfig_helper(config_id) };
-        let config_definition =
-            unsafe { crate::ffi::helpers::process_config_mgr_pointer_result(result) }?;
+        let result = unsafe { crate::ffi::SzConfigMgr_getConfig_helper(config_id) };
+        let config_definition = process_config_mgr_result!(result)?;
 
-        // Create a new config and then load the definition
         let config_core = super::config::SzConfigCore::new_with_definition(&config_definition)?;
         Ok(Box::new(config_core))
     }
@@ -64,13 +56,13 @@ impl SzConfigManager for SzConfigManagerCore {
     }
 
     fn get_config_registry(&self) -> SzResult<JsonString> {
-        let result = unsafe { crate::ffi::bindings::SzConfigMgr_getConfigRegistry_helper() };
-        unsafe { crate::ffi::helpers::process_config_mgr_pointer_result(result) }
+        let result = unsafe { crate::ffi::SzConfigMgr_getConfigRegistry_helper() };
+        process_config_mgr_result!(result)
     }
 
     fn get_default_config_id(&self) -> SzResult<ConfigId> {
-        let result = unsafe { crate::ffi::bindings::SzConfigMgr_getDefaultConfigID_helper() };
-        crate::ffi::helpers::process_config_mgr_long_result(result)
+        let result = unsafe { crate::ffi::SzConfigMgr_getDefaultConfigID_helper() };
+        process_config_mgr_long_result!(result)
     }
 
     fn register_config(
@@ -82,13 +74,10 @@ impl SzConfigManager for SzConfigManagerCore {
         let comment_c = crate::ffi::helpers::str_to_c_string(config_comment.unwrap_or(""))?;
 
         let result = unsafe {
-            crate::ffi::bindings::SzConfigMgr_registerConfig_helper(
-                config_def_c.as_ptr(),
-                comment_c.as_ptr(),
-            )
+            crate::ffi::SzConfigMgr_registerConfig_helper(config_def_c.as_ptr(), comment_c.as_ptr())
         };
 
-        crate::ffi::helpers::process_config_mgr_long_result(result)
+        process_config_mgr_long_result!(result)
     }
 
     fn replace_default_config_id(
@@ -96,7 +85,7 @@ impl SzConfigManager for SzConfigManagerCore {
         current_default_config_id: ConfigId,
         new_default_config_id: ConfigId,
     ) -> SzResult<()> {
-        ffi_call_config_mgr!(crate::ffi::bindings::SzConfigMgr_replaceDefaultConfigID(
+        ffi_call_config_mgr!(crate::ffi::SzConfigMgr_replaceDefaultConfigID(
             current_default_config_id,
             new_default_config_id
         ));
@@ -114,9 +103,7 @@ impl SzConfigManager for SzConfigManagerCore {
     }
 
     fn set_default_config_id(&self, config_id: ConfigId) -> SzResult<()> {
-        ffi_call_config_mgr!(crate::ffi::bindings::SzConfigMgr_setDefaultConfigID(
-            config_id
-        ));
+        ffi_call_config_mgr!(crate::ffi::SzConfigMgr_setDefaultConfigID(config_id));
         Ok(())
     }
 }

@@ -178,15 +178,15 @@ impl SzEnvironmentCore {
                     // SzConfig* functions are handled independently in their constructors/destructors
                     unsafe {
                         // These are tied to the environment lifecycle
-                        let _ = crate::ffi::bindings::SzDiagnostic_destroy();
-                        let _ = crate::ffi::bindings::SzProduct_destroy();
+                        let _ = crate::ffi::SzDiagnostic_destroy();
+                        let _ = crate::ffi::SzProduct_destroy();
                         // Finally destroy the main Senzing environment
-                        let _ = crate::ffi::bindings::Sz_destroy();
+                        let _ = crate::ffi::Sz_destroy();
 
                         // Clear exception states for environment-tied components
-                        crate::ffi::bindings::Sz_clearLastException();
-                        crate::ffi::bindings::SzDiagnostic_clearLastException();
-                        crate::ffi::bindings::SzProduct_clearLastException();
+                        crate::ffi::Sz_clearLastException();
+                        crate::ffi::SzDiagnostic_clearLastException();
+                        crate::ffi::SzProduct_clearLastException();
                     }
 
                     // Give the native library time to fully clean up internal state
@@ -225,7 +225,7 @@ impl SzEnvironmentCore {
                 let ini_params_c = crate::ffi::helpers::str_to_c_string(&ini_params)?;
                 let verbose = if verbose_logging { 1 } else { 0 };
 
-                ffi_call!(crate::ffi::bindings::Sz_init(
+                ffi_call!(crate::ffi::Sz_init(
                     module_name_c.as_ptr(),
                     ini_params_c.as_ptr(),
                     verbose as i64
@@ -274,7 +274,7 @@ impl SzEnvironmentCore {
 
                 // Call the FFI directly and check with the proper config_mgr error handler
                 let return_code = unsafe {
-                    crate::ffi::bindings::SzConfigMgr_init(
+                    crate::ffi::SzConfigMgr_init(
                         module_name_c.as_ptr(),
                         ini_params_c.as_ptr(),
                         verbose,
@@ -325,7 +325,7 @@ impl SzEnvironmentCore {
 
                 // Call the FFI directly and check with the proper product error handler
                 let return_code = unsafe {
-                    crate::ffi::bindings::SzProduct_init(
+                    crate::ffi::SzProduct_init(
                         module_name_c.as_ptr(),
                         ini_params_c.as_ptr(),
                         verbose,
@@ -363,7 +363,7 @@ impl SzEnvironment for SzEnvironmentCore {
             return Ok(());
         }
 
-        ffi_call_i64!(crate::ffi::bindings::Sz_destroy());
+        ffi_call_i64!(crate::ffi::Sz_destroy());
         self.is_destroyed.store(true, Ordering::Relaxed);
         Ok(())
     }
@@ -380,7 +380,7 @@ impl SzEnvironment for SzEnvironmentCore {
         // Ensure Sz_init has been called before reinitializing
         self.ensure_initialized()?;
 
-        ffi_call!(crate::ffi::bindings::Sz_reinit(config_id));
+        ffi_call!(crate::ffi::Sz_reinit(config_id));
         Ok(())
     }
 
@@ -392,7 +392,9 @@ impl SzEnvironment for SzEnvironmentCore {
         // Ensure Sz_init has been called before getting active config ID
         self.ensure_initialized()?;
 
-        let config_id = unsafe { crate::ffi::bindings::Sz_getActiveConfigID() };
+        let mut config_id: i64 = 0;
+        let return_code = unsafe { crate::ffi::Sz_getActiveConfigID(&mut config_id) };
+        crate::ffi::helpers::check_return_code(return_code)?;
         Ok(config_id)
     }
 

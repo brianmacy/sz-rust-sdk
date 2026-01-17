@@ -1,6 +1,6 @@
 [package]
 name = "sz-rust-sdk"
-version = "0.2.0"
+version = "0.5.0"
 edition = "2024"
 rust-version = "1.88"
 authors = ["Senzing Community"]
@@ -28,6 +28,7 @@ hex = "0.4"
 [dev-dependencies]
 tokio-test = "0.4"
 serial_test = "3.0"
+bindgen = "0.72"
 
 # Examples configuration
 [[example]]
@@ -77,3 +78,7 @@ path = "examples/deleting/delete_records.rs"
 [[example]]
 name = "complete_workflow"
 path = "examples/complete_workflow.rs"
+
+[[example]]
+name = "generate_bindings"
+path = "scripts/generate_bindings.rs"

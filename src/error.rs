@@ -453,26 +453,23 @@ impl SzError {
 
         let result = unsafe {
             match component {
-                SzComponent::Engine => ffi::bindings::Sz_getLastException(
+                SzComponent::Engine => {
+                    ffi::Sz_getLastException(buffer.as_mut_ptr() as *mut c_char, BUFFER_SIZE)
+                }
+                SzComponent::Config => {
+                    ffi::SzConfig_getLastException(buffer.as_mut_ptr() as *mut c_char, BUFFER_SIZE)
+                }
+                SzComponent::ConfigMgr => ffi::SzConfigMgr_getLastException(
                     buffer.as_mut_ptr() as *mut c_char,
-                    BUFFER_SIZE as i64,
+                    BUFFER_SIZE,
                 ),
-                SzComponent::Config => ffi::bindings::SzConfig_getLastException(
+                SzComponent::Diagnostic => ffi::SzDiagnostic_getLastException(
                     buffer.as_mut_ptr() as *mut c_char,
-                    BUFFER_SIZE as i64,
+                    BUFFER_SIZE,
                 ),
-                SzComponent::ConfigMgr => ffi::bindings::SzConfigMgr_getLastException(
-                    buffer.as_mut_ptr() as *mut c_char,
-                    BUFFER_SIZE as i64,
-                ),
-                SzComponent::Diagnostic => ffi::bindings::SzDiagnostic_getLastException(
-                    buffer.as_mut_ptr() as *mut c_char,
-                    BUFFER_SIZE as i64,
-                ),
-                SzComponent::Product => ffi::bindings::SzProduct_getLastException(
-                    buffer.as_mut_ptr() as *mut c_char,
-                    BUFFER_SIZE as i64,
-                ),
+                SzComponent::Product => {
+                    ffi::SzProduct_getLastException(buffer.as_mut_ptr() as *mut c_char, BUFFER_SIZE)
+                }
             }
         };
 

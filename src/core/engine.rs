@@ -4,6 +4,7 @@ use crate::{
     error::{SzError, SzResult},
     ffi_call,
     flags::SzFlags,
+    process_engine_result,
     traits::SzEngine,
     types::*,
 };
@@ -20,15 +21,13 @@ impl SzEngineCore {
 
 impl SzEngine for SzEngineCore {
     fn prime_engine(&self) -> SzResult<()> {
-        ffi_call!(crate::ffi::bindings::Sz_primeEngine());
+        ffi_call!(crate::ffi::Sz_primeEngine());
         Ok(())
     }
 
     fn get_stats(&self) -> SzResult<JsonString> {
-        unsafe {
-            let result = crate::ffi::bindings::Sz_stats_helper();
-            crate::ffi::helpers::process_pointer_result(result)
-        }
+        let result = unsafe { crate::ffi::Sz_stats_helper() };
+        process_engine_result!(result)
     }
 
     fn add_record(
@@ -44,7 +43,7 @@ impl SzEngine for SzEngineCore {
         let flags_bits = flags.unwrap_or(SzFlags::ADD_RECORD_DEFAULT_FLAGS).bits() as i64;
 
         let result = unsafe {
-            crate::ffi::bindings::Sz_addRecordWithInfo_helper(
+            crate::ffi::Sz_addRecordWithInfo_helper(
                 data_source_c.as_ptr(),
                 record_id_c.as_ptr(),
                 record_def_c.as_ptr(),
@@ -52,7 +51,7 @@ impl SzEngine for SzEngineCore {
             )
         };
 
-        unsafe { crate::ffi::helpers::process_engine_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn get_record_preview(
@@ -63,11 +62,10 @@ impl SzEngine for SzEngineCore {
         let record_def_c = crate::ffi::helpers::str_to_c_string(record_definition)?;
         let flags_bits = flags.unwrap_or(SzFlags::RECORD_DEFAULT_FLAGS).bits() as i64;
 
-        let result = unsafe {
-            crate::ffi::bindings::Sz_getRecordPreview_helper(record_def_c.as_ptr(), flags_bits)
-        };
+        let result =
+            unsafe { crate::ffi::Sz_getRecordPreview_helper(record_def_c.as_ptr(), flags_bits) };
 
-        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn delete_record(
@@ -81,14 +79,14 @@ impl SzEngine for SzEngineCore {
         let flags_bits = flags.unwrap_or(SzFlags::DELETE_RECORD_DEFAULT_FLAGS).bits() as i64;
 
         let result = unsafe {
-            crate::ffi::bindings::Sz_deleteRecordWithInfo_helper(
+            crate::ffi::Sz_deleteRecordWithInfo_helper(
                 data_source_c.as_ptr(),
                 record_id_c.as_ptr(),
                 flags_bits,
             )
         };
 
-        unsafe { crate::ffi::helpers::process_engine_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn reevaluate_record(
@@ -104,14 +102,14 @@ impl SzEngine for SzEngineCore {
             .bits() as i64;
 
         let result = unsafe {
-            crate::ffi::bindings::Sz_reevaluateRecordWithInfo_helper(
+            crate::ffi::Sz_reevaluateRecordWithInfo_helper(
                 data_source_c.as_ptr(),
                 record_id_c.as_ptr(),
                 flags_bits,
             )
         };
 
-        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn reevaluate_entity(
@@ -119,15 +117,14 @@ impl SzEngine for SzEngineCore {
         entity_id: EntityId,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        let flags_value = flags
+        let flags_bits = flags
             .unwrap_or(SzFlags::REEVALUATE_ENTITY_DEFAULT_FLAGS)
-            .bits() as libc::c_longlong;
+            .bits() as i64;
 
-        let result = unsafe {
-            crate::ffi::bindings::Sz_reevaluateEntityWithInfo_helper(entity_id, flags_value)
-        };
+        let result =
+            unsafe { crate::ffi::Sz_reevaluateEntityWithInfo_helper(entity_id, flags_bits) };
 
-        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn search_by_attributes(
@@ -141,25 +138,23 @@ impl SzEngine for SzEngineCore {
             .unwrap_or(SzFlags::SEARCH_BY_ATTRIBUTES_DEFAULT_FLAGS)
             .bits() as i64;
 
-        let result = if let Some(profile) = search_profile {
+        // V2 and V3 have different result types, so handle separately
+        if let Some(profile) = search_profile {
             let search_profile_c = crate::ffi::helpers::str_to_c_string(profile)?;
-            unsafe {
-                crate::ffi::bindings::Sz_searchByAttributes_V3_helper(
+            let result = unsafe {
+                crate::ffi::Sz_searchByAttributes_V3_helper(
                     attributes_c.as_ptr(),
                     search_profile_c.as_ptr(),
                     flags_bits,
                 )
-            }
+            };
+            process_engine_result!(result)
         } else {
-            unsafe {
-                crate::ffi::bindings::Sz_searchByAttributes_V2_helper(
-                    attributes_c.as_ptr(),
-                    flags_bits,
-                )
-            }
-        };
-
-        unsafe { crate::ffi::helpers::process_engine_pointer_result(result) }
+            let result = unsafe {
+                crate::ffi::Sz_searchByAttributes_V2_helper(attributes_c.as_ptr(), flags_bits)
+            };
+            process_engine_result!(result)
+        }
     }
 
     fn why_search(
@@ -180,7 +175,7 @@ impl SzEngine for SzEngineCore {
         let flags_bits = flags.unwrap_or(SzFlags::WHY_SEARCH_DEFAULT_FLAGS).bits() as i64;
 
         let result = unsafe {
-            crate::ffi::bindings::Sz_whySearch_helper(
+            crate::ffi::Sz_whySearch_V2_helper(
                 attributes_c.as_ptr(),
                 entity_id,
                 search_profile_ptr,
@@ -188,17 +183,15 @@ impl SzEngine for SzEngineCore {
             )
         };
 
-        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn get_entity(&self, entity_id: EntityId, flags: Option<SzFlags>) -> SzResult<JsonString> {
         let flags_bits = flags.unwrap_or(SzFlags::ENTITY_DEFAULT_FLAGS).bits() as i64;
 
-        let result = unsafe {
-            crate::ffi::bindings::Sz_getEntityByEntityID_V2_helper(entity_id, flags_bits)
-        };
+        let result = unsafe { crate::ffi::Sz_getEntityByEntityID_V2_helper(entity_id, flags_bits) };
 
-        unsafe { crate::ffi::helpers::process_engine_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn get_entity_by_record(
@@ -212,14 +205,14 @@ impl SzEngine for SzEngineCore {
         let flags_bits = flags.unwrap_or(SzFlags::ENTITY_DEFAULT_FLAGS).bits() as i64;
 
         let result = unsafe {
-            crate::ffi::bindings::Sz_getEntityByRecordID_V2_helper(
+            crate::ffi::Sz_getEntityByRecordID_V2_helper(
                 data_source_c.as_ptr(),
                 record_id_c.as_ptr(),
                 flags_bits,
             )
         };
 
-        unsafe { crate::ffi::helpers::process_engine_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn get_record(
@@ -230,21 +223,18 @@ impl SzEngine for SzEngineCore {
     ) -> SzResult<JsonString> {
         let data_source_c = crate::ffi::helpers::str_to_c_string(data_source_code)?;
         let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
-        let flags_value = flags.map(|f| f.bits() as i64).unwrap_or(0);
+        let flags_bits = flags.unwrap_or(SzFlags::RECORD_DEFAULT_FLAGS).bits() as i64;
 
+        // Use V2 helper which accepts flags
         let result = unsafe {
-            crate::ffi::bindings::Sz_getRecord_helper(
+            crate::ffi::Sz_getRecord_V2_helper(
                 data_source_c.as_ptr(),
                 record_id_c.as_ptr(),
-                flags_value,
+                flags_bits,
             )
         };
 
-        if result.return_code != 0 {
-            crate::ffi::helpers::check_return_code(result.return_code)?;
-        }
-
-        unsafe { crate::ffi::helpers::c_str_to_string(result.response) }
+        process_engine_result!(result)
     }
 
     fn find_interesting_entities_by_entity_id(
@@ -257,10 +247,10 @@ impl SzEngine for SzEngineCore {
             .bits() as i64;
 
         let result = unsafe {
-            crate::ffi::bindings::Sz_findInterestingEntitiesByEntityID_helper(entity_id, flags_bits)
+            crate::ffi::Sz_findInterestingEntitiesByEntityID_helper(entity_id, flags_bits)
         };
 
-        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn find_interesting_entities_by_record(
@@ -276,14 +266,14 @@ impl SzEngine for SzEngineCore {
             .bits() as i64;
 
         let result = unsafe {
-            crate::ffi::bindings::Sz_findInterestingEntitiesByRecordID_helper(
+            crate::ffi::Sz_findInterestingEntitiesByRecordID_helper(
                 data_source_c.as_ptr(),
                 record_id_c.as_ptr(),
                 flags_bits,
             )
         };
 
-        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn find_path(
@@ -295,11 +285,11 @@ impl SzEngine for SzEngineCore {
         _required_data_sources: Option<&HashSet<String>>,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // TODO: Pass avoid_entity_ids and required_data_sources to FFI when supported
         let flags_bits = flags.unwrap_or(SzFlags::FIND_PATH_DEFAULT_FLAGS).bits() as i64;
 
-        let result_ptr = unsafe {
-            crate::ffi::bindings::Sz_findPathByEntityID_helper(
+        // Use V2 helper which accepts flags
+        let result = unsafe {
+            crate::ffi::Sz_findPathByEntityID_V2_helper(
                 start_entity_id,
                 end_entity_id,
                 max_degrees,
@@ -307,11 +297,7 @@ impl SzEngine for SzEngineCore {
             )
         };
 
-        if result_ptr.is_null() {
-            return Err(SzError::unknown("Failed to find path"));
-        }
-
-        unsafe { crate::ffi::helpers::c_str_to_string(result_ptr) }
+        process_engine_result!(result)
     }
 
     fn find_network(
@@ -322,7 +308,6 @@ impl SzEngine for SzEngineCore {
         max_entities: i64,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // Format entity list as JSON object with ENTITIES array, as expected by Senzing
         let entity_objects: Vec<serde_json::Value> = entity_list
             .iter()
             .map(|&id| serde_json::json!({"ENTITY_ID": id}))
@@ -337,7 +322,7 @@ impl SzEngine for SzEngineCore {
         let flags_bits = flags.unwrap_or(SzFlags::FIND_NETWORK_DEFAULT_FLAGS).bits() as i64;
 
         let result = unsafe {
-            crate::ffi::bindings::Sz_findNetworkByEntityID_V2_helper(
+            crate::ffi::Sz_findNetworkByEntityID_V2_helper(
                 entity_list_c.as_ptr(),
                 max_degrees,
                 build_out_degree,
@@ -346,12 +331,7 @@ impl SzEngine for SzEngineCore {
             )
         };
 
-        // Process the network-specific result structure
-        if result.return_code != 0 {
-            crate::ffi::helpers::check_return_code(result.return_code)?;
-        }
-
-        unsafe { crate::ffi::helpers::c_str_to_string(result.response) }
+        process_engine_result!(result)
     }
 
     fn why_entity(
@@ -360,14 +340,13 @@ impl SzEngine for SzEngineCore {
         entity_id2: EntityId,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        let flags_value =
-            flags.unwrap_or(SzFlags::WHY_ENTITIES_DEFAULT_FLAGS).bits() as libc::c_longlong;
+        let flags_bits = flags.unwrap_or(SzFlags::WHY_ENTITIES_DEFAULT_FLAGS).bits() as i64;
 
-        let result = unsafe {
-            crate::ffi::bindings::Sz_whyEntities_helper(entity_id1, entity_id2, flags_value)
-        };
+        // Use V2 helper which accepts flags
+        let result =
+            unsafe { crate::ffi::Sz_whyEntities_V2_helper(entity_id1, entity_id2, flags_bits) };
 
-        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn why_records(
@@ -384,8 +363,9 @@ impl SzEngine for SzEngineCore {
         let record_id2_c = crate::ffi::helpers::str_to_c_string(record_id2)?;
         let flags_bits = flags.unwrap_or(SzFlags::WHY_RECORDS_DEFAULT_FLAGS).bits() as i64;
 
+        // Use V2 helper which accepts flags
         let result = unsafe {
-            crate::ffi::bindings::Sz_whyRecords_helper(
+            crate::ffi::Sz_whyRecords_V2_helper(
                 data_source1_c.as_ptr(),
                 record_id1_c.as_ptr(),
                 data_source2_c.as_ptr(),
@@ -394,7 +374,7 @@ impl SzEngine for SzEngineCore {
             )
         };
 
-        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn why_record_in_entity(
@@ -407,24 +387,25 @@ impl SzEngine for SzEngineCore {
         let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
         let flags_bits = flags.unwrap_or(SzFlags::WHY_RECORDS_DEFAULT_FLAGS).bits() as i64;
 
+        // Use V2 helper which accepts flags
         let result = unsafe {
-            crate::ffi::bindings::Sz_whyRecordInEntity_helper(
+            crate::ffi::Sz_whyRecordInEntity_V2_helper(
                 data_source_c.as_ptr(),
                 record_id_c.as_ptr(),
                 flags_bits,
             )
         };
 
-        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn how_entity(&self, entity_id: EntityId, flags: Option<SzFlags>) -> SzResult<JsonString> {
         let flags_bits = flags.unwrap_or(SzFlags::HOW_ENTITY_DEFAULT_FLAGS).bits() as i64;
 
-        let result =
-            unsafe { crate::ffi::bindings::Sz_howEntityByEntityID_helper(entity_id, flags_bits) };
+        // Use V2 helper which accepts flags
+        let result = unsafe { crate::ffi::Sz_howEntityByEntityID_V2_helper(entity_id, flags_bits) };
 
-        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn get_virtual_entity(
@@ -436,7 +417,6 @@ impl SzEngine for SzEngineCore {
             return Err(SzError::configuration("No record keys provided"));
         }
 
-        // Build JSON record list as expected by native function
         let record_objects: Vec<serde_json::Value> = record_keys
             .iter()
             .map(|(data_source, record_id)| {
@@ -458,55 +438,42 @@ impl SzEngine for SzEngineCore {
             .bits() as i64;
 
         let result = unsafe {
-            crate::ffi::bindings::Sz_getVirtualEntityByRecordID_V2_helper(
-                record_list_c.as_ptr(),
-                flags_bits,
-            )
+            crate::ffi::Sz_getVirtualEntityByRecordID_V2_helper(record_list_c.as_ptr(), flags_bits)
         };
 
-        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn process_redo_record(
         &self,
         redo_record: &str,
-        flags: Option<SzFlags>,
+        _flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
         let redo_record_c = crate::ffi::helpers::str_to_c_string(redo_record)?;
-        let flags_bits = flags.unwrap_or_default().bits() as i64;
+        // Note: Sz_processRedoRecordWithInfo_helper does not accept flags in the C API
+        let result =
+            unsafe { crate::ffi::Sz_processRedoRecordWithInfo_helper(redo_record_c.as_ptr()) };
 
-        let result = unsafe {
-            crate::ffi::bindings::Sz_processRedoRecordWithInfo_helper(
-                redo_record_c.as_ptr(),
-                flags_bits,
-            )
-        };
-
-        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn get_redo_record(&self) -> SzResult<JsonString> {
-        let result = unsafe { crate::ffi::bindings::Sz_getRedoRecord_helper() };
-        unsafe { crate::ffi::helpers::process_pointer_result(result) }
+        let result = unsafe { crate::ffi::Sz_getRedoRecord_helper() };
+        process_engine_result!(result)
     }
 
     fn count_redo_records(&self) -> SzResult<i64> {
-        let count = unsafe { crate::ffi::bindings::Sz_countRedoRecords() };
+        let count = unsafe { crate::ffi::Sz_countRedoRecords() };
         Ok(count)
     }
 
     fn export_json_entity_report(&self, flags: Option<SzFlags>) -> SzResult<ExportHandle> {
         let flags_bits = flags.unwrap_or_default().bits() as i64;
 
-        let result = unsafe { crate::ffi::bindings::Sz_exportJSONEntityReport_helper(flags_bits) };
+        let result = unsafe { crate::ffi::Sz_exportJSONEntityReport_helper(flags_bits) };
 
-        let export_handle_str =
-            unsafe { crate::ffi::helpers::process_engine_pointer_result(result) }?;
-
-        // Convert the string handle to an i64 for our API
-        export_handle_str
-            .parse()
-            .map_err(|_| SzError::ffi("Invalid export handle"))
+        crate::ffi::helpers::check_return_code(result.returnCode)?;
+        Ok(result.exportHandle as ExportHandle)
     }
 
     fn export_csv_entity_report(
@@ -518,40 +485,23 @@ impl SzEngine for SzEngineCore {
         let flags_bits = flags.unwrap_or_default().bits() as i64;
 
         let result = unsafe {
-            crate::ffi::bindings::Sz_exportCSVEntityReport_helper(
-                csv_columns_c.as_ptr(),
-                flags_bits,
-            )
+            crate::ffi::Sz_exportCSVEntityReport_helper(csv_columns_c.as_ptr(), flags_bits)
         };
 
-        let export_handle_str =
-            unsafe { crate::ffi::helpers::process_engine_pointer_result(result) }?;
-
-        // Convert the string handle to an i64 for our API
-        export_handle_str
-            .parse()
-            .map_err(|_| SzError::ffi("Invalid export handle"))
+        crate::ffi::helpers::check_return_code(result.returnCode)?;
+        Ok(result.exportHandle as ExportHandle)
     }
 
     fn fetch_next(&self, export_handle: ExportHandle) -> SzResult<JsonString> {
-        let handle_str = export_handle.to_string();
-        let handle_c = crate::ffi::helpers::str_to_c_string(&handle_str)?;
+        let result = unsafe { crate::ffi::Sz_fetchNext_helper(export_handle as usize) };
 
-        let result = unsafe { crate::ffi::bindings::Sz_fetchNext_helper(handle_c.as_ptr()) };
-
-        unsafe { crate::ffi::helpers::process_engine_pointer_result(result) }
+        process_engine_result!(result)
     }
 
     fn close_export(&self, export_handle: ExportHandle) -> SzResult<()> {
-        let handle_str = export_handle.to_string();
-        let handle_c = crate::ffi::helpers::str_to_c_string(&handle_str)?;
-
-        ffi_call!(crate::ffi::bindings::Sz_closeExportReport_helper(
-            handle_c.as_ptr()
+        ffi_call!(crate::ffi::Sz_closeExportReport_helper(
+            export_handle as usize
         ));
         Ok(())
     }
 }
-
-// Note: SzEngineCore no longer needs Drop implementation
-// since it doesn't manage any resources directly
