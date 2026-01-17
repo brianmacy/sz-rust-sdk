@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-01-16
+
+### Fixed
+- `search_by_attributes` now correctly applies flags when `search_profile` is None (uses V2 helper)
+- `get_entity` now correctly applies flags parameter (was ignored, uses V2 helper)
+- `get_entity_by_record` now correctly applies flags parameter (was ignored, uses V2 helper)
+- `get_virtual_entity` now correctly applies flags parameter (was ignored, uses V2 helper)
+
+### Changed
+- `get_virtual_entity` now supports multiple record keys (previously limited to single record)
+
+### Added
+- FFI bindings for `Sz_searchByAttributes_V2_helper`, `Sz_getEntityByEntityID_V2_helper`, `Sz_getEntityByRecordID_V2_helper`, `Sz_getVirtualEntityByRecordID_V2_helper`
+
 ## [0.3.0] - 2026-01-16
 
 ### Changed
@@ -71,7 +85,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 
-[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/brianmacy/sz-rust-sdk/releases/tag/v0.1.0

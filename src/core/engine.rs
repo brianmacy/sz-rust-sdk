@@ -151,7 +151,12 @@ impl SzEngine for SzEngineCore {
                 )
             }
         } else {
-            unsafe { crate::ffi::bindings::Sz_searchByAttributes_helper(attributes_c.as_ptr()) }
+            unsafe {
+                crate::ffi::bindings::Sz_searchByAttributes_V2_helper(
+                    attributes_c.as_ptr(),
+                    flags_bits,
+                )
+            }
         };
 
         unsafe { crate::ffi::helpers::process_engine_pointer_result(result) }
@@ -186,9 +191,12 @@ impl SzEngine for SzEngineCore {
         unsafe { crate::ffi::helpers::process_pointer_result(result) }
     }
 
-    fn get_entity(&self, entity_id: EntityId, _flags: Option<SzFlags>) -> SzResult<JsonString> {
-        // TODO: Pass flags to FFI when supported
-        let result = unsafe { crate::ffi::bindings::Sz_getEntityByEntityID_helper(entity_id) };
+    fn get_entity(&self, entity_id: EntityId, flags: Option<SzFlags>) -> SzResult<JsonString> {
+        let flags_bits = flags.unwrap_or(SzFlags::ENTITY_DEFAULT_FLAGS).bits() as i64;
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_getEntityByEntityID_V2_helper(entity_id, flags_bits)
+        };
 
         unsafe { crate::ffi::helpers::process_engine_pointer_result(result) }
     }
@@ -197,16 +205,17 @@ impl SzEngine for SzEngineCore {
         &self,
         data_source_code: &str,
         record_id: &str,
-        _flags: Option<SzFlags>,
+        flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // TODO: Pass flags to FFI when supported
         let data_source_c = crate::ffi::helpers::str_to_c_string(data_source_code)?;
         let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
+        let flags_bits = flags.unwrap_or(SzFlags::ENTITY_DEFAULT_FLAGS).bits() as i64;
 
         let result = unsafe {
-            crate::ffi::bindings::Sz_getEntityByRecordID_helper(
+            crate::ffi::bindings::Sz_getEntityByRecordID_V2_helper(
                 data_source_c.as_ptr(),
                 record_id_c.as_ptr(),
+                flags_bits,
             )
         };
 
@@ -421,37 +430,41 @@ impl SzEngine for SzEngineCore {
     fn get_virtual_entity(
         &self,
         record_keys: &[(String, String)],
-        _flags: Option<SzFlags>,
+        flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        // TODO: Pass flags to FFI when supported
-        // The C# SDK expects ISet<(string dataSourceCode, string recordID)> recordKeys
-        // We need to iterate through the record keys and call getVirtualEntityByRecordID for each
-        // However, the native library only has Sz_getVirtualEntityByRecordID for single records
-        // This method might need to aggregate results or use a different approach
         if record_keys.is_empty() {
             return Err(SzError::configuration("No record keys provided"));
         }
 
-        // For now, if only one record key is provided, use the native function
-        if record_keys.len() == 1 {
-            let (data_source, record_id) = &record_keys[0];
-            let data_source_c = crate::ffi::helpers::str_to_c_string(data_source)?;
-            let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
+        // Build JSON record list as expected by native function
+        let record_objects: Vec<serde_json::Value> = record_keys
+            .iter()
+            .map(|(data_source, record_id)| {
+                serde_json::json!({
+                    "DATA_SOURCE": data_source,
+                    "RECORD_ID": record_id
+                })
+            })
+            .collect();
 
-            let result = unsafe {
-                crate::ffi::bindings::Sz_getVirtualEntityByRecordID_helper(
-                    data_source_c.as_ptr(),
-                    record_id_c.as_ptr(),
-                )
-            };
+        let record_list_json = serde_json::json!({
+            "RECORDS": record_objects
+        })
+        .to_string();
 
-            unsafe { crate::ffi::helpers::process_pointer_result(result) }
-        } else {
-            // Multiple record keys - this needs special handling
-            Err(SzError::configuration(
-                "Multiple record keys for get_virtual_entity not yet supported. Native library only supports single record.",
-            ))
-        }
+        let record_list_c = crate::ffi::helpers::str_to_c_string(&record_list_json)?;
+        let flags_bits = flags
+            .unwrap_or(SzFlags::VIRTUAL_ENTITY_DEFAULT_FLAGS)
+            .bits() as i64;
+
+        let result = unsafe {
+            crate::ffi::bindings::Sz_getVirtualEntityByRecordID_V2_helper(
+                record_list_c.as_ptr(),
+                flags_bits,
+            )
+        };
+
+        unsafe { crate::ffi::helpers::process_pointer_result(result) }
     }
 
     fn process_redo_record(

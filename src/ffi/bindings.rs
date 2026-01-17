@@ -88,9 +88,20 @@ unsafe extern "C" {
 
     pub fn Sz_getEntityByEntityID_helper(entity_id: c_longlong) -> SzPointerResult;
 
+    pub fn Sz_getEntityByEntityID_V2_helper(
+        entity_id: c_longlong,
+        flags: c_longlong,
+    ) -> SzPointerResult;
+
     pub fn Sz_getEntityByRecordID_helper(
         data_source_code: *const c_char,
         record_id: *const c_char,
+    ) -> SzPointerResult;
+
+    pub fn Sz_getEntityByRecordID_V2_helper(
+        data_source_code: *const c_char,
+        record_id: *const c_char,
+        flags: c_longlong,
     ) -> SzPointerResult;
 
     pub fn Sz_getRecord_helper(
@@ -105,6 +116,11 @@ unsafe extern "C" {
     ) -> SzPointerResult;
 
     pub fn Sz_searchByAttributes_helper(attributes: *const c_char) -> SzPointerResult;
+
+    pub fn Sz_searchByAttributes_V2_helper(
+        attributes: *const c_char,
+        flags: c_longlong,
+    ) -> SzPointerResult;
 
     pub fn Sz_searchByAttributes_V3_helper(
         attributes: *const c_char,
@@ -213,6 +229,11 @@ unsafe extern "C" {
     pub fn Sz_getVirtualEntityByRecordID_helper(
         data_source_code: *const c_char,
         record_id: *const c_char,
+    ) -> SzPointerResult;
+
+    pub fn Sz_getVirtualEntityByRecordID_V2_helper(
+        record_list: *const c_char,
+        flags: c_longlong,
     ) -> SzPointerResult;
 
     // Config functions
