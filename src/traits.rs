@@ -30,7 +30,7 @@ use std::collections::HashSet;
 ///
 /// `SzEnvironmentCore` implements a singleton pattern. Multiple calls to
 /// `get_instance` with the same parameters return the same instance.
-pub trait SzEnvironment {
+pub trait SzEnvironment: Send + Sync {
     /// Destroys the environment and releases all resources.
     ///
     /// Call this when completely done with the SDK to free native resources.
@@ -135,7 +135,7 @@ pub trait SzEnvironment {
 /// let env = SzEnvironmentCore::get_instance("my_app", &settings, false)?;
 /// let engine = env.get_engine()?;
 /// ```
-pub trait SzEngine {
+pub trait SzEngine: Send + Sync {
     /// Primes the engine for optimal performance.
     ///
     /// Loads internal caches and prepares the engine for high-throughput operations.
@@ -907,7 +907,7 @@ pub trait SzConfigManager {
 /// let env = SzEnvironmentCore::get_instance("my_app", &settings, false)?;
 /// let diagnostic = env.get_diagnostic()?;
 /// ```
-pub trait SzDiagnostic {
+pub trait SzDiagnostic: Send + Sync {
     /// Runs a performance benchmark on the repository.
     ///
     /// Executes read operations against the repository to measure performance
@@ -979,7 +979,7 @@ pub trait SzDiagnostic {
 /// let env = SzEnvironmentCore::get_instance("my_app", &settings, false)?;
 /// let product = env.get_product()?;
 /// ```
-pub trait SzProduct {
+pub trait SzProduct: Send + Sync {
     /// Gets the product license details.
     ///
     /// Returns information about the Senzing license including type,

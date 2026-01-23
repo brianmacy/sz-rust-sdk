@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-01-23
+
+### Added
+- `Send + Sync` bounds on `SzEnvironment`, `SzEngine`, `SzProduct`, and `SzDiagnostic` traits
+- Enables sharing engine instances across threads with `Arc<dyn SzEngine>`
+- Supports rayon parallel workloads without per-item `get_engine()` calls
+
+### Notes
+- `SzConfig` and `SzConfigManager` intentionally do NOT have `Send + Sync` bounds
+- Configuration operations should be coordinated, not parallelized
+- `get_engine()` cost is negligible (~2-10ns) even when called repeatedly
+
 ## [0.5.0] - 2026-01-17
 
 ### Fixed
@@ -112,7 +124,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 
-[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.2.0...v0.3.0
