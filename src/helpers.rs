@@ -12,7 +12,6 @@
 
 use crate::prelude::*;
 use std::cell::RefCell;
-use std::fs;
 use std::path::Path;
 
 /// Get the Senzing CONFIGPATH from environment variable or default
@@ -32,10 +31,9 @@ fn get_support_path() -> String {
     std::env::var("SENZING_SUPPORTPATH").unwrap_or_else(|_| "/opt/senzing/data".to_string())
 }
 
-/// Get the Senzing template database path from environment variable or default
-fn get_template_db_path() -> String {
-    std::env::var("SENZING_TEMPLATE_DB")
-        .unwrap_or_else(|_| format!("{}/templates/G2C.db", get_resource_path()))
+/// Get the path to the SQLite schema creation SQL file
+fn get_schema_sql_path() -> String {
+    format!("{}/schema/szcore-schema-sqlite-create.sql", get_resource_path())
 }
 
 // Thread-local storage for test database cleanup
@@ -133,33 +131,43 @@ impl ExampleEnvironment {
         format!("/tmp/senzing_test_{}.db", random_suffix)
     }
 
-    /// Set up a new random database from the template with default configuration
+    /// Set up a new database by executing the SQLite schema SQL
     fn setup_test_database() -> SzResult<String> {
         let db_path = Self::generate_random_db_path();
-        let template_path = get_template_db_path();
+        let schema_path = get_schema_sql_path();
 
-        // Check if template exists
-        if !Path::new(&template_path).exists() {
+        // Check if schema SQL exists
+        if !Path::new(&schema_path).exists() {
             return Err(SzError::configuration(format!(
-                "Template database not found at {}. Set SENZING_TEMPLATE_DB or SENZING_CONFIGPATH environment variable.",
-                template_path
+                "SQLite schema SQL not found at {}. Set SENZING_RESOURCEPATH environment variable.",
+                schema_path
             )));
         }
 
-        // Copy template to random location
-        if let Err(e) = fs::copy(template_path, &db_path) {
-            return Err(SzError::configuration(format!(
-                "Failed to copy template database to {}: {}",
-                db_path, e
-            )));
-        }
+        // Read the schema SQL
+        let schema_sql = std::fs::read_to_string(&schema_path).map_err(|e| {
+            SzError::configuration(format!("Failed to read schema SQL from {}: {}", schema_path, e))
+        })?;
+
+        // Create database and execute schema SQL using rusqlite
+        let conn = rusqlite::Connection::open(&db_path).map_err(|e| {
+            SzError::configuration(format!("Failed to create database at {}: {}", db_path, e))
+        })?;
+
+        // Execute each statement in the schema (split by semicolons)
+        // The schema file contains multiple statements separated by semicolons
+        conn.execute_batch(&schema_sql).map_err(|e| {
+            // Clean up the partially created database
+            let _ = std::fs::remove_file(&db_path);
+            SzError::configuration(format!("Failed to execute schema SQL: {}", e))
+        })?;
 
         // Store the path for cleanup in thread-local storage
         CURRENT_TEST_DB.with(|db| {
             *db.borrow_mut() = Some(db_path.clone());
         });
 
-        println!("Created test database: {}", db_path);
+        println!("Created test database from SQL schema: {}", db_path);
 
         // Set up initial configuration in the new database
         Self::setup_initial_configuration(&db_path)?;

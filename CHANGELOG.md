@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-01-24
+
+### Changed
+- Test databases now created from SQL schema instead of copying template files
+- Removed dependency on `SENZING_TEMPLATE_DB` environment variable
+- Database schema read from `SENZING_RESOURCEPATH/schema/szcore-schema-sqlite-create.sql`
+
+### Added
+- `rusqlite` dependency for database creation from SQL schema
+- `Zlib` license added to allowed licenses in `deny.toml`
+
+### Notes
+- Tests are now more self-contained and don't require pre-existing template databases
+- Only `SENZING_RESOURCEPATH` environment variable needed for schema location
+
 ## [0.7.0] - 2026-01-24
 
 ### Changed
@@ -140,7 +155,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 
-[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.4.0...v0.5.0
