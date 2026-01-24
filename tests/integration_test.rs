@@ -39,7 +39,7 @@ fn test_sdk_compilation_and_imports() {
 #[serial]
 fn test_environment_initialization_with_expected_error() {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test that environment initialization behaves as expected with current setup
     // This validates FFI integration is working correctly

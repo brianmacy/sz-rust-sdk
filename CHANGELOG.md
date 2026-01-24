@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-01-24
+
+### Changed
+- Replaced static `destroy_global_instance()` with instance method `destroy(self: Arc<Self>)`
+- Uses `Arc::try_unwrap` for safe ownership-based cleanup
+- `destroy()` only succeeds when caller holds sole reference to the environment
+- Removed `destroy(&mut self)` from `SzEnvironment` trait (incompatible with Arc pattern)
+
+### Added
+- `test_destroy_ownership_semantics` test validating Arc ownership cleanup behavior
+
+### Notes
+- Calling `destroy()` with other Arc references outstanding returns an error
+- Environment is restored to singleton storage if destroy fails
+- Proper Rust ownership semantics prevent destroying while others hold references
+
 ## [0.6.0] - 2026-01-23
 
 ### Added
@@ -124,7 +140,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 
-[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.3.0...v0.4.0

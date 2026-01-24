@@ -13,7 +13,7 @@ use sz_rust_sdk::prelude::*;
 #[serial]
 fn test_get_product_version() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-version-test");
@@ -47,7 +47,7 @@ fn test_get_product_version() -> SzResult<()> {
 #[serial]
 fn test_get_product_license() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-license-test");
@@ -81,7 +81,7 @@ fn test_get_product_license() -> SzResult<()> {
 #[serial]
 fn test_multiple_version_retrievals() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-multiple-version-test");
@@ -115,7 +115,7 @@ fn test_multiple_version_retrievals() -> SzResult<()> {
 #[serial]
 fn test_multiple_license_retrievals() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-multiple-license-test");
@@ -149,7 +149,7 @@ fn test_multiple_license_retrievals() -> SzResult<()> {
 #[serial]
 fn test_product_after_environment_operations() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-after-ops-test");
@@ -183,7 +183,7 @@ fn test_product_after_environment_operations() -> SzResult<()> {
 #[serial]
 fn test_product_json_structure_validation() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-json-validation-test");
@@ -217,7 +217,7 @@ fn test_product_json_structure_validation() -> SzResult<()> {
 #[serial]
 fn test_product_multiple_environments() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-multi-env-1-test");
@@ -251,7 +251,7 @@ fn test_product_multiple_environments() -> SzResult<()> {
 #[serial]
 fn test_product_stability_under_load() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-stability-test");
@@ -285,7 +285,7 @@ fn test_product_stability_under_load() -> SzResult<()> {
 #[serial]
 fn test_product_error_recovery() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-error-recovery-test");
@@ -319,7 +319,7 @@ fn test_product_error_recovery() -> SzResult<()> {
 #[serial]
 fn test_product_content_validation() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-content-test");

@@ -202,7 +202,7 @@ impl ExampleEnvironment {
         );
 
         // Destroy the temporary environment so the main environment can be created fresh
-        SzEnvironmentCore::destroy_global_instance()?;
+        temp_env.destroy()?;
 
         Ok(())
     }
@@ -214,7 +214,10 @@ impl ExampleEnvironment {
 
         // Destroy the global environment instance so the next initialization
         // will pick up any configuration changes that were made
-        crate::core::environment::SzEnvironmentCore::destroy_global_instance()?;
+        // Use try_get_instance to get the singleton and destroy it
+        if let Some(env) = SzEnvironmentCore::try_get_instance() {
+            env.destroy()?;
+        }
 
         println!("✅ Environment cleanup complete");
         Ok(())

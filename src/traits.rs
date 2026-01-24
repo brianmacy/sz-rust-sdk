@@ -31,17 +31,6 @@ use std::collections::HashSet;
 /// `SzEnvironmentCore` implements a singleton pattern. Multiple calls to
 /// `get_instance` with the same parameters return the same instance.
 pub trait SzEnvironment: Send + Sync {
-    /// Destroys the environment and releases all resources.
-    ///
-    /// Call this when completely done with the SDK to free native resources.
-    /// After calling this, the environment cannot be used and a new instance
-    /// must be created.
-    ///
-    /// # Errors
-    ///
-    /// * `SzError::EnvironmentDestroyed` - Environment was already destroyed
-    fn destroy(&mut self) -> SzResult<()>;
-
     /// Checks if the environment has been destroyed.
     ///
     /// # Returns

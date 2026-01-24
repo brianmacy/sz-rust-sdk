@@ -14,7 +14,7 @@ use sz_rust_sdk::prelude::*;
 #[serial]
 fn test_engine_initialization() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-engine-test");
@@ -58,7 +58,7 @@ fn test_engine_initialization() -> SzResult<()> {
 #[serial]
 fn test_engine_with_registered_data_sources() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-data-source-test");
@@ -97,7 +97,7 @@ fn test_engine_with_registered_data_sources() -> SzResult<()> {
 #[serial]
 fn test_basic_record_operations() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-record-test");
@@ -131,7 +131,7 @@ fn test_basic_record_operations() -> SzResult<()> {
 #[serial]
 fn test_record_invalid_json() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-invalid-json-test");
@@ -165,7 +165,7 @@ fn test_record_invalid_json() -> SzResult<()> {
 #[serial]
 fn test_engine_statistics() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-stats-test");
@@ -216,7 +216,7 @@ fn test_engine_statistics() -> SzResult<()> {
 #[serial]
 fn test_engine_flag_combinations() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-flags-test");
@@ -250,7 +250,7 @@ fn test_engine_flag_combinations() -> SzResult<()> {
 #[serial]
 fn test_sequential_operations() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-sequential-test");
@@ -284,7 +284,7 @@ fn test_sequential_operations() -> SzResult<()> {
 #[serial]
 fn test_error_recovery() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-error-recovery-test");
@@ -318,7 +318,7 @@ fn test_error_recovery() -> SzResult<()> {
 #[serial]
 fn test_engine_priming() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-priming-test");
@@ -375,7 +375,7 @@ fn test_engine_priming() -> SzResult<()> {
 #[serial]
 fn test_entity_operations() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-entity-test");

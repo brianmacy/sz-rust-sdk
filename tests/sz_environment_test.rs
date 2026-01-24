@@ -13,7 +13,7 @@ use sz_rust_sdk::prelude::*;
 #[serial]
 fn test_environment_initialization() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-init-test");
@@ -44,7 +44,7 @@ fn test_environment_initialization() -> SzResult<()> {
 #[serial]
 fn test_environment_interface_retrieval() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-interfaces-test");
@@ -75,7 +75,7 @@ fn test_environment_interface_retrieval() -> SzResult<()> {
 #[serial]
 fn test_environment_state_checking() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-state-test");
@@ -106,7 +106,7 @@ fn test_environment_state_checking() -> SzResult<()> {
 #[serial]
 fn test_environment_configuration_access() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-config-access-test");
@@ -137,7 +137,7 @@ fn test_environment_configuration_access() -> SzResult<()> {
 #[serial]
 fn test_environment_state_consistency() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result =
@@ -169,7 +169,7 @@ fn test_environment_state_consistency() -> SzResult<()> {
 #[serial]
 fn test_multiple_interface_retrievals() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result =
@@ -201,7 +201,7 @@ fn test_multiple_interface_retrievals() -> SzResult<()> {
 #[serial]
 fn test_environment_interface_stability() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result =
@@ -233,7 +233,7 @@ fn test_environment_interface_stability() -> SzResult<()> {
 #[serial]
 fn test_environment_config_id_validation() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result =
@@ -265,7 +265,7 @@ fn test_environment_config_id_validation() -> SzResult<()> {
 #[serial]
 fn test_environment_interface_consistency() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-consistency-test");
@@ -296,7 +296,7 @@ fn test_environment_interface_consistency() -> SzResult<()> {
 #[serial]
 fn test_environment_lifecycle() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-lifecycle-test");
@@ -327,7 +327,7 @@ fn test_environment_lifecycle() -> SzResult<()> {
 #[serial]
 fn test_environment_error_recovery() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-error-recovery-test");
@@ -363,11 +363,10 @@ fn test_concurrent_engine_initialization() -> SzResult<()> {
     use std::thread;
 
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Initialize environment
+    // Initialize environment - already returns Arc<SzEnvironmentCore>
     let env = ExampleEnvironment::initialize("sz-rust-sdk-concurrent-init-test")?;
-    let env = Arc::new(env);
 
     // Spawn multiple threads that all try to get_engine() simultaneously
     const NUM_THREADS: usize = 8;
@@ -403,6 +402,10 @@ fn test_concurrent_engine_initialization() -> SzResult<()> {
         }
     }
 
+    // Drop our reference before cleanup - threads have already joined so their refs are gone
+    drop(env);
+
+    // Now cleanup can destroy since we're the sole owner
     ExampleEnvironment::cleanup()?;
 
     // All threads must succeed
@@ -417,5 +420,79 @@ fn test_concurrent_engine_initialization() -> SzResult<()> {
         "All {} threads successfully initialized engine concurrently",
         NUM_THREADS
     );
+    Ok(())
+}
+
+/// Test destroy ownership semantics with Arc::try_unwrap
+/// Verifies that destroy() only succeeds when caller has sole ownership.
+/// This ensures safe cleanup - you can't destroy while others still hold references.
+#[test]
+#[serial]
+fn test_destroy_ownership_semantics() -> SzResult<()> {
+    use std::sync::Arc;
+
+    // Clean up any existing global instance first
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
+
+    // Initialize environment
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-destroy-ownership-test")?;
+
+    // Create additional reference
+    let env_clone = Arc::clone(&env);
+
+    // Try to destroy with multiple references - should fail
+    let destroy_result = env.destroy();
+    assert!(
+        destroy_result.is_err(),
+        "destroy() should fail when other references exist"
+    );
+
+    // The error message should indicate other references exist
+    if let Err(e) = destroy_result {
+        let msg = e.to_string();
+        assert!(
+            msg.contains("other references"),
+            "Error should mention 'other references': {}",
+            msg
+        );
+    }
+
+    // Environment should still be usable via the clone
+    assert!(
+        !env_clone.is_destroyed(),
+        "Environment should not be destroyed after failed destroy()"
+    );
+
+    // Get a fresh reference from the singleton
+    let env_fresh = SzEnvironmentCore::try_get_instance()
+        .expect("Singleton should still exist after failed destroy()");
+
+    // Verify it's the same instance
+    assert!(
+        Arc::ptr_eq(&env_clone, &env_fresh),
+        "Should get same instance from singleton"
+    );
+
+    // Now drop all references except one
+    drop(env_clone);
+    drop(env_fresh);
+
+    // Get sole reference and destroy
+    let env_sole = SzEnvironmentCore::try_get_instance().expect("Singleton should still exist");
+
+    let destroy_result = env_sole.destroy();
+    assert!(
+        destroy_result.is_ok(),
+        "destroy() should succeed with sole ownership: {:?}",
+        destroy_result.err()
+    );
+
+    // Singleton should now be empty
+    assert!(
+        SzEnvironmentCore::try_get_instance().is_none(),
+        "Singleton should be None after successful destroy()"
+    );
+
+    eprintln!("✅ Destroy ownership semantics test passed");
     Ok(())
 }

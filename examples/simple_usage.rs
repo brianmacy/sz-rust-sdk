@@ -36,7 +36,7 @@ fn main() -> SzResult<()> {
     println!("Configuration registered with ID: {}", config_id);
 
     // Step 3: Destroy and recreate environment to pick up new config
-    SzEnvironmentCore::destroy_global_instance()?;
+    env.destroy()?;
     let env = SzEnvironmentCore::get_instance("simple-example", settings, false)?;
 
     // Step 4: Get engine through traits (Box<dyn SzEngine>)
@@ -53,7 +53,7 @@ fn main() -> SzResult<()> {
     println!("Search results: {}", results);
 
     // Cleanup - destroy environment before removing database
-    SzEnvironmentCore::destroy_global_instance()?;
+    env.destroy()?;
     std::fs::remove_file("/tmp/simple_example.db").ok();
 
     Ok(())

@@ -2,7 +2,7 @@
 
 use crate::{
     error::{SzError, SzResult},
-    ffi_call, ffi_call_i64,
+    ffi_call,
     traits::*,
     types::*,
 };
@@ -155,46 +155,97 @@ impl SzEnvironmentCore {
             .map(|env| env.clone())
     }
 
-    /// Destroys the global singleton instance
+    /// Destroys the environment, consuming the Arc and releasing all native resources.
     ///
-    /// This allows a new instance to be created with different parameters.
-    pub fn destroy_global_instance() -> SzResult<()> {
+    /// This method uses Rust's ownership semantics to ensure safe cleanup:
+    /// - Only succeeds if the caller holds the sole reference to the environment
+    /// - If other references exist (e.g., other threads still using the environment),
+    ///   returns an error and the environment remains valid
+    ///
+    /// # Ownership Requirements
+    ///
+    /// The Senzing native library is a global resource. Destroying the environment
+    /// while other code still holds references would cause undefined behavior.
+    /// This method enforces that you can only destroy when you're the sole owner.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let env = SzEnvironmentCore::get_instance("my_app", &settings, false)?;
+    /// // ... use env ...
+    ///
+    /// // When done, destroy (only works if this is the only reference)
+    /// env.destroy()?;
+    ///
+    /// // Can now create a new environment with different settings
+    /// let env2 = SzEnvironmentCore::get_instance("my_app", &new_settings, false)?;
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns `SzError::Unrecoverable` if:
+    /// - Other references to the environment still exist
+    /// - The environment was already destroyed
+    pub fn destroy(self: Arc<Self>) -> SzResult<()> {
+        // First, remove from global singleton storage
+        // This drops the global reference, leaving only the caller's reference
         if let Some(global_env) = GLOBAL_ENVIRONMENT.get() {
             let mut env_guard = match global_env.lock() {
                 Ok(guard) => guard,
-                Err(poisoned) => {
-                    // Recover from poisoned mutex
-                    poisoned.into_inner()
-                }
+                Err(poisoned) => poisoned.into_inner(),
             };
-            if let Some(env) = env_guard.take() {
-                // Ensure complete destruction of all Senzing modules
-                if !env.is_destroyed() {
-                    // Mark the environment as destroyed
-                    env.is_destroyed
-                        .store(true, std::sync::atomic::Ordering::Relaxed);
-
-                    // Cleanup environment-tied components only
-                    // SzConfig* functions are handled independently in their constructors/destructors
-                    unsafe {
-                        // These are tied to the environment lifecycle
-                        let _ = crate::ffi::SzDiagnostic_destroy();
-                        let _ = crate::ffi::SzProduct_destroy();
-                        // Finally destroy the main Senzing environment
-                        let _ = crate::ffi::Sz_destroy();
-
-                        // Clear exception states for environment-tied components
-                        crate::ffi::Sz_clearLastException();
-                        crate::ffi::SzDiagnostic_clearLastException();
-                        crate::ffi::SzProduct_clearLastException();
-                    }
-
-                    // Give the native library time to fully clean up internal state
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-                }
+            // Only take if it's the same instance
+            if let Some(stored) = env_guard.as_ref()
+                && Arc::ptr_eq(stored, &self)
+            {
+                env_guard.take();
             }
         }
-        Ok(())
+
+        // Now try to get exclusive ownership
+        match Arc::try_unwrap(self) {
+            Ok(env) => {
+                // We have sole ownership - safe to destroy
+                if env.is_destroyed.load(Ordering::Relaxed) {
+                    return Ok(()); // Already destroyed, nothing to do
+                }
+
+                // Mark as destroyed
+                env.is_destroyed.store(true, Ordering::Relaxed);
+
+                // Cleanup all Senzing modules
+                unsafe {
+                    let _ = crate::ffi::SzDiagnostic_destroy();
+                    let _ = crate::ffi::SzProduct_destroy();
+                    let _ = crate::ffi::Sz_destroy();
+
+                    // Clear exception states
+                    crate::ffi::Sz_clearLastException();
+                    crate::ffi::SzDiagnostic_clearLastException();
+                    crate::ffi::SzProduct_clearLastException();
+                }
+
+                // Give the native library time to fully clean up internal state
+                std::thread::sleep(std::time::Duration::from_millis(100));
+
+                Ok(())
+            }
+            Err(arc) => {
+                // Other references exist - put it back in global storage and return error
+                // We must restore it since we removed it earlier
+                if let Some(global_env) = GLOBAL_ENVIRONMENT.get()
+                    && let Ok(mut env_guard) = global_env.lock()
+                {
+                    *env_guard = Some(arc);
+                }
+                Err(SzError::unrecoverable(
+                    "Cannot destroy environment: other references still exist. \
+                     Ensure all Arc<SzEnvironmentCore> clones are dropped before calling destroy().",
+                ))
+            }
+        }
     }
 
     /// Get the initialization parameters used by this environment
@@ -358,16 +409,6 @@ impl SzEnvironmentCore {
 }
 
 impl SzEnvironment for SzEnvironmentCore {
-    fn destroy(&mut self) -> SzResult<()> {
-        if self.is_destroyed.load(Ordering::Relaxed) {
-            return Ok(());
-        }
-
-        ffi_call_i64!(crate::ffi::Sz_destroy());
-        self.is_destroyed.store(true, Ordering::Relaxed);
-        Ok(())
-    }
-
     fn is_destroyed(&self) -> bool {
         self.is_destroyed.load(Ordering::Relaxed)
     }

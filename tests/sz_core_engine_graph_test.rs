@@ -14,7 +14,7 @@ use sz_rust_sdk::prelude::*;
 #[serial]
 fn test_find_path_entities_not_found() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("test-find-path-entities-not-found");
@@ -48,7 +48,7 @@ fn test_find_path_entities_not_found() -> SzResult<()> {
 #[serial]
 fn test_find_path_with_parameters() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("test-find-path-with-parameters");
@@ -82,7 +82,7 @@ fn test_find_path_with_parameters() -> SzResult<()> {
 #[serial]
 fn test_find_path_invalid_max_degrees() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("test-find-path-invalid-max-degrees");
@@ -116,7 +116,7 @@ fn test_find_path_invalid_max_degrees() -> SzResult<()> {
 #[serial]
 fn test_find_path_flag_combinations() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("test-find-path-flag-combinations");
@@ -150,7 +150,7 @@ fn test_find_path_flag_combinations() -> SzResult<()> {
 #[serial]
 fn test_find_network_entity_not_found() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("test-find-network-entity-not-found");
@@ -184,7 +184,7 @@ fn test_find_network_entity_not_found() -> SzResult<()> {
 #[serial]
 fn test_find_network_multiple_entities() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("test-find-network-multiple-entities");
@@ -218,7 +218,7 @@ fn test_find_network_multiple_entities() -> SzResult<()> {
 #[serial]
 fn test_find_network_invalid_entity_ids() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("test-find-network-invalid-entity-ids");
@@ -252,7 +252,7 @@ fn test_find_network_invalid_entity_ids() -> SzResult<()> {
 #[serial]
 fn test_find_network_flag_combinations() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("test-find-network-flag-combinations");
@@ -286,7 +286,7 @@ fn test_find_network_flag_combinations() -> SzResult<()> {
 #[serial]
 fn test_find_network_boundary_conditions() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("test-find-network-boundary-conditions");
@@ -320,7 +320,7 @@ fn test_find_network_boundary_conditions() -> SzResult<()> {
 #[serial]
 fn test_find_path_same_entity() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("test-find-path-same-entity");
@@ -354,7 +354,7 @@ fn test_find_path_same_entity() -> SzResult<()> {
 #[serial]
 fn test_find_network_empty_entity_list() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("test-find-network-empty-entity-list");
@@ -388,7 +388,7 @@ fn test_find_network_empty_entity_list() -> SzResult<()> {
 #[serial]
 fn test_graph_operations_parameter_variations() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("test-graph-operations-parameter-variations");

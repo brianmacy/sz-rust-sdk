@@ -14,7 +14,7 @@ use sz_rust_sdk::prelude::*;
 #[serial]
 fn test_config_manager_initialization() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test that we handle singleton constraints gracefully
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-config-manager-test");
@@ -49,7 +49,7 @@ fn test_config_manager_initialization() -> SzResult<()> {
 #[serial]
 fn test_create_config() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints in config creation
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-create-config-test");
@@ -84,7 +84,7 @@ fn test_create_config() -> SzResult<()> {
 #[serial]
 fn test_get_default_config_id() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-default-config-id-test");
@@ -118,7 +118,7 @@ fn test_get_default_config_id() -> SzResult<()> {
 #[serial]
 fn test_create_config_from_invalid_id() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test that singleton constraints are handled properly
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-config-invalid-id-test");
@@ -152,7 +152,7 @@ fn test_create_config_from_invalid_id() -> SzResult<()> {
 #[serial]
 fn test_create_config_from_invalid_definition() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-config-invalid-json-test");
@@ -186,7 +186,7 @@ fn test_create_config_from_invalid_definition() -> SzResult<()> {
 #[serial]
 fn test_data_source_management() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test that singleton constraints are handled properly
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-data-source-mgmt-test");
@@ -220,7 +220,7 @@ fn test_data_source_management() -> SzResult<()> {
 #[serial]
 fn test_register_duplicate_data_source() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-duplicate-ds-test");
@@ -254,7 +254,7 @@ fn test_register_duplicate_data_source() -> SzResult<()> {
 #[serial]
 fn test_unregister_nonexistent_data_source() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-unregister-nonexistent-test");
@@ -288,7 +288,7 @@ fn test_unregister_nonexistent_data_source() -> SzResult<()> {
 #[serial]
 fn test_register_empty_data_source_name() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-empty-ds-name-test");
@@ -322,7 +322,7 @@ fn test_register_empty_data_source_name() -> SzResult<()> {
 #[serial]
 fn test_register_config() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-register-config-test");
@@ -356,7 +356,7 @@ fn test_register_config() -> SzResult<()> {
 #[serial]
 fn test_replace_default_config_id() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-replace-config-id-test");
@@ -390,7 +390,7 @@ fn test_replace_default_config_id() -> SzResult<()> {
 #[serial]
 fn test_configuration_lifecycle() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints in lifecycle
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-config-lifecycle-test");
@@ -424,7 +424,7 @@ fn test_configuration_lifecycle() -> SzResult<()> {
 #[serial]
 fn test_multiple_data_source_operations() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-multiple-ds-test");
@@ -458,7 +458,7 @@ fn test_multiple_data_source_operations() -> SzResult<()> {
 #[serial]
 fn test_configuration_error_recovery() -> SzResult<()> {
     // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::destroy_global_instance();
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
     // Test handling of singleton constraints and recovery
     let env_result = ExampleEnvironment::initialize("sz-rust-sdk-config-error-recovery-test");
