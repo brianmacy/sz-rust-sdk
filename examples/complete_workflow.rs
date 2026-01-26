@@ -4,7 +4,7 @@
 //! including initialization, searching, and analysis using working operations.
 //!
 
-use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::helpers::EnvironmentGuard;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -12,11 +12,11 @@ fn main() -> SzResult<()> {
 
     // Step 1: Initialize the Senzing environment
     println!("1. Initializing Senzing Environment");
-    let env = ExampleEnvironment::initialize("complete-workflow")?;
+    let env = EnvironmentGuard::new("complete-workflow")?;
     println!("   ✓ Environment ready!\n");
 
     // Get the engine component (focus on what works)
-    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    let engine = env.get_engine()?;
     println!("   ✓ Engine component ready");
 
     // Step 2: Demonstrate searching functionality
@@ -58,9 +58,6 @@ fn main() -> SzResult<()> {
     println!("  ✓ Search operations");
     println!("  ✓ Path finding operations");
     println!("  ✓ Network analysis operations");
-
-    // Clean up the test database
-    ExampleEnvironment::cleanup()?;
 
     Ok(())
 }

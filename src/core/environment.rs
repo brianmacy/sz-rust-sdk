@@ -216,15 +216,19 @@ impl SzEnvironmentCore {
                 env.is_destroyed.store(true, Ordering::Relaxed);
 
                 // Cleanup all Senzing modules
+                // Note: SzConfig_destroy() is not needed here - it manages config handles,
+                // not the config system itself. Config handles have their own lifecycle.
                 unsafe {
                     let _ = crate::ffi::SzDiagnostic_destroy();
                     let _ = crate::ffi::SzProduct_destroy();
+                    let _ = crate::ffi::SzConfigMgr_destroy(); // CRITICAL: Clears cached config state
                     let _ = crate::ffi::Sz_destroy();
 
                     // Clear exception states
                     crate::ffi::Sz_clearLastException();
                     crate::ffi::SzDiagnostic_clearLastException();
                     crate::ffi::SzProduct_clearLastException();
+                    crate::ffi::SzConfigMgr_clearLastException();
                 }
 
                 // Give the native library time to fully clean up internal state

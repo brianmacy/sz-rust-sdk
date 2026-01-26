@@ -1,10 +1,10 @@
-use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::helpers::EnvironmentGuard;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
     // Initialize environment
-    let env = ExampleEnvironment::initialize_verbose("quick-datasource-test")?;
-    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    let env = EnvironmentGuard::new("quick-datasource-test")?;
+    let _engine = env.get_engine()?;
     let config_mgr = env.get_config_manager()?;
 
     // Get current config
@@ -55,6 +55,5 @@ fn main() -> SzResult<()> {
         println!("❌ QUICK_TEST lost during persistence");
     }
 
-    ExampleEnvironment::cleanup()?;
     Ok(())
 }

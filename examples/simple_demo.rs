@@ -4,7 +4,7 @@
 //! It uses the ExampleEnvironment helper for reliable setup.
 //!
 
-use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::helpers::EnvironmentGuard;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -12,7 +12,7 @@ fn main() -> SzResult<()> {
 
     // Initialize environment using the helper utility
     println!("Initializing Senzing environment...");
-    let env = ExampleEnvironment::initialize("simple-demo")?;
+    let env = EnvironmentGuard::new("simple-demo")?;
     println!("✅ Environment ready!\n");
 
     // Demonstrate working operations
@@ -24,15 +24,12 @@ fn main() -> SzResult<()> {
     println!("   • Use working engine operations");
     println!("   • Handle operations gracefully");
 
-    // Clean up the test database
-    ExampleEnvironment::cleanup()?;
-
     Ok(())
 }
 
 fn demonstrate_components(env: &std::sync::Arc<SzEnvironmentCore>) -> SzResult<()> {
     // Focus on the engine component which works reliably
-    let engine = ExampleEnvironment::get_engine_with_setup(env)?;
+    let engine = env.get_engine()?;
     println!("   ✅ Engine component ready");
 
     // Test search operations

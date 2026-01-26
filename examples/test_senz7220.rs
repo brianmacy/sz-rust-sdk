@@ -3,7 +3,6 @@
 //! This example specifically tests for the SENZ7220 error to verify
 //! that null bytes are properly handled in this error message.
 
-use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -64,9 +63,6 @@ fn main() -> SzResult<()> {
         let _ = std::fs::remove_file(&empty_db_path);
         println!("Cleaned up empty test database: {}", empty_db_path);
     }
-
-    // Clean up the test database
-    ExampleEnvironment::cleanup()?;
 
     Ok(())
 }

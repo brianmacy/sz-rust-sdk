@@ -1,11 +1,11 @@
 //! Basic Senzing SDK operations: search, path finding, and network analysis
 
-use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::helpers::EnvironmentGuard;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
-    let env = ExampleEnvironment::initialize("basic-usage")?;
-    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    let env = EnvironmentGuard::new("basic-usage")?;
+    let engine = env.get_engine()?;
 
     // Search for entities
     let search_attributes = r#"{"NAME_LAST": "Smith", "NAME_FIRST": "John"}"#;
@@ -29,6 +29,5 @@ fn main() -> SzResult<()> {
         ),
     }
 
-    ExampleEnvironment::cleanup()?;
     Ok(())
 }

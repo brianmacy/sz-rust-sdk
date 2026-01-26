@@ -4,7 +4,7 @@
 //! It focuses on operations that succeed with the current setup.
 //!
 
-use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::helpers::EnvironmentGuard;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -12,12 +12,12 @@ fn main() -> SzResult<()> {
 
     // Initialize environment using the helper utility
     println!("Initializing Senzing environment...");
-    let env = ExampleEnvironment::initialize("working-demo")?;
+    let env = EnvironmentGuard::new("working-demo")?;
     println!("✅ Environment ready!\n");
 
     // Use the engine component (this one works)
     println!("Testing engine operations that work:");
-    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    let engine = env.get_engine()?;
     println!("✅ Engine component ready");
 
     // Test search (this typically works even without full setup)
@@ -37,9 +37,6 @@ fn main() -> SzResult<()> {
     }
 
     println!("\n🎯 Demo complete! This shows working SDK operations.");
-
-    // Clean up the test database
-    ExampleEnvironment::cleanup()?;
 
     Ok(())
 }

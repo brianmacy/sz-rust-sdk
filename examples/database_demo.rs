@@ -5,7 +5,7 @@
 //!
 //! Run with: cargo run --example database_demo
 
-use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::helpers::EnvironmentGuard;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -14,16 +14,13 @@ fn main() -> SzResult<()> {
     println!("Initializing Senzing environment...");
 
     // Initialize Senzing environment using the helper
-    let env = ExampleEnvironment::initialize("database-demo")?;
-    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    let env = EnvironmentGuard::new("database-demo")?;
+    let engine = env.get_engine()?;
     println!("✅ Connected to Senzing database backend\n");
 
     // Demonstrate working operations
     demo_search_operations(&*engine)?;
     demo_entity_operations(&*engine)?;
-
-    // Clean up the test database
-    ExampleEnvironment::cleanup()?;
 
     Ok(())
 }

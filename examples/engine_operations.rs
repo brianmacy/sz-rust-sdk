@@ -4,7 +4,7 @@
 //! including search and network analysis operations.
 //!
 
-use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::helpers::EnvironmentGuard;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -12,10 +12,10 @@ fn main() -> SzResult<()> {
 
     // Initialize environment using the helper utility
     println!("Initializing Senzing environment...");
-    let env = ExampleEnvironment::initialize("engine-operations")?;
+    let env = EnvironmentGuard::new("engine-operations")?;
     println!("✅ Environment ready!\n");
 
-    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    let engine = env.get_engine()?;
     println!("✅ Senzing engine ready for operations\n");
 
     // 1. Search by attributes
@@ -59,9 +59,6 @@ fn main() -> SzResult<()> {
     }
 
     println!("\n🎯 Engine operations demo complete!");
-
-    // Clean up the test database
-    ExampleEnvironment::cleanup()?;
 
     Ok(())
 }

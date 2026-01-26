@@ -3,7 +3,7 @@
 //! This example tests that the ExampleEnvironment uses the SzEnvironment trait
 //! to get the ConfigManager instead of creating it directly.
 
-use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::helpers::EnvironmentGuard;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -15,7 +15,7 @@ fn main() -> SzResult<()> {
     println!("Testing configuration setup via singleton environment trait...");
 
     // This should trigger the configuration setup process
-    let env = ExampleEnvironment::initialize("config-trait-test")?;
+    let env = EnvironmentGuard::new("config-trait-test")?;
     println!("✅ Environment initialized successfully using trait pattern");
 
     // Verify we can get the config manager through the trait
@@ -27,7 +27,7 @@ fn main() -> SzResult<()> {
     println!("✅ Default config ID: {}", config_id);
 
     // Test that we can use the engine
-    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    let engine = env.get_engine()?;
     println!("✅ Engine obtained successfully");
 
     // Test a simple search
@@ -37,9 +37,6 @@ fn main() -> SzResult<()> {
     println!("   Results: {}", results);
 
     println!("\n🎯 Config manager trait test complete");
-
-    // Clean up the test database
-    ExampleEnvironment::cleanup()?;
 
     Ok(())
 }

@@ -496,3 +496,67 @@ fn test_destroy_ownership_semantics() -> SzResult<()> {
     eprintln!("✅ Destroy ownership semantics test passed");
     Ok(())
 }
+
+/// Test that ConfigManager correctly reads from database after destroy()
+/// With a shared database, the config persists and should be read correctly after destroy+reinit
+#[test]
+#[serial]
+fn test_config_manager_reads_from_database_after_destroy() -> SzResult<()> {
+    use std::sync::Arc;
+
+    // Clean up any existing global instance first
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
+
+    // === FIRST RUN ===
+    eprintln!("\n=== FIRST RUN - Create config ===");
+    let env1 = ExampleEnvironment::initialize("test-config-db-read-1")?;
+    eprintln!("  First instance ptr: {:p}", Arc::as_ptr(&env1));
+
+    // Get the config that was automatically set up by ExampleEnvironment
+    let config_mgr1 = env1.get_config_manager()?;
+    let config_id1 = config_mgr1.get_default_config_id()?;
+
+    eprintln!("  Config ID in shared database: {}", config_id1);
+    assert_ne!(config_id1, 0, "Config should exist in shared database");
+
+    // Clean up first instance - this should clear ConfigMgr's cached state
+    drop(config_mgr1);
+    let destroy_result = env1.destroy();
+    assert!(
+        destroy_result.is_ok(),
+        "First destroy should succeed: {:?}",
+        destroy_result.err()
+    );
+
+    // Sleep to ensure destroy completes
+    std::thread::sleep(std::time::Duration::from_millis(200));
+
+    // === SECOND RUN - Read config from same database ===
+    eprintln!("\n=== SECOND RUN - Read from same shared database ===");
+    let env2 = ExampleEnvironment::initialize("test-config-db-read-2")?;
+    eprintln!("  Second instance ptr: {:p}", Arc::as_ptr(&env2));
+
+    // Get ConfigManager for shared database
+    let config_mgr2 = env2.get_config_manager()?;
+
+    // FIXED: After fix, ConfigMgr correctly reads from database (not stale cache)
+    // Since we're using the same shared database, we expect the same config ID
+    let config_id2 = config_mgr2.get_default_config_id()?;
+
+    eprintln!("  Config ID in shared database: {}", config_id2);
+
+    // With shared database, config persists and should be read correctly
+    assert_eq!(
+        config_id2, config_id1,
+        "ConfigMgr should read existing config from shared database (expected {}, got {})",
+        config_id1, config_id2
+    );
+
+    // Clean up second instance
+    drop(config_mgr2);
+    drop(env2); // Must drop env2 before cleanup
+    ExampleEnvironment::cleanup()?;
+
+    eprintln!("✅ ConfigManager correctly reads from database after destroy");
+    Ok(())
+}

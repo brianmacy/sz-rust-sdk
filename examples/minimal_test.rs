@@ -1,11 +1,12 @@
 //! Minimal Senzing SDK test - basic operations without segfaults
 
-use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::helpers::EnvironmentGuard;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
-    let env = ExampleEnvironment::initialize("minimal-test")?;
-    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    // Guard automatically cleans up when it goes out of scope
+    let env = EnvironmentGuard::new("minimal-test")?;
+    let engine = env.get_engine()?;
 
     let search_attrs = r#"{"NAME_LAST": "Test"}"#;
     match engine.search_by_attributes(search_attrs, None, None) {
@@ -13,6 +14,6 @@ fn main() -> SzResult<()> {
         Err(e) => println!("Search failed: {}", e),
     }
 
-    ExampleEnvironment::cleanup()?;
+    // Cleanup happens automatically when env guard goes out of scope
     Ok(())
 }

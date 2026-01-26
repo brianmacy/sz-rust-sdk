@@ -33,7 +33,10 @@ fn get_support_path() -> String {
 
 /// Get the path to the SQLite schema creation SQL file
 fn get_schema_sql_path() -> String {
-    format!("{}/schema/szcore-schema-sqlite-create.sql", get_resource_path())
+    format!(
+        "{}/schema/szcore-schema-sqlite-create.sql",
+        get_resource_path()
+    )
 }
 
 // Thread-local storage for test database cleanup
@@ -82,6 +85,63 @@ pub fn print_error_with_backtrace(error: &crate::error::SzError) {
     }
 }
 
+/// RAII guard for automatic environment cleanup
+///
+/// This guard ensures that `ExampleEnvironment::cleanup()` is automatically
+/// called when the guard goes out of scope, following Rust's RAII pattern.
+///
+/// # Examples
+///
+/// ```no_run
+/// use sz_rust_sdk::helpers::EnvironmentGuard;
+/// use sz_rust_sdk::traits::{SzEngine, SzEnvironment};
+///
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     // Guard automatically cleans up when it goes out of scope
+///     let env = EnvironmentGuard::new("my-app")?;
+///     let engine = env.get_engine()?;
+///
+///     // Do work with engine...
+///
+///     Ok(()) // Cleanup happens automatically here
+/// }
+/// ```
+pub struct EnvironmentGuard {
+    env: Option<std::sync::Arc<crate::core::SzEnvironmentCore>>,
+}
+
+impl EnvironmentGuard {
+    /// Create a new environment guard with automatic cleanup
+    pub fn new(instance_name: &str) -> SzResult<Self> {
+        let env = ExampleEnvironment::initialize(instance_name)?;
+        Ok(Self { env: Some(env) })
+    }
+
+    /// Get a reference to the environment
+    pub fn env(&self) -> &std::sync::Arc<crate::core::SzEnvironmentCore> {
+        self.env.as_ref().expect("Environment already dropped")
+    }
+}
+
+impl Drop for EnvironmentGuard {
+    fn drop(&mut self) {
+        // Explicitly drop our reference BEFORE calling cleanup
+        // This ensures cleanup() can successfully destroy the environment
+        self.env.take();
+
+        // Now attempt cleanup - ignore errors during drop
+        let _ = ExampleEnvironment::cleanup();
+    }
+}
+
+impl std::ops::Deref for EnvironmentGuard {
+    type Target = std::sync::Arc<crate::core::SzEnvironmentCore>;
+
+    fn deref(&self) -> &Self::Target {
+        self.env.as_ref().expect("Environment already dropped")
+    }
+}
+
 /// Environment setup utility for examples
 ///
 /// `ExampleEnvironment` provides a simplified interface for initializing
@@ -101,6 +161,8 @@ pub fn print_error_with_backtrace(error: &crate::error::SzError) {
 ///
 /// # Examples
 ///
+/// ## Manual cleanup (legacy)
+///
 /// ```no_run
 /// use sz_rust_sdk::helpers::ExampleEnvironment;
 /// use sz_rust_sdk::traits::{SzEngine, SzEnvironment};
@@ -114,7 +176,25 @@ pub fn print_error_with_backtrace(error: &crate::error::SzError) {
 /// // Use the engine for your application
 ///
 /// // Clean up the database when done
+/// drop(engine);
+/// drop(env);
 /// ExampleEnvironment::cleanup()?;
+/// # Ok::<(), sz_rust_sdk::error::SzError>(())
+/// ```
+///
+/// ## RAII guard (recommended)
+///
+/// ```no_run
+/// use sz_rust_sdk::helpers::EnvironmentGuard;
+/// use sz_rust_sdk::traits::{SzEngine, SzEnvironment};
+///
+/// // Guard automatically cleans up when it goes out of scope
+/// let env = EnvironmentGuard::new("my-app")?;
+/// let engine = env.get_engine()?;
+///
+/// // Use the engine...
+///
+/// // Cleanup happens automatically here
 /// # Ok::<(), sz_rust_sdk::error::SzError>(())
 /// ```
 pub struct ExampleEnvironment;
@@ -146,7 +226,10 @@ impl ExampleEnvironment {
 
         // Read the schema SQL
         let schema_sql = std::fs::read_to_string(&schema_path).map_err(|e| {
-            SzError::configuration(format!("Failed to read schema SQL from {}: {}", schema_path, e))
+            SzError::configuration(format!(
+                "Failed to read schema SQL from {}: {}",
+                schema_path, e
+            ))
         })?;
 
         // Create database and execute schema SQL using rusqlite
