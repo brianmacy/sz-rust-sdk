@@ -449,7 +449,7 @@ impl SzError {
         use libc::c_char;
 
         const BUFFER_SIZE: usize = 4096;
-        let mut buffer = vec![0i8; BUFFER_SIZE];
+        let mut buffer = vec![0 as c_char; BUFFER_SIZE];
 
         let result = unsafe {
             match component {

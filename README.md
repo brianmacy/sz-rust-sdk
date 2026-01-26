@@ -85,7 +85,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-sz-rust-sdk = { git = "https://github.com/brianmacy/sz-rust-sdk", tag = "v0.2.0" }
+sz-rust-sdk = { git = "https://github.com/brianmacy/sz-rust-sdk", tag = "v0.9.1" }
 ```
 
 ## Quick Start
