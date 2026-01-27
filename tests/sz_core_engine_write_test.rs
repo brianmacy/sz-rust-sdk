@@ -12,29 +12,11 @@ use sz_rust_sdk::prelude::*;
 #[test]
 #[serial]
 fn test_add_record_invalid_data_source() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-write-invalid-ds-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-write-invalid-ds-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for invalid data source testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for invalid data source testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -43,29 +25,11 @@ fn test_add_record_invalid_data_source() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_add_record_invalid_json() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-write-invalid-json-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-write-invalid-json-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for invalid JSON testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for invalid JSON testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -74,29 +38,11 @@ fn test_add_record_invalid_json() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_add_record_empty_record_id() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-write-empty-id-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-write-empty-id-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for empty record ID testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for empty record ID testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -105,29 +51,11 @@ fn test_add_record_empty_record_id() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_add_record_missing_fields() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-write-missing-fields-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-write-missing-fields-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for missing fields testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for missing fields testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -136,29 +64,11 @@ fn test_add_record_missing_fields() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_add_record_with_flags() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-write-flags-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-write-flags-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for flags testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for flags testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -167,29 +77,11 @@ fn test_add_record_with_flags() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_add_record_large_json() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-write-large-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-write-large-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for large JSON testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for large JSON testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -198,29 +90,11 @@ fn test_add_record_large_json() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_delete_record_not_found() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-delete-not-found-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-delete-not-found-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for delete not found testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for delete not found testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -229,29 +103,11 @@ fn test_delete_record_not_found() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_delete_record_invalid_data_source() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-delete-invalid-ds-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-delete-invalid-ds-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for delete invalid data source testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for delete invalid data source testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -260,29 +116,11 @@ fn test_delete_record_invalid_data_source() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_delete_record_empty_parameters() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-delete-empty-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-delete-empty-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for delete empty parameters testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for delete empty parameters testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -291,29 +129,11 @@ fn test_delete_record_empty_parameters() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_add_record_special_characters() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-write-unicode-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-write-unicode-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for special characters testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for special characters testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -322,29 +142,11 @@ fn test_add_record_special_characters() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_sequential_write_operations() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-sequential-write-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-sequential-write-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for sequential write operations testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for sequential write operations testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -353,28 +155,10 @@ fn test_sequential_write_operations() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_write_operations_flag_combinations() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-write-flags-comprehensive-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-write-flags-comprehensive-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for flag combinations testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for flag combinations testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }

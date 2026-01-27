@@ -3,7 +3,7 @@
 //! This example tests the automatic configuration setup functionality
 //! to ensure that default configurations are registered when none exist.
 
-use sz_rust_sdk::helpers::EnvironmentGuard;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -15,7 +15,7 @@ fn main() -> SzResult<()> {
     println!("Testing automatic configuration setup...");
 
     // This should trigger automatic configuration setup if none exists
-    let env = EnvironmentGuard::new("test-config-setup")?;
+    let env = SenzingGuard::from_env(ExampleEnvironment::initialize("test-config-setup")?);
     println!("✅ Environment initialized successfully!");
 
     // Test that we can get the engine

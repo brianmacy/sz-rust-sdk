@@ -16,39 +16,14 @@ fn test_engine_initialization() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-engine-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-engine-test")?;
+    let product = env.get_product()?;
+    let version = product.get_version()?;
+    // Should return a valid version string
+    assert!(!version.is_empty());
+    assert!(version.contains("Senzing"));
 
-    match env_result {
-        Ok(env) => {
-            let product_result = env.get_product();
-            match product_result {
-                Ok(product) => {
-                    let version_result = product.get_version();
-                    match version_result {
-                        Ok(version) => {
-                            // Should return a valid version string
-                            assert!(!version.is_empty());
-                            assert!(version.contains("Senzing"));
-                        }
-                        Err(e) => {
-                            eprintln!("Get version failed (may be acceptable): {:?}", e);
-                        }
-                    }
-                }
-                Err(e) => {
-                    eprintln!("Get product failed (may be acceptable): {:?}", e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -60,34 +35,14 @@ fn test_engine_with_registered_data_sources() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-data-source-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-data-source-test")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    // Test get entity by ID that doesn't exist - should return not found
+    let result = engine.get_entity(99999, Some(SzFlags::ENTITY_DEFAULT_FLAGS));
+    assert!(result.is_err());
+    // Expected not found error or other acceptable error for non-existent entities
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(engine) => {
-                    // Test get entity by ID that doesn't exist - should return not found
-                    let result = engine.get_entity(99999, Some(SzFlags::ENTITY_DEFAULT_FLAGS));
-                    assert!(result.is_err());
-                    if let Err(_e) = result {
-                        // Expected not found error or other acceptable error for non-existent entities
-                    }
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -99,29 +54,11 @@ fn test_basic_record_operations() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-record-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-record-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for record operations");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for record operations");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -133,29 +70,11 @@ fn test_record_invalid_json() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-invalid-json-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-invalid-json-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for JSON validation testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for JSON validation testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -167,46 +86,21 @@ fn test_engine_statistics() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-stats-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-stats-test")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    // Get engine stats
+    let stats = engine.get_stats()?;
+    // Should return valid stats JSON
+    assert!(!stats.is_empty());
+    assert!(stats.contains("\"")); // Should be JSON
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(engine) => {
-                    // Get engine stats
-                    let stats_result = engine.get_stats();
-                    match stats_result {
-                        Ok(stats) => {
-                            // Should return valid stats JSON
-                            assert!(!stats.is_empty());
-                            assert!(stats.contains("\"")); // Should be JSON
+    // Parse stats as JSON to validate structure
+    let stats_json: serde_json::Value = serde_json::from_str(&stats)?;
 
-                            // Parse stats as JSON to validate structure
-                            let stats_json: serde_json::Value = serde_json::from_str(&stats)?;
+    // Should have some statistical information
+    assert!(stats_json.is_object());
 
-                            // Should have some statistical information
-                            assert!(stats_json.is_object());
-                        }
-                        Err(e) => {
-                            eprintln!("Get stats failed (may be acceptable): {:?}", e);
-                        }
-                    }
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -218,29 +112,11 @@ fn test_engine_flag_combinations() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-flags-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-flags-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for flag combination testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for flag combination testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -252,29 +128,11 @@ fn test_sequential_operations() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-sequential-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-sequential-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for sequential operations testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for sequential operations testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -286,29 +144,11 @@ fn test_error_recovery() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-error-recovery-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-error-recovery-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for error recovery testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for error recovery testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -320,52 +160,27 @@ fn test_engine_priming() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-priming-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-priming-test")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    // Test engine priming - should succeed or be gracefully handled
+    let result = engine.prime_engine();
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(engine) => {
-                    // Test engine priming - should succeed or be gracefully handled
-                    let result = engine.prime_engine();
-
-                    // Priming might not be supported in all configurations, so we accept success or specific errors
-                    match result {
-                        Ok(()) => {
-                            // Engine priming succeeded
-                        }
-                        Err(e) => {
-                            // Some configurations might not support priming - that's okay
-                            eprintln!("Engine priming not supported (acceptable): {:?}", e);
-                        }
-                    }
-
-                    // Engine should still work after priming attempt
-                    let stats_result = engine.get_stats();
-                    match stats_result {
-                        Ok(stats) => {
-                            assert!(!stats.is_empty());
-                        }
-                        Err(e) => {
-                            eprintln!("Get stats failed (may be acceptable): {:?}", e);
-                        }
-                    }
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
+    // Priming might not be supported in all configurations, so we accept success or specific errors
+    match result {
+        Ok(()) => {
+            // Engine priming succeeded
         }
         Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
+            // Some configurations might not support priming - that's okay
+            eprintln!("Engine priming not supported (acceptable): {:?}", e);
         }
     }
 
-    ExampleEnvironment::cleanup()?;
+    // Engine should still work after priming attempt
+    let stats = engine.get_stats()?;
+    assert!(!stats.is_empty());
+
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -377,28 +192,10 @@ fn test_entity_operations() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-entity-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-entity-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for entity operations testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for entity operations testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }

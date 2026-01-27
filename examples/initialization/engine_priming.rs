@@ -17,7 +17,7 @@ fn main() -> SzResult<()> {
     let stats = engine.get_stats()?;
     println!("Stats: {}", stats);
 
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 

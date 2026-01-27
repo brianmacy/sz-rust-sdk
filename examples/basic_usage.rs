@@ -1,10 +1,10 @@
 //! Basic Senzing SDK operations: search, path finding, and network analysis
 
-use sz_rust_sdk::helpers::EnvironmentGuard;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
-    let env = EnvironmentGuard::new("basic-usage")?;
+    let env = SenzingGuard::from_env(ExampleEnvironment::initialize("basic-usage")?);
     let engine = env.get_engine()?;
 
     // Search for entities

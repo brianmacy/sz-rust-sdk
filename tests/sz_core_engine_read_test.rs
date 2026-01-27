@@ -12,29 +12,11 @@ use sz_rust_sdk::prelude::*;
 #[test]
 #[serial]
 fn test_get_entity_by_entity_id_not_found() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-get-entity-by-entity-id");
+    let env = ExampleEnvironment::initialize("test-get-entity-by-entity-id")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for entity ID testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for entity ID testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -43,29 +25,11 @@ fn test_get_entity_by_entity_id_not_found() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_get_entity_by_record_not_found() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-get-entity-by-record");
+    let env = ExampleEnvironment::initialize("test-get-entity-by-record")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for entity by record testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for entity by record testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -74,29 +38,11 @@ fn test_get_entity_by_record_not_found() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_get_record_not_found() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-get-record-not-found");
+    let env = ExampleEnvironment::initialize("test-get-record-not-found")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for record testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for record testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -105,29 +51,11 @@ fn test_get_record_not_found() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_search_by_attributes_no_results() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-search-by-attributes");
+    let env = ExampleEnvironment::initialize("test-search-by-attributes")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for search by attributes testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for search by attributes testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -136,29 +64,11 @@ fn test_search_by_attributes_no_results() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_search_by_attributes_with_flags() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-search-by-attributes-flags");
+    let env = ExampleEnvironment::initialize("test-search-by-attributes-flags")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for search flags testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for search flags testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -167,29 +77,11 @@ fn test_search_by_attributes_with_flags() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_find_interesting_entities_by_entity_id_not_found() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-find-interesting-entities");
+    let env = ExampleEnvironment::initialize("test-find-interesting-entities")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for interesting entities testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for interesting entities testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -198,29 +90,11 @@ fn test_find_interesting_entities_by_entity_id_not_found() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_find_interesting_entities_by_record_not_found() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-find-interesting-by-record");
+    let env = ExampleEnvironment::initialize("test-find-interesting-by-record")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for interesting entities by record testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for interesting entities by record testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -229,29 +103,11 @@ fn test_find_interesting_entities_by_record_not_found() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_search_by_attributes_invalid_json() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-search-invalid-json");
+    let env = ExampleEnvironment::initialize("test-search-invalid-json")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for invalid JSON testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for invalid JSON testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -260,29 +116,11 @@ fn test_search_by_attributes_invalid_json() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_read_operations_flag_combinations() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-read-operations-flags");
+    let env = ExampleEnvironment::initialize("test-read-operations-flags")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for flag combinations testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for flag combinations testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -291,28 +129,10 @@ fn test_read_operations_flag_combinations() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_search_by_attributes_empty() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-search-empty-criteria");
+    let env = ExampleEnvironment::initialize("test-search-empty-criteria")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for empty criteria testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for empty criteria testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }

@@ -41,7 +41,7 @@ fn main() -> SzResult<()> {
     println!("Primed Senzing engine. ({} ms)", duration.as_millis());
 
     // Clean up resources
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(environment)?;
 
     Ok(())
 }

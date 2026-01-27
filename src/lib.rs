@@ -59,7 +59,8 @@ pub mod types;
 #[doc(hidden)]
 pub mod helpers;
 
-// Only export SzEnvironmentCore from core - other Core types are internal
+// Public API from core module
+pub use core::SenzingGuard;
 pub use core::SzEnvironmentCore;
 pub use error::*;
 pub use flags::*;
@@ -69,12 +70,13 @@ pub use types::*;
 /// Prelude module for convenient imports
 ///
 /// Import this to get access to all commonly used types:
-/// - [`SzEnvironmentCore`] - The only concrete type you need
+/// - [`SzEnvironmentCore`] - The main environment singleton
+/// - [`SenzingGuard`] - RAII wrapper for automatic cleanup
 /// - All traits ([`SzEngine`], [`SzConfig`], etc.)
 /// - Error types and result aliases
 /// - Flag types for controlling operations
 pub mod prelude {
-    // Only SzEnvironmentCore - other Core types accessed via traits
+    pub use crate::core::SenzingGuard;
     pub use crate::core::SzEnvironmentCore;
     pub use crate::error::*;
     pub use crate::flags::*;

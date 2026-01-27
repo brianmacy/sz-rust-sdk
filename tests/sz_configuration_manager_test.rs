@@ -16,30 +16,11 @@ fn test_config_manager_initialization() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test that we handle singleton constraints gracefully
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-config-manager-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-config-manager-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager retrieved successfully");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    // Config manager retrieved successfully despite singleton constraints
-                    eprintln!("Config manager retrieved successfully");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -51,30 +32,11 @@ fn test_create_config() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints in config creation
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-create-config-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-create-config-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager available for testing");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    // If we get a config manager, test would proceed here
-                    eprintln!("Config manager available for testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -86,29 +48,11 @@ fn test_get_default_config_id() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-default-config-id-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-default-config-id-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager available");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    eprintln!("Config manager available");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -120,29 +64,11 @@ fn test_create_config_from_invalid_id() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test that singleton constraints are handled properly
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-config-invalid-id-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-config-invalid-id-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager available");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    eprintln!("Config manager available");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -154,29 +80,11 @@ fn test_create_config_from_invalid_definition() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-config-invalid-json-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-config-invalid-json-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager available");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    eprintln!("Config manager available");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -188,29 +96,11 @@ fn test_data_source_management() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test that singleton constraints are handled properly
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-data-source-mgmt-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-data-source-mgmt-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager available for data source management");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    eprintln!("Config manager available for data source management");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -222,29 +112,11 @@ fn test_register_duplicate_data_source() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-duplicate-ds-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-duplicate-ds-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager available");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    eprintln!("Config manager available");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -256,29 +128,11 @@ fn test_unregister_nonexistent_data_source() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-unregister-nonexistent-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-unregister-nonexistent-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager available");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    eprintln!("Config manager available");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -290,29 +144,11 @@ fn test_register_empty_data_source_name() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-empty-ds-name-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-empty-ds-name-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager available");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    eprintln!("Config manager available");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -324,29 +160,11 @@ fn test_register_config() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-register-config-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-register-config-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager available");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    eprintln!("Config manager available");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -358,29 +176,11 @@ fn test_replace_default_config_id() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-replace-config-id-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-replace-config-id-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager available");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    eprintln!("Config manager available");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -392,29 +192,11 @@ fn test_configuration_lifecycle() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints in lifecycle
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-config-lifecycle-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-config-lifecycle-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager available for lifecycle testing");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    eprintln!("Config manager available for lifecycle testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -426,29 +208,11 @@ fn test_multiple_data_source_operations() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-multiple-ds-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-multiple-ds-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager available for multiple operations");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    eprintln!("Config manager available for multiple operations");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -460,28 +224,10 @@ fn test_configuration_error_recovery() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints and recovery
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-config-error-recovery-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-config-error-recovery-test")?;
+    let _config_manager = env.get_config_manager()?;
+    eprintln!("Config manager available for error recovery testing");
 
-    match env_result {
-        Ok(env) => {
-            let config_manager_result = env.get_config_manager();
-            match config_manager_result {
-                Ok(_config_manager) => {
-                    eprintln!("Config manager available for error recovery testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }

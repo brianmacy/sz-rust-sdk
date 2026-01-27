@@ -4,7 +4,7 @@
 //! including search and network analysis operations.
 //!
 
-use sz_rust_sdk::helpers::EnvironmentGuard;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -12,7 +12,7 @@ fn main() -> SzResult<()> {
 
     // Initialize environment using the helper utility
     println!("Initializing Senzing environment...");
-    let env = EnvironmentGuard::new("engine-operations")?;
+    let env = SenzingGuard::from_env(ExampleEnvironment::initialize("engine-operations")?);
     println!("✅ Environment ready!\n");
 
     let engine = env.get_engine()?;

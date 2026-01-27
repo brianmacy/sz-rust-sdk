@@ -91,7 +91,7 @@ fn main() -> SzResult<()> {
     verify_deletion_completion(&engine)?;
 
     // Clean up resources
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(environment)?;
 
     println!("\n✅ Delete Via Loop example completed successfully!");
 

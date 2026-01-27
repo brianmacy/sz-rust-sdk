@@ -4,7 +4,7 @@
 //! to create a working Senzing environment and perform operations successfully.
 //!
 
-use sz_rust_sdk::helpers::EnvironmentGuard;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -12,7 +12,7 @@ fn main() -> SzResult<()> {
 
     // Initialize environment using the helper utility
     println!("Initializing Senzing environment...");
-    let env = EnvironmentGuard::new("successful-demo")?;
+    let env = SenzingGuard::from_env(ExampleEnvironment::initialize("successful-demo")?);
     println!("✅ Environment ready!\n");
 
     // Get engine component (this works reliably)

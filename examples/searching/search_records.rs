@@ -166,7 +166,7 @@ fn main() -> SzResult<()> {
     print_search_results(advanced_criteria, &advanced_result)?;
 
     // Clean up the test database
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
 
     Ok(())
 }

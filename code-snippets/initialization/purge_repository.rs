@@ -73,7 +73,7 @@ fn main() -> SzResult<()> {
     println!("All data has been removed from the Senzing datastore.");
 
     // Clean up resources
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(environment)?;
 
     Ok(())
 }

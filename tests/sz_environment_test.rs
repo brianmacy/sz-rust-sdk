@@ -15,26 +15,15 @@ fn test_environment_initialization() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-init-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-environment-init-test")?;
+    // Test that environment is available for testing
+    eprintln!("Environment available for initialization testing");
 
-    match env_result {
-        Ok(env) => {
-            // Test that environment is available for testing
-            eprintln!("Environment available for initialization testing");
+    // Can test read-only operations like:
+    let _is_destroyed = env.is_destroyed();
+    let _active_config_result = env.get_active_config_id();
 
-            // Can test read-only operations like:
-            let _is_destroyed = env.is_destroyed();
-            let _active_config_result = env.get_active_config_id();
-        }
-        Err(e) => {
-            // With serial test execution, environment initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -46,26 +35,15 @@ fn test_environment_interface_retrieval() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-interfaces-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-environment-interfaces-test")?;
+    // Test that environment is available for testing
+    eprintln!("Environment available for interface retrieval testing");
 
-    match env_result {
-        Ok(env) => {
-            // Test that environment is available for testing
-            eprintln!("Environment available for interface retrieval testing");
+    // Can test read-only operations like:
+    let _is_destroyed = env.is_destroyed();
+    let _active_config_result = env.get_active_config_id();
 
-            // Can test read-only operations like:
-            let _is_destroyed = env.is_destroyed();
-            let _active_config_result = env.get_active_config_id();
-        }
-        Err(e) => {
-            // With serial test execution, environment initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -77,26 +55,15 @@ fn test_environment_state_checking() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-state-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-environment-state-test")?;
+    // Test that environment is available for testing
+    eprintln!("Environment available for state checking testing");
 
-    match env_result {
-        Ok(env) => {
-            // Test that environment is available for testing
-            eprintln!("Environment available for state checking testing");
+    // Can test read-only operations like:
+    let _is_destroyed = env.is_destroyed();
+    let _active_config_result = env.get_active_config_id();
 
-            // Can test read-only operations like:
-            let _is_destroyed = env.is_destroyed();
-            let _active_config_result = env.get_active_config_id();
-        }
-        Err(e) => {
-            // With serial test execution, environment initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -108,26 +75,15 @@ fn test_environment_configuration_access() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-config-access-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-environment-config-access-test")?;
+    // Test that environment is available for testing
+    eprintln!("Environment available for configuration access testing");
 
-    match env_result {
-        Ok(env) => {
-            // Test that environment is available for testing
-            eprintln!("Environment available for configuration access testing");
+    // Can test read-only operations like:
+    let _is_destroyed = env.is_destroyed();
+    let _active_config_result = env.get_active_config_id();
 
-            // Can test read-only operations like:
-            let _is_destroyed = env.is_destroyed();
-            let _active_config_result = env.get_active_config_id();
-        }
-        Err(e) => {
-            // With serial test execution, environment initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -139,27 +95,15 @@ fn test_environment_state_consistency() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result =
-        ExampleEnvironment::initialize("sz-rust-sdk-environment-state-consistency-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-environment-state-consistency-test")?;
+    // Test that environment is available for testing
+    eprintln!("Environment available for state consistency testing");
 
-    match env_result {
-        Ok(env) => {
-            // Test that environment is available for testing
-            eprintln!("Environment available for state consistency testing");
+    // Can test read-only operations like:
+    let _is_destroyed = env.is_destroyed();
+    let _active_config_result = env.get_active_config_id();
 
-            // Can test read-only operations like:
-            let _is_destroyed = env.is_destroyed();
-            let _active_config_result = env.get_active_config_id();
-        }
-        Err(e) => {
-            // With serial test execution, environment initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -171,27 +115,15 @@ fn test_multiple_interface_retrievals() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result =
-        ExampleEnvironment::initialize("sz-rust-sdk-environment-multiple-interfaces-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-environment-multiple-interfaces-test")?;
+    // Test that environment is available for testing
+    eprintln!("Environment available for multiple interface retrieval testing");
 
-    match env_result {
-        Ok(env) => {
-            // Test that environment is available for testing
-            eprintln!("Environment available for multiple interface retrieval testing");
+    // Can test read-only operations like:
+    let _is_destroyed = env.is_destroyed();
+    let _active_config_result = env.get_active_config_id();
 
-            // Can test read-only operations like:
-            let _is_destroyed = env.is_destroyed();
-            let _active_config_result = env.get_active_config_id();
-        }
-        Err(e) => {
-            // With serial test execution, environment initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -203,27 +135,15 @@ fn test_environment_interface_stability() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result =
-        ExampleEnvironment::initialize("sz-rust-sdk-environment-interface-stability-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-environment-interface-stability-test")?;
+    // Test that environment is available for testing
+    eprintln!("Environment available for interface stability testing");
 
-    match env_result {
-        Ok(env) => {
-            // Test that environment is available for testing
-            eprintln!("Environment available for interface stability testing");
+    // Can test read-only operations like:
+    let _is_destroyed = env.is_destroyed();
+    let _active_config_result = env.get_active_config_id();
 
-            // Can test read-only operations like:
-            let _is_destroyed = env.is_destroyed();
-            let _active_config_result = env.get_active_config_id();
-        }
-        Err(e) => {
-            // With serial test execution, environment initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -235,27 +155,15 @@ fn test_environment_config_id_validation() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result =
-        ExampleEnvironment::initialize("sz-rust-sdk-environment-config-validation-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-environment-config-validation-test")?;
+    // Test that environment is available for testing
+    eprintln!("Environment available for configuration ID validation testing");
 
-    match env_result {
-        Ok(env) => {
-            // Test that environment is available for testing
-            eprintln!("Environment available for configuration ID validation testing");
+    // Can test read-only operations like:
+    let _is_destroyed = env.is_destroyed();
+    let _active_config_result = env.get_active_config_id();
 
-            // Can test read-only operations like:
-            let _is_destroyed = env.is_destroyed();
-            let _active_config_result = env.get_active_config_id();
-        }
-        Err(e) => {
-            // With serial test execution, environment initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -267,26 +175,15 @@ fn test_environment_interface_consistency() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-consistency-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-environment-consistency-test")?;
+    // Test that environment is available for testing
+    eprintln!("Environment available for interface consistency testing");
 
-    match env_result {
-        Ok(env) => {
-            // Test that environment is available for testing
-            eprintln!("Environment available for interface consistency testing");
+    // Can test read-only operations like:
+    let _is_destroyed = env.is_destroyed();
+    let _active_config_result = env.get_active_config_id();
 
-            // Can test read-only operations like:
-            let _is_destroyed = env.is_destroyed();
-            let _active_config_result = env.get_active_config_id();
-        }
-        Err(e) => {
-            // With serial test execution, environment initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -298,26 +195,15 @@ fn test_environment_lifecycle() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-lifecycle-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-environment-lifecycle-test")?;
+    // Test that environment is available for testing
+    eprintln!("Environment available for lifecycle testing");
 
-    match env_result {
-        Ok(env) => {
-            // Test that environment is available for testing
-            eprintln!("Environment available for lifecycle testing");
+    // Can test read-only operations like:
+    let _is_destroyed = env.is_destroyed();
+    let _active_config_result = env.get_active_config_id();
 
-            // Can test read-only operations like:
-            let _is_destroyed = env.is_destroyed();
-            let _active_config_result = env.get_active_config_id();
-        }
-        Err(e) => {
-            // With serial test execution, environment initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -329,26 +215,15 @@ fn test_environment_error_recovery() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-environment-error-recovery-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-environment-error-recovery-test")?;
+    // Test that environment is available for testing
+    eprintln!("Environment available for error recovery testing");
 
-    match env_result {
-        Ok(env) => {
-            // Test that environment is available for testing
-            eprintln!("Environment available for error recovery testing");
+    // Can test read-only operations like:
+    let _is_destroyed = env.is_destroyed();
+    let _active_config_result = env.get_active_config_id();
 
-            // Can test read-only operations like:
-            let _is_destroyed = env.is_destroyed();
-            let _active_config_result = env.get_active_config_id();
-        }
-        Err(e) => {
-            // With serial test execution, environment initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -402,11 +277,9 @@ fn test_concurrent_engine_initialization() -> SzResult<()> {
         }
     }
 
-    // Drop our reference before cleanup - threads have already joined so their refs are gone
-    drop(env);
-
-    // Now cleanup can destroy since we're the sole owner
-    ExampleEnvironment::cleanup()?;
+    // Now cleanup - threads have already joined so their refs are gone
+    // The only remaining reference is env
+    ExampleEnvironment::cleanup(env)?;
 
     // All threads must succeed
     if !failures.is_empty() {
@@ -493,7 +366,7 @@ fn test_destroy_ownership_semantics() -> SzResult<()> {
         "Singleton should be None after successful destroy()"
     );
 
-    eprintln!("✅ Destroy ownership semantics test passed");
+    eprintln!("Destroy ownership semantics test passed");
     Ok(())
 }
 
@@ -554,9 +427,8 @@ fn test_config_manager_reads_from_database_after_destroy() -> SzResult<()> {
 
     // Clean up second instance
     drop(config_mgr2);
-    drop(env2); // Must drop env2 before cleanup
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env2)?;
 
-    eprintln!("✅ ConfigManager correctly reads from database after destroy");
+    eprintln!("ConfigManager correctly reads from database after destroy");
     Ok(())
 }

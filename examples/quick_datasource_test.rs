@@ -1,9 +1,9 @@
-use sz_rust_sdk::helpers::EnvironmentGuard;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
     // Initialize environment
-    let env = EnvironmentGuard::new("quick-datasource-test")?;
+    let env = SenzingGuard::from_env(ExampleEnvironment::initialize("quick-datasource-test")?);
     let _engine = env.get_engine()?;
     let config_mgr = env.get_config_manager()?;
 

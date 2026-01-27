@@ -44,7 +44,7 @@ fn main() -> SzResult<()> {
     println!("✅ Database information retrieved successfully!");
 
     // Clean up resources
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(environment)?;
 
     Ok(())
 }

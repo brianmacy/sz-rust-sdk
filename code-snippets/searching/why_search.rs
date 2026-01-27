@@ -38,7 +38,7 @@ fn main() -> SzResult<()> {
     println!("✅ Why search analysis completed successfully!");
 
     // Clean up resources
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(environment)?;
 
     Ok(())
 }

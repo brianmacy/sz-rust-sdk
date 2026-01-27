@@ -44,7 +44,7 @@ fn main() -> SzResult<()> {
     }
 
     // Clean up the test database
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
 
     Ok(())
 }

@@ -12,29 +12,11 @@ use sz_rust_sdk::prelude::*;
 #[test]
 #[serial]
 fn test_why_entity_not_found() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-why-entity-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-why-entity-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for why entity not found testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for why entity not found testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -43,29 +25,11 @@ fn test_why_entity_not_found() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_why_entity_same_entity() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-why-same-entity-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-why-same-entity-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for why entity same entity testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for why entity same entity testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -74,29 +38,11 @@ fn test_why_entity_same_entity() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_why_records_not_found() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-why-records-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-why-records-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for why records not found testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for why records not found testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -105,29 +51,11 @@ fn test_why_records_not_found() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_why_records_same_record() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-why-same-record-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-why-same-record-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for why records same record testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for why records same record testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -136,29 +64,11 @@ fn test_why_records_same_record() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_why_search_not_found() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-why-search-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-why-search-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for why search not found testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for why search not found testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -167,29 +77,11 @@ fn test_why_search_not_found() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_why_search_invalid_json() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-why-search-invalid-json-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-why-search-invalid-json-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for why search invalid JSON testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for why search invalid JSON testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -198,29 +90,11 @@ fn test_why_search_invalid_json() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_why_operations_flag_combinations() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-why-flags-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-why-flags-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for why operations flag combinations testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for why operations flag combinations testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -229,29 +103,11 @@ fn test_why_operations_flag_combinations() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_why_operations_empty_parameters() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-why-empty-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-why-empty-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for why operations empty parameters testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for why operations empty parameters testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -260,29 +116,11 @@ fn test_why_operations_empty_parameters() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_why_operations_invalid_entity_ids() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-why-invalid-ids-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-why-invalid-ids-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for why operations invalid entity IDs testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for why operations invalid entity IDs testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -291,29 +129,11 @@ fn test_why_operations_invalid_entity_ids() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_why_operations_no_flags() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-why-no-flags-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-why-no-flags-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for why operations no flags testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for why operations no flags testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -322,29 +142,11 @@ fn test_why_operations_no_flags() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_why_search_with_profile() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-why-search-profile-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-why-search-profile-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for why search with profile testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for why search with profile testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -353,29 +155,11 @@ fn test_why_search_with_profile() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_sequential_why_operations() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-why-sequential-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-why-sequential-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for sequential why operations testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for sequential why operations testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -384,28 +168,10 @@ fn test_sequential_why_operations() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_why_operations_error_recovery() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-why-error-recovery-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-why-error-recovery-test")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for why operations error recovery testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for why operations error recovery testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }

@@ -12,32 +12,10 @@ use sz_rust_sdk::prelude::*;
 #[test]
 #[serial]
 fn test_get_product_version() -> SzResult<()> {
-    // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
-
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-version-test");
-
-    match env_result {
-        Ok(env) => {
-            let product_result = env.get_product();
-            match product_result {
-                Ok(_product) => {
-                    eprintln!("Product available for version testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-product-version-test")?;
+    let _product = env.get_product()?;
+    eprintln!("Product available for version testing");
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -46,32 +24,10 @@ fn test_get_product_version() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_get_product_license() -> SzResult<()> {
-    // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
-
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-license-test");
-
-    match env_result {
-        Ok(env) => {
-            let product_result = env.get_product();
-            match product_result {
-                Ok(_product) => {
-                    eprintln!("Product available for license testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-product-license-test")?;
+    let _product = env.get_product()?;
+    eprintln!("Product available for license testing");
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -80,32 +36,10 @@ fn test_get_product_license() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_multiple_version_retrievals() -> SzResult<()> {
-    // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
-
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-multiple-version-test");
-
-    match env_result {
-        Ok(env) => {
-            let product_result = env.get_product();
-            match product_result {
-                Ok(_product) => {
-                    eprintln!("Product available for multiple version retrievals testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-product-multiple-version-test")?;
+    let _product = env.get_product()?;
+    eprintln!("Product available for multiple version retrievals testing");
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -114,32 +48,10 @@ fn test_multiple_version_retrievals() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_multiple_license_retrievals() -> SzResult<()> {
-    // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
-
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-multiple-license-test");
-
-    match env_result {
-        Ok(env) => {
-            let product_result = env.get_product();
-            match product_result {
-                Ok(_product) => {
-                    eprintln!("Product available for multiple license retrievals testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-product-multiple-license-test")?;
+    let _product = env.get_product()?;
+    eprintln!("Product available for multiple license retrievals testing");
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -148,32 +60,10 @@ fn test_multiple_license_retrievals() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_product_after_environment_operations() -> SzResult<()> {
-    // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
-
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-after-ops-test");
-
-    match env_result {
-        Ok(env) => {
-            let product_result = env.get_product();
-            match product_result {
-                Ok(_product) => {
-                    eprintln!("Product available for environment operations testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-product-after-ops-test")?;
+    let _product = env.get_product()?;
+    eprintln!("Product available for environment operations testing");
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -182,32 +72,10 @@ fn test_product_after_environment_operations() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_product_json_structure_validation() -> SzResult<()> {
-    // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
-
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-json-validation-test");
-
-    match env_result {
-        Ok(env) => {
-            let product_result = env.get_product();
-            match product_result {
-                Ok(_product) => {
-                    eprintln!("Product available for JSON structure validation testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-product-json-validation-test")?;
+    let _product = env.get_product()?;
+    eprintln!("Product available for JSON structure validation testing");
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -216,32 +84,10 @@ fn test_product_json_structure_validation() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_product_multiple_environments() -> SzResult<()> {
-    // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
-
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-multi-env-1-test");
-
-    match env_result {
-        Ok(env) => {
-            let product_result = env.get_product();
-            match product_result {
-                Ok(_product) => {
-                    eprintln!("Product available for multiple environments testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-product-multi-env-1-test")?;
+    let _product = env.get_product()?;
+    eprintln!("Product available for multiple environments testing");
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -250,32 +96,10 @@ fn test_product_multiple_environments() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_product_stability_under_load() -> SzResult<()> {
-    // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
-
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-stability-test");
-
-    match env_result {
-        Ok(env) => {
-            let product_result = env.get_product();
-            match product_result {
-                Ok(_product) => {
-                    eprintln!("Product available for stability under load testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-product-stability-test")?;
+    let _product = env.get_product()?;
+    eprintln!("Product available for stability under load testing");
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -284,32 +108,10 @@ fn test_product_stability_under_load() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_product_error_recovery() -> SzResult<()> {
-    // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
-
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-error-recovery-test");
-
-    match env_result {
-        Ok(env) => {
-            let product_result = env.get_product();
-            match product_result {
-                Ok(_product) => {
-                    eprintln!("Product available for error recovery testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-product-error-recovery-test")?;
+    let _product = env.get_product()?;
+    eprintln!("Product available for error recovery testing");
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -318,31 +120,9 @@ fn test_product_error_recovery() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_product_content_validation() -> SzResult<()> {
-    // Clean up any existing global instance first
-    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
-
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-product-content-test");
-
-    match env_result {
-        Ok(env) => {
-            let product_result = env.get_product();
-            match product_result {
-                Ok(_product) => {
-                    eprintln!("Product available for content validation testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-product-content-test")?;
+    let _product = env.get_product()?;
+    eprintln!("Product available for content validation testing");
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }

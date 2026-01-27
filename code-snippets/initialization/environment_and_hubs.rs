@@ -50,7 +50,7 @@ fn main() -> SzResult<()> {
     // managed through RAII when the environment is cleaned up
 
     // Clean up resources
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(environment)?;
 
     Ok(())
 }

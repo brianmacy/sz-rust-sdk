@@ -41,6 +41,10 @@ name = "engine_priming"
 path = "examples/initialization/engine_priming.rs"
 
 [[example]]
+name = "lifecycle_patterns"
+path = "examples/initialization/lifecycle_patterns.rs"
+
+[[example]]
 name = "load_records"
 path = "examples/loading/load_records.rs"
 

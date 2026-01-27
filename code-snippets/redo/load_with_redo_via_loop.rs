@@ -75,7 +75,7 @@ fn main() -> SzResult<()> {
     println!("Records written to retry file: {}", retries);
 
     // Clean up resources
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(environment)?;
 
     Ok(())
 }

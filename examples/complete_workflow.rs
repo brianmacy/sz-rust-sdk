@@ -4,7 +4,7 @@
 //! including initialization, searching, and analysis using working operations.
 //!
 
-use sz_rust_sdk::helpers::EnvironmentGuard;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -12,7 +12,7 @@ fn main() -> SzResult<()> {
 
     // Step 1: Initialize the Senzing environment
     println!("1. Initializing Senzing Environment");
-    let env = EnvironmentGuard::new("complete-workflow")?;
+    let env = SenzingGuard::from_env(ExampleEnvironment::initialize("complete-workflow")?);
     println!("   ✓ Environment ready!\n");
 
     // Get the engine component (focus on what works)

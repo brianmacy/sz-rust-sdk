@@ -77,7 +77,7 @@ fn run_performance_check() -> SzResult<()> {
     println!("Performance testing completed!");
 
     // Clean up the test database
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
 
     Ok(())
 }

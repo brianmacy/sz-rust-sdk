@@ -3,7 +3,7 @@
 //! This example tests that the ExampleEnvironment uses the SzEnvironment trait
 //! to get the ConfigManager instead of creating it directly.
 
-use sz_rust_sdk::helpers::EnvironmentGuard;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -15,7 +15,7 @@ fn main() -> SzResult<()> {
     println!("Testing configuration setup via singleton environment trait...");
 
     // This should trigger the configuration setup process
-    let env = EnvironmentGuard::new("config-trait-test")?;
+    let env = SenzingGuard::from_env(ExampleEnvironment::initialize("config-trait-test")?);
     println!("✅ Environment initialized successfully using trait pattern");
 
     // Verify we can get the config manager through the trait

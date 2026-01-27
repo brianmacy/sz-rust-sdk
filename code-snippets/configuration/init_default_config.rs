@@ -62,7 +62,7 @@ fn main() -> SzResult<()> {
     println!("   The Senzing environment now has a properly initialized default configuration.");
 
     // Clean up resources
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(environment)?;
 
     Ok(())
 }

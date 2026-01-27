@@ -101,7 +101,7 @@ fn main() -> SzResult<()> {
     println!("\n=== Step 4: Reinitializing environment with updated configuration ===");
     // Drop current environment and recreate to pick up new configuration
     drop(_engine);
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
 
     // Create fresh environment that will pick up the new default configuration
     let new_env = ExampleEnvironment::initialize("register-data-sources-verify")?;
@@ -231,7 +231,7 @@ fn main() -> SzResult<()> {
         );
 
         // Clean up before failing
-        ExampleEnvironment::cleanup()?;
+        ExampleEnvironment::cleanup(new_env)?;
 
         return Err(SzError::configuration(format!(
             "Data source registration failed for: {:?}",
@@ -276,7 +276,7 @@ fn main() -> SzResult<()> {
     println!("   - Identified that data source recognition requires complete configuration");
 
     // Clean up the test database
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(new_env)?;
 
     Ok(())
 }

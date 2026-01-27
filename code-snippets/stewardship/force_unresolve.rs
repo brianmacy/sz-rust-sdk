@@ -209,7 +209,7 @@ fn main() -> SzResult<()> {
     println!("Test records deleted.");
 
     // Clean up resources
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(environment)?;
 
     println!("\n✅ Force Unresolve example completed successfully!");
 

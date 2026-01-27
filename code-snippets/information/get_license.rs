@@ -48,7 +48,7 @@ fn main() -> SzResult<()> {
     parse_and_display_version(&version_info)?;
 
     // Clean up resources
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(environment)?;
 
     println!("\n✅ Get License example completed successfully!");
 

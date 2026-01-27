@@ -85,63 +85,6 @@ pub fn print_error_with_backtrace(error: &crate::error::SzError) {
     }
 }
 
-/// RAII guard for automatic environment cleanup
-///
-/// This guard ensures that `ExampleEnvironment::cleanup()` is automatically
-/// called when the guard goes out of scope, following Rust's RAII pattern.
-///
-/// # Examples
-///
-/// ```no_run
-/// use sz_rust_sdk::helpers::EnvironmentGuard;
-/// use sz_rust_sdk::traits::{SzEngine, SzEnvironment};
-///
-/// fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     // Guard automatically cleans up when it goes out of scope
-///     let env = EnvironmentGuard::new("my-app")?;
-///     let engine = env.get_engine()?;
-///
-///     // Do work with engine...
-///
-///     Ok(()) // Cleanup happens automatically here
-/// }
-/// ```
-pub struct EnvironmentGuard {
-    env: Option<std::sync::Arc<crate::core::SzEnvironmentCore>>,
-}
-
-impl EnvironmentGuard {
-    /// Create a new environment guard with automatic cleanup
-    pub fn new(instance_name: &str) -> SzResult<Self> {
-        let env = ExampleEnvironment::initialize(instance_name)?;
-        Ok(Self { env: Some(env) })
-    }
-
-    /// Get a reference to the environment
-    pub fn env(&self) -> &std::sync::Arc<crate::core::SzEnvironmentCore> {
-        self.env.as_ref().expect("Environment already dropped")
-    }
-}
-
-impl Drop for EnvironmentGuard {
-    fn drop(&mut self) {
-        // Explicitly drop our reference BEFORE calling cleanup
-        // This ensures cleanup() can successfully destroy the environment
-        self.env.take();
-
-        // Now attempt cleanup - ignore errors during drop
-        let _ = ExampleEnvironment::cleanup();
-    }
-}
-
-impl std::ops::Deref for EnvironmentGuard {
-    type Target = std::sync::Arc<crate::core::SzEnvironmentCore>;
-
-    fn deref(&self) -> &Self::Target {
-        self.env.as_ref().expect("Environment already dropped")
-    }
-}
-
 /// Environment setup utility for examples
 ///
 /// `ExampleEnvironment` provides a simplified interface for initializing
@@ -175,21 +118,20 @@ impl std::ops::Deref for EnvironmentGuard {
 ///
 /// // Use the engine for your application
 ///
-/// // Clean up the database when done
+/// // Clean up when done - cleanup takes ownership of env
 /// drop(engine);
-/// drop(env);
-/// ExampleEnvironment::cleanup()?;
+/// ExampleEnvironment::cleanup(env)?;
 /// # Ok::<(), sz_rust_sdk::error::SzError>(())
 /// ```
 ///
 /// ## RAII guard (recommended)
 ///
 /// ```no_run
-/// use sz_rust_sdk::helpers::EnvironmentGuard;
-/// use sz_rust_sdk::traits::{SzEngine, SzEnvironment};
+/// use sz_rust_sdk::helpers::ExampleEnvironment;
+/// use sz_rust_sdk::prelude::*;
 ///
 /// // Guard automatically cleans up when it goes out of scope
-/// let env = EnvironmentGuard::new("my-app")?;
+/// let env = SenzingGuard::from_env(ExampleEnvironment::initialize("my-app")?);
 /// let engine = env.get_engine()?;
 ///
 /// // Use the engine...
@@ -298,18 +240,21 @@ impl ExampleEnvironment {
         Ok(())
     }
 
-    /// Clean up the current test database and destroy the global environment
-    /// This allows a new environment to be created that will pick up updated configurations
-    pub fn cleanup() -> SzResult<()> {
-        println!("Cleaning up environment for configuration reinitialization...");
-
-        // Destroy the global environment instance so the next initialization
-        // will pick up any configuration changes that were made
-        // Use try_get_instance to get the singleton and destroy it
-        if let Some(env) = SzEnvironmentCore::try_get_instance() {
-            env.destroy()?;
-        }
-
+    /// Clean up the environment by destroying native resources.
+    ///
+    /// Takes ownership of the environment Arc, ensuring clean ownership semantics.
+    /// This consumes the env - you cannot use it after calling cleanup.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// let env = ExampleEnvironment::initialize("app")?;
+    /// // ... use env ...
+    /// ExampleEnvironment::cleanup(env)?;  // Consumes env
+    /// ```
+    pub fn cleanup(env: std::sync::Arc<SzEnvironmentCore>) -> SzResult<()> {
+        println!("Cleaning up environment...");
+        env.destroy()?;
         println!("✅ Environment cleanup complete");
         Ok(())
     }

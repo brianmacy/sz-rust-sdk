@@ -15,29 +15,11 @@ fn test_get_repository_info() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-repo-info-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-repo-info-test")?;
+    let _diagnostic = env.get_diagnostic()?;
+    eprintln!("Diagnostic available for repository info testing");
 
-    match env_result {
-        Ok(env) => {
-            let diagnostic_result = env.get_diagnostic();
-            match diagnostic_result {
-                Ok(_diagnostic) => {
-                    eprintln!("Diagnostic available for repository info testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -49,29 +31,11 @@ fn test_check_repository_performance() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-performance-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-performance-test")?;
+    let _diagnostic = env.get_diagnostic()?;
+    eprintln!("Diagnostic available for performance testing");
 
-    match env_result {
-        Ok(env) => {
-            let diagnostic_result = env.get_diagnostic();
-            match diagnostic_result {
-                Ok(_diagnostic) => {
-                    eprintln!("Diagnostic available for performance testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -83,29 +47,11 @@ fn test_check_repository_performance_invalid_duration() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-invalid-duration-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-invalid-duration-test")?;
+    let _diagnostic = env.get_diagnostic()?;
+    eprintln!("Diagnostic available for invalid duration testing");
 
-    match env_result {
-        Ok(env) => {
-            let diagnostic_result = env.get_diagnostic();
-            match diagnostic_result {
-                Ok(_diagnostic) => {
-                    eprintln!("Diagnostic available for invalid duration testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -117,29 +63,11 @@ fn test_get_feature_not_found() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-feature-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-feature-test")?;
+    let _diagnostic = env.get_diagnostic()?;
+    eprintln!("Diagnostic available for feature testing");
 
-    match env_result {
-        Ok(env) => {
-            let diagnostic_result = env.get_diagnostic();
-            match diagnostic_result {
-                Ok(_diagnostic) => {
-                    eprintln!("Diagnostic available for feature testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -151,29 +79,11 @@ fn test_get_feature_invalid_id() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-invalid-feature-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-invalid-feature-test")?;
+    let _diagnostic = env.get_diagnostic()?;
+    eprintln!("Diagnostic available for invalid feature ID testing");
 
-    match env_result {
-        Ok(env) => {
-            let diagnostic_result = env.get_diagnostic();
-            match diagnostic_result {
-                Ok(_diagnostic) => {
-                    eprintln!("Diagnostic available for invalid feature ID testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -185,29 +95,11 @@ fn test_purge_repository() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-purge-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-purge-test")?;
+    let _diagnostic = env.get_diagnostic()?;
+    eprintln!("Diagnostic available for purge testing");
 
-    match env_result {
-        Ok(env) => {
-            let diagnostic_result = env.get_diagnostic();
-            match diagnostic_result {
-                Ok(_diagnostic) => {
-                    eprintln!("Diagnostic available for purge testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -219,29 +111,11 @@ fn test_repository_performance_various_durations() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-duration-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-duration-test")?;
+    let _diagnostic = env.get_diagnostic()?;
+    eprintln!("Diagnostic available for various duration testing");
 
-    match env_result {
-        Ok(env) => {
-            let diagnostic_result = env.get_diagnostic();
-            match diagnostic_result {
-                Ok(_diagnostic) => {
-                    eprintln!("Diagnostic available for various duration testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -253,29 +127,11 @@ fn test_diagnostics_after_repository_operations() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-integration-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-integration-test")?;
+    let _diagnostic = env.get_diagnostic()?;
+    eprintln!("Diagnostic available for integration testing");
 
-    match env_result {
-        Ok(env) => {
-            let diagnostic_result = env.get_diagnostic();
-            match diagnostic_result {
-                Ok(_diagnostic) => {
-                    eprintln!("Diagnostic available for integration testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -287,29 +143,11 @@ fn test_sequential_diagnostic_operations() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-sequential-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-sequential-test")?;
+    let _diagnostic = env.get_diagnostic()?;
+    eprintln!("Diagnostic available for sequential testing");
 
-    match env_result {
-        Ok(env) => {
-            let diagnostic_result = env.get_diagnostic();
-            match diagnostic_result {
-                Ok(_diagnostic) => {
-                    eprintln!("Diagnostic available for sequential testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -321,29 +159,11 @@ fn test_diagnostics_repository_states() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-states-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-states-test")?;
+    let _diagnostic = env.get_diagnostic()?;
+    eprintln!("Diagnostic available for repository states testing");
 
-    match env_result {
-        Ok(env) => {
-            let diagnostic_result = env.get_diagnostic();
-            match diagnostic_result {
-                Ok(_diagnostic) => {
-                    eprintln!("Diagnostic available for repository states testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -355,29 +175,11 @@ fn test_diagnostic_error_recovery() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-error-recovery-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-error-recovery-test")?;
+    let _diagnostic = env.get_diagnostic()?;
+    eprintln!("Diagnostic available for error recovery testing");
 
-    match env_result {
-        Ok(env) => {
-            let diagnostic_result = env.get_diagnostic();
-            match diagnostic_result {
-                Ok(_diagnostic) => {
-                    eprintln!("Diagnostic available for error recovery testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -389,28 +191,10 @@ fn test_diagnostic_extreme_parameters() -> SzResult<()> {
     // Clean up any existing global instance first
     let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
 
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-extreme-test");
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-diagnostic-extreme-test")?;
+    let _diagnostic = env.get_diagnostic()?;
+    eprintln!("Diagnostic available for extreme parameters testing");
 
-    match env_result {
-        Ok(env) => {
-            let diagnostic_result = env.get_diagnostic();
-            match diagnostic_result {
-                Ok(_diagnostic) => {
-                    eprintln!("Diagnostic available for extreme parameters testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }

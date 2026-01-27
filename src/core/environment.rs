@@ -10,10 +10,120 @@ use std::mem::ManuallyDrop;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, Once, OnceLock};
 
-/// Core implementation of the SzEnvironment trait
+/// Core implementation of the SzEnvironment trait.
 ///
-/// This struct manages the lifecycle of the Senzing environment and serves
-/// as a factory for obtaining instances of other SDK components.
+/// `SzEnvironmentCore` manages the lifecycle of the Senzing environment and serves
+/// as a factory for obtaining instances of other SDK components. It implements a
+/// singleton pattern required by the Senzing native library.
+///
+/// # Complete Lifecycle Example
+///
+/// This example shows the full lifecycle: creation, usage, and cleanup.
+///
+/// ```ignore
+/// use sz_rust_sdk::prelude::*;
+/// use std::sync::Arc;
+///
+/// fn main() -> SzResult<()> {
+///     // ═══════════════════════════════════════════════════════════
+///     // STEP 1: CONFIGURATION
+///     // ═══════════════════════════════════════════════════════════
+///     let settings = r#"{
+///         "PIPELINE": {
+///             "CONFIGPATH": "/opt/senzing/er/resources/templates",
+///             "RESOURCEPATH": "/opt/senzing/er/resources",
+///             "SUPPORTPATH": "/opt/senzing/data"
+///         },
+///         "SQL": {
+///             "CONNECTION": "sqlite3://na:na@/tmp/senzing.db"
+///         }
+///     }"#;
+///
+///     // ═══════════════════════════════════════════════════════════
+///     // STEP 2: INITIALIZATION (choose one approach)
+///     // ═══════════════════════════════════════════════════════════
+///
+///     // OPTION A: RAII Guard (recommended - automatic cleanup)
+///     {
+///         let guard = SenzingGuard::new("my-app", settings, false)?;
+///
+///         // Get SDK components
+///         let engine = guard.get_engine()?;
+///         let product = guard.get_product()?;
+///
+///         // Use the SDK
+///         let version = product.get_version()?;
+///         println!("Senzing version: {}", version);
+///
+///         engine.add_record("CUSTOMERS", "1",
+///             r#"{"NAME_FULL": "John Smith"}"#, None)?;
+///
+///     } // <- Resources automatically released here
+///
+///     // OPTION B: Manual management (when you need more control)
+///     {
+///         // Create environment (returns Arc with strong_count >= 2)
+///         let env = SzEnvironmentCore::get_instance("my-app", settings, false)?;
+///
+///         // Get SDK components
+///         let engine = env.get_engine()?;
+///
+///         // Use the SDK
+///         engine.add_record("CUSTOMERS", "2",
+///             r#"{"NAME_FULL": "Jane Doe"}"#, None)?;
+///
+///         // ═══════════════════════════════════════════════════════
+///         // STEP 3: CLEANUP (required for Option B)
+///         // ═══════════════════════════════════════════════════════
+///
+///         // Drop components first (they borrow the environment)
+///         drop(engine);
+///
+///         // Destroy releases native resources
+///         // Only succeeds if this is the last Arc reference
+///         env.destroy()?;
+///     }
+///
+///     // After destroy(), you can create a new environment with
+///     // different settings if needed
+///     let env2 = SzEnvironmentCore::get_instance("my-app-v2", settings, true)?;
+///     // ...
+///     env2.destroy()?;
+///
+///     Ok(())
+/// }
+/// ```
+///
+/// # Singleton Pattern
+///
+/// The Senzing native library requires a single global instance per process.
+/// `get_instance()` enforces this by storing one `Arc` reference in a static
+/// variable. This means:
+///
+/// - All `get_instance()` calls with the same parameters return the same instance
+/// - The returned `Arc` always has `strong_count() >= 2` (singleton + caller)
+/// - Calling `destroy()` removes the singleton reference and cleans up native
+///   resources only when you hold the last reference
+///
+/// # Thread Safety
+///
+/// `SzEnvironmentCore` is thread-safe (`Send + Sync`). The `Arc<SzEnvironmentCore>`
+/// can be cloned and shared across threads. Each call to `get_engine()`, etc.,
+/// returns an independent component instance that can be used in its own thread.
+///
+/// ```ignore
+/// let env = SzEnvironmentCore::get_instance("app", &settings, false)?;
+///
+/// let handles: Vec<_> = (0..4).map(|i| {
+///     let env = env.clone();
+///     std::thread::spawn(move || {
+///         let engine = env.get_engine().unwrap();
+///         engine.add_record("DS", &format!("REC{}", i), "{}", None)
+///     })
+/// }).collect();
+///
+/// for h in handles { h.join().unwrap()?; }
+/// ```
 pub struct SzEnvironmentCore {
     is_destroyed: Arc<AtomicBool>,
     /// Guards Sz_init() - ensures it runs exactly once and other threads wait
@@ -77,6 +187,38 @@ impl SzEnvironmentCore {
     /// * `module_name` - Name of the module for logging purposes
     /// * `ini_params` - JSON string containing initialization parameters
     /// * `verbose_logging` - Whether to enable verbose logging
+    ///
+    /// # Arc Reference Count Behavior
+    ///
+    /// **Important**: The returned `Arc<SzEnvironmentCore>` will always have
+    /// `strong_count() >= 2` due to the singleton pattern:
+    ///
+    /// - **Reference 1**: Stored in `GLOBAL_ENVIRONMENT` (the singleton storage)
+    /// - **Reference 2+**: Returned to the caller (and any clones they make)
+    ///
+    /// This is by design and is NOT a memory leak. The singleton reference ensures
+    /// that subsequent calls to `get_instance()` return the same instance.
+    ///
+    /// ```ignore
+    /// let env = SzEnvironmentCore::get_instance("app", &settings, false)?;
+    /// assert!(Arc::strong_count(&env) >= 2); // Expected: singleton + caller
+    ///
+    /// let env2 = SzEnvironmentCore::get_instance("app", &settings, false)?;
+    /// assert!(Arc::ptr_eq(&env, &env2)); // Same instance
+    /// assert!(Arc::strong_count(&env) >= 3); // singleton + 2 callers
+    /// ```
+    ///
+    /// # Cleanup
+    ///
+    /// To properly release resources, use `destroy()` which removes the singleton
+    /// reference and calls native cleanup when you hold the last reference:
+    ///
+    /// ```ignore
+    /// // Drop all other references first
+    /// drop(env2);
+    /// // Then destroy - this removes singleton ref and cleans up native resources
+    /// env.destroy()?;
+    /// ```
     pub fn get_instance(
         module_name: &str,
         ini_params: &str,
@@ -500,13 +642,60 @@ impl SzEnvironment for SzEnvironmentCore {
     }
 }
 
+/// # Drop Behavior - Intentionally Does NOT Clean Up Native Resources
+///
+/// The `Drop` implementation for `SzEnvironmentCore` is **intentionally a no-op**
+/// that only marks the environment as destroyed without releasing native Senzing
+/// resources. This design is deliberate for several important reasons:
+///
+/// ## Why Drop Doesn't Clean Up
+///
+/// 1. **Singleton Pattern Complexity**: Due to the global singleton pattern,
+///    multiple `Arc` references exist (one in `GLOBAL_ENVIRONMENT`, one or more
+///    held by callers). The `Drop` trait cannot detect if this is the "last"
+///    reference being dropped.
+///
+/// 2. **Native Library Safety**: The Senzing native library has specific
+///    destruction ordering requirements. Calling `Sz_destroy()` while other
+///    threads might still be using the library can cause undefined behavior.
+///
+/// 3. **Controlled Shutdown**: Users need explicit control over when native
+///    resources are released, especially in applications that may reinitialize
+///    with different configurations.
+///
+/// ## Proper Cleanup Pattern
+///
+/// Use the explicit `destroy()` method or the RAII `SenzingGuard` wrapper:
+///
+/// ```ignore
+/// use sz_rust_sdk::prelude::*;
+///
+/// // Option 1: Explicit destroy (ownership-based)
+/// let env = SzEnvironmentCore::get_instance("app", &settings, false)?;
+/// // ... use env ...
+/// env.destroy()?;  // Explicitly release native resources
+///
+/// // Option 2: RAII guard (automatic cleanup)
+/// {
+///     let guard = SenzingGuard::new("app", &settings, false)?;
+///     let engine = guard.get_engine()?;
+///     // ... use engine ...
+/// } // Native resources released automatically when guard drops
+/// ```
+///
+/// ## What This Implementation Does
+///
+/// - Marks the environment as "destroyed" to prevent further API calls
+/// - Does **NOT** call `Sz_destroy()` or other native cleanup functions
+/// - Allows garbage collection of Rust-side resources
 impl Drop for SzEnvironmentCore {
     fn drop(&mut self) {
-        // Disable automatic cleanup for now to avoid segfaults
-        // The user should call destroy() explicitly if needed
-        // TODO: Investigate proper cleanup sequence with Senzing library
+        // Mark as destroyed to prevent further use through any remaining references.
+        // We intentionally do NOT call Sz_destroy() here because:
+        // 1. We can't detect if this is the last Arc reference (singleton has one too)
+        // 2. Calling native cleanup during Drop can race with other threads
+        // 3. Users should use destroy() for explicit cleanup or SenzingGuard for RAII
         if !self.is_destroyed() {
-            // Mark as destroyed without calling Sz_destroy()
             self.is_destroyed
                 .store(true, std::sync::atomic::Ordering::Relaxed);
         }

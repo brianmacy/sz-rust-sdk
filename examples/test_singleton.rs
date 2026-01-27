@@ -4,7 +4,7 @@
 //! to ensure only one instance exists per process.
 
 use std::sync::Arc;
-use sz_rust_sdk::helpers::EnvironmentGuard;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -12,12 +12,12 @@ fn main() -> SzResult<()> {
 
     // Test 1: Create first instance
     println!("1. Creating first environment instance...");
-    let env1 = EnvironmentGuard::new("singleton-test")?;
+    let env1 = SenzingGuard::from_env(ExampleEnvironment::initialize("singleton-test")?);
     println!("✅ First instance created: {:p}", Arc::as_ptr(&env1));
 
     // Test 2: Try to create second instance with same parameters - should return the same one
     println!("\n2. Attempting to create second instance with same parameters...");
-    let env2 = EnvironmentGuard::new("singleton-test")?;
+    let env2 = SenzingGuard::from_env(ExampleEnvironment::initialize("singleton-test")?);
     println!("✅ Second instance obtained: {:p}", Arc::as_ptr(&env2));
 
     // Test 3: Verify they are the same instance

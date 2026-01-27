@@ -73,7 +73,7 @@ fn main() -> SzResult<()> {
     println!("\nDelete records demo completed successfully!");
 
     // Clean up the test database
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
 
     Ok(())
 }

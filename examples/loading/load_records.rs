@@ -110,7 +110,7 @@ fn main() -> SzResult<()> {
     println!("{}", stats);
 
     // Clean up the test database
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
 
     Ok(())
 }

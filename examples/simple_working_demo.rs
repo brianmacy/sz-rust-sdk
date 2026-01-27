@@ -6,7 +6,7 @@
 //! Run with: cargo run --example simple_working_demo
 
 use std::sync::Arc;
-use sz_rust_sdk::helpers::EnvironmentGuard;
+use sz_rust_sdk::helpers::ExampleEnvironment;
 use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
@@ -15,7 +15,7 @@ fn main() -> SzResult<()> {
     println!("Initializing Senzing SDK...");
 
     // Initialize Senzing environment using the helper
-    let env = EnvironmentGuard::new("simple-working-demo")?;
+    let env = SenzingGuard::from_env(ExampleEnvironment::initialize("simple-working-demo")?);
     println!("✅ Environment initialized successfully!");
     demonstrate_working_features(&env)?;
 

@@ -21,6 +21,6 @@ fn main() -> SzResult<()> {
         Err(e) => println!("Product component unavailable: {}", e),
     }
 
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }

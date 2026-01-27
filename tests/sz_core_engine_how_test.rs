@@ -12,29 +12,11 @@ use sz_rust_sdk::prelude::*;
 #[test]
 #[serial]
 fn test_how_entity_not_found() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-how-entity-not-found");
+    let env = ExampleEnvironment::initialize("test-how-entity-not-found")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for how entity not found testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for how entity not found testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -43,29 +25,11 @@ fn test_how_entity_not_found() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_how_entity_flag_combinations() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-how-entity-flag-combinations");
+    let env = ExampleEnvironment::initialize("test-how-entity-flag-combinations")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for how entity flag combinations testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for how entity flag combinations testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -74,29 +38,11 @@ fn test_how_entity_flag_combinations() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_how_entity_zero_id() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-how-entity-zero-id");
+    let env = ExampleEnvironment::initialize("test-how-entity-zero-id")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for how entity zero ID testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for how entity zero ID testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -105,29 +51,11 @@ fn test_how_entity_zero_id() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_how_entity_negative_id() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-how-entity-negative-id");
+    let env = ExampleEnvironment::initialize("test-how-entity-negative-id")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for how entity negative ID testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for how entity negative ID testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -136,29 +64,11 @@ fn test_how_entity_negative_id() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_how_entity_no_flags() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-how-entity-no-flags");
+    let env = ExampleEnvironment::initialize("test-how-entity-no-flags")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for how entity no flags testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for how entity no flags testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -167,29 +77,11 @@ fn test_how_entity_no_flags() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_how_entity_empty_flags() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-how-entity-empty-flags");
+    let env = ExampleEnvironment::initialize("test-how-entity-empty-flags")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for how entity empty flags testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for how entity empty flags testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -198,29 +90,11 @@ fn test_how_entity_empty_flags() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_how_entity_large_id() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-how-entity-large-id");
+    let env = ExampleEnvironment::initialize("test-how-entity-large-id")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for how entity large ID testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for how entity large ID testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -229,29 +103,11 @@ fn test_how_entity_large_id() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_sequential_how_operations() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-sequential-how-operations");
+    let env = ExampleEnvironment::initialize("test-sequential-how-operations")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for sequential how operations testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for sequential how operations testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -260,29 +116,11 @@ fn test_sequential_how_operations() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_how_entity_comprehensive_flags() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-how-entity-comprehensive-flags");
+    let env = ExampleEnvironment::initialize("test-how-entity-comprehensive-flags")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for how entity comprehensive flags testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for how entity comprehensive flags testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 
@@ -291,28 +129,10 @@ fn test_how_entity_comprehensive_flags() -> SzResult<()> {
 #[test]
 #[serial]
 fn test_how_entity_error_recovery() -> SzResult<()> {
-    // Test handling of singleton constraints
-    let env_result = ExampleEnvironment::initialize("test-how-entity-error-recovery");
+    let env = ExampleEnvironment::initialize("test-how-entity-error-recovery")?;
+    let _engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+    eprintln!("Engine available for how entity error recovery testing");
 
-    match env_result {
-        Ok(env) => {
-            let engine_result = ExampleEnvironment::get_engine_with_setup(&env);
-            match engine_result {
-                Ok(_engine) => {
-                    eprintln!("Engine available for how entity error recovery testing");
-                }
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        Err(e) => {
-            // With serial test execution, initialization should now succeed
-            // Any initialization failure indicates a real problem and must cause test failure
-            return Err(e);
-        }
-    }
-
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }

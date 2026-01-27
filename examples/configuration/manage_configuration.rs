@@ -39,7 +39,7 @@ fn main() -> SzResult<()> {
     println!("Configuration management demo completed successfully!");
 
     // Clean up the test database
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(env)?;
 
     Ok(())
 }

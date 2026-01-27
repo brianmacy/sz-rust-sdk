@@ -127,8 +127,9 @@ fn process_entities() -> SzResult<()> {
 
     // Do work...
 
-    // Automatic cleanup when env goes out of scope
-    ExampleEnvironment::cleanup()?;
+    // Cleanup takes ownership of env
+    drop(engine);  // Drop components first
+    ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
 ```

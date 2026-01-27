@@ -109,7 +109,7 @@ fn main() -> SzResult<()> {
     }
 
     // Clean up resources
-    ExampleEnvironment::cleanup()?;
+    ExampleEnvironment::cleanup(environment)?;
 
     Ok(())
 }
