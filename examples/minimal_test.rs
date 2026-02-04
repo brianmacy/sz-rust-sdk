@@ -10,8 +10,8 @@ fn main() -> SzResult<()> {
 
     let search_attrs = r#"{"NAME_LAST": "Test"}"#;
     match engine.search_by_attributes(search_attrs, None, None) {
-        Ok(results) => println!("Search results: {}", results),
-        Err(e) => println!("Search failed: {}", e),
+        Ok(results) => println!("Search results: {results}"),
+        Err(e) => println!("Search failed: {e}"),
     }
 
     // Cleanup happens automatically when env guard goes out of scope

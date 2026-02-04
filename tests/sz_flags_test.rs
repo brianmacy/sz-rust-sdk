@@ -17,7 +17,7 @@ fn test_flags_constant_entity_include_entity_name() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(flag_string.contains("ENTITY_INCLUDE_ENTITY_NAME"));
 }
 
@@ -30,7 +30,7 @@ fn test_flags_constant_entity_include_record_summary() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(flag_string.contains("ENTITY_INCLUDE_RECORD_SUMMARY"));
 }
 
@@ -43,7 +43,7 @@ fn test_flags_constant_entity_include_record_data() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(flag_string.contains("ENTITY_INCLUDE_RECORD_DATA"));
 }
 
@@ -56,7 +56,7 @@ fn test_flags_constant_entity_include_record_matching_info() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(flag_string.contains("ENTITY_INCLUDE_RECORD_MATCHING_INFO"));
 }
 
@@ -69,7 +69,7 @@ fn test_flags_constant_entity_include_related_entity_name() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(flag_string.contains("ENTITY_INCLUDE_RELATED_ENTITY_NAME"));
 }
 
@@ -82,7 +82,7 @@ fn test_flags_constant_entity_include_related_matching_info() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(flag_string.contains("ENTITY_INCLUDE_RELATED_MATCHING_INFO"));
 }
 
@@ -95,7 +95,7 @@ fn test_flags_constant_entity_include_related_record_summary() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(flag_string.contains("ENTITY_INCLUDE_RELATED_RECORD_SUMMARY"));
 }
 
@@ -108,7 +108,7 @@ fn test_flags_constant_entity_include_related_record_data() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(flag_string.contains("ENTITY_INCLUDE_RELATED_RECORD_DATA"));
 }
 
@@ -121,7 +121,7 @@ fn test_flags_constant_export_include_multi_record_entities() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(flag_string.contains("EXPORT_INCLUDE_MULTI_RECORD_ENTITIES"));
 }
 
@@ -134,7 +134,7 @@ fn test_flags_constant_export_include_possibly_same() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(flag_string.contains("EXPORT_INCLUDE_POSSIBLY_SAME"));
 }
 
@@ -147,7 +147,7 @@ fn test_flags_constant_export_include_possibly_related() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(flag_string.contains("EXPORT_INCLUDE_POSSIBLY_RELATED"));
 }
 
@@ -160,7 +160,7 @@ fn test_flags_constant_export_include_name_only() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(flag_string.contains("EXPORT_INCLUDE_NAME_ONLY"));
 }
 
@@ -173,7 +173,7 @@ fn test_flags_constant_export_include_disclosed() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(flag_string.contains("EXPORT_INCLUDE_DISCLOSED"));
 }
 
@@ -186,7 +186,7 @@ fn test_flags_constant_find_path_include_matching_info() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation (may be composite)
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(!flag_string.is_empty());
 }
 
@@ -199,7 +199,7 @@ fn test_flags_constant_find_network_include_matching_info() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation (may be composite)
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(!flag_string.is_empty());
 }
 
@@ -272,7 +272,7 @@ fn test_flags_constant_search_by_attributes_default_flags() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation (may be composite)
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(!flag_string.is_empty());
 }
 
@@ -285,7 +285,7 @@ fn test_flags_constant_virtual_entity_default_flags() {
     assert_ne!(flag.bits(), 0);
 
     // Test string representation (may be composite)
-    let flag_string = format!("{:?}", flag);
+    let flag_string = format!("{flag:?}");
     assert!(!flag_string.is_empty());
 }
 
@@ -356,7 +356,7 @@ fn test_empty_flags() {
     assert_eq!(empty.bits(), 0);
     assert!(empty.is_empty());
 
-    let flag_string = format!("{:?}", empty);
+    let flag_string = format!("{empty:?}");
     // Different debug formats are acceptable for empty flags
     assert!(
         flag_string.contains("empty")

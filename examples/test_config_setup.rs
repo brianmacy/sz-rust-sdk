@@ -26,7 +26,7 @@ fn main() -> SzResult<()> {
     println!("\n🔍 Testing search operation...");
     let results = engine.search_by_attributes(r#"{"NAME_LAST": "Test"}"#, None, None)?;
     println!("✅ Search completed successfully");
-    println!("   Results: {}", results);
+    println!("   Results: {results}");
 
     println!("\n🎯 Configuration setup test complete");
 

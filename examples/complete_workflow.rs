@@ -29,11 +29,10 @@ fn main() -> SzResult<()> {
     match engine.find_path(1, 2, 3, None, None, None) {
         Ok(path_result) => {
             println!("   ✓ Find path completed");
-            println!("     Path: {}", path_result);
+            println!("     Path: {path_result}");
         }
         Err(e) => println!(
-            "   ⚠️  Find path: {} (expected - no entities loaded yet)",
-            e
+            "   ⚠️  Find path: {e} (expected - no entities loaded yet)"
         ),
     }
 
@@ -43,11 +42,10 @@ fn main() -> SzResult<()> {
     match engine.find_network(&[1, 2, 3], 2, 1, 10, None) {
         Ok(network_result) => {
             println!("   ✓ Network analysis completed");
-            println!("     Network: {}", network_result);
+            println!("     Network: {network_result}");
         }
         Err(e) => println!(
-            "   ⚠️  Network analysis: {} (expected - no entities loaded yet)",
-            e
+            "   ⚠️  Network analysis: {e} (expected - no entities loaded yet)"
         ),
     }
 
@@ -73,14 +71,14 @@ fn demonstrate_search(engine: &dyn SzEngine) -> SzResult<()> {
     ];
 
     for (scenario_name, search_criteria) in &search_scenarios {
-        println!("   {} with: {}", scenario_name, search_criteria);
+        println!("   {scenario_name} with: {search_criteria}");
 
         match engine.search_by_attributes(search_criteria, None, None) {
             Ok(result) => {
                 println!("     ✓ Search completed successfully");
-                println!("     Results: {}", result);
+                println!("     Results: {result}");
             }
-            Err(e) => println!("     ⚠️  Search failed: {}", e),
+            Err(e) => println!("     ⚠️  Search failed: {e}"),
         }
     }
 

@@ -254,12 +254,12 @@ fn test_concurrent_engine_initialization() -> SzResult<()> {
             // Before the fix, some threads would get "SDK not initialized"
             match env_clone.get_engine() {
                 Ok(_engine) => {
-                    eprintln!("Thread {} successfully got engine", i);
+                    eprintln!("Thread {i} successfully got engine");
                     Ok(())
                 }
                 Err(e) => {
                     let err_msg = e.to_string();
-                    eprintln!("Thread {} failed: {}", i, err_msg);
+                    eprintln!("Thread {i} failed: {err_msg}");
                     Err(err_msg)
                 }
             }
@@ -272,8 +272,8 @@ fn test_concurrent_engine_initialization() -> SzResult<()> {
     for (i, handle) in handles.into_iter().enumerate() {
         match handle.join() {
             Ok(Ok(())) => {}
-            Ok(Err(e)) => failures.push(format!("Thread {} error: {}", i, e)),
-            Err(_) => failures.push(format!("Thread {} panicked", i)),
+            Ok(Err(e)) => failures.push(format!("Thread {i} error: {e}")),
+            Err(_) => failures.push(format!("Thread {i} panicked")),
         }
     }
 
@@ -290,8 +290,7 @@ fn test_concurrent_engine_initialization() -> SzResult<()> {
     }
 
     eprintln!(
-        "All {} threads successfully initialized engine concurrently",
-        NUM_THREADS
+        "All {NUM_THREADS} threads successfully initialized engine concurrently"
     );
     Ok(())
 }
@@ -325,8 +324,7 @@ fn test_destroy_ownership_semantics() -> SzResult<()> {
         let msg = e.to_string();
         assert!(
             msg.contains("other references"),
-            "Error should mention 'other references': {}",
-            msg
+            "Error should mention 'other references': {msg}"
         );
     }
 
@@ -389,7 +387,7 @@ fn test_config_manager_reads_from_database_after_destroy() -> SzResult<()> {
     let config_mgr1 = env1.get_config_manager()?;
     let config_id1 = config_mgr1.get_default_config_id()?;
 
-    eprintln!("  Config ID in shared database: {}", config_id1);
+    eprintln!("  Config ID in shared database: {config_id1}");
     assert_ne!(config_id1, 0, "Config should exist in shared database");
 
     // Clean up first instance - this should clear ConfigMgr's cached state
@@ -416,13 +414,12 @@ fn test_config_manager_reads_from_database_after_destroy() -> SzResult<()> {
     // Since we're using the same shared database, we expect the same config ID
     let config_id2 = config_mgr2.get_default_config_id()?;
 
-    eprintln!("  Config ID in shared database: {}", config_id2);
+    eprintln!("  Config ID in shared database: {config_id2}");
 
     // With shared database, config persists and should be read correctly
     assert_eq!(
         config_id2, config_id1,
-        "ConfigMgr should read existing config from shared database (expected {}, got {})",
-        config_id1, config_id2
+        "ConfigMgr should read existing config from shared database (expected {config_id1}, got {config_id2})"
     );
 
     // Clean up second instance

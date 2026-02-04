@@ -12,12 +12,12 @@ use serial_test::serial;
 #[serial]
 fn test_hex_format_0() {
     let value = 0i64;
-    let hex_string = format!("0x{:X}", value);
+    let hex_string = format!("0x{value:X}");
 
     assert_eq!(hex_string, "0x0");
 
     // Test lowercase variant
-    let hex_lowercase = format!("0x{:x}", value);
+    let hex_lowercase = format!("0x{value:x}");
     assert_eq!(hex_lowercase, "0x0");
 }
 
@@ -25,12 +25,12 @@ fn test_hex_format_0() {
 #[serial]
 fn test_hex_format_1() {
     let value = 1i64;
-    let hex_string = format!("0x{:X}", value);
+    let hex_string = format!("0x{value:X}");
 
     assert_eq!(hex_string, "0x1");
 
     // Test lowercase variant
-    let hex_lowercase = format!("0x{:x}", value);
+    let hex_lowercase = format!("0x{value:x}");
     assert_eq!(hex_lowercase, "0x1");
 }
 
@@ -38,12 +38,12 @@ fn test_hex_format_1() {
 #[serial]
 fn test_hex_format_2() {
     let value = 2i64;
-    let hex_string = format!("0x{:X}", value);
+    let hex_string = format!("0x{value:X}");
 
     assert_eq!(hex_string, "0x2");
 
     // Test lowercase variant
-    let hex_lowercase = format!("0x{:x}", value);
+    let hex_lowercase = format!("0x{value:x}");
     assert_eq!(hex_lowercase, "0x2");
 }
 
@@ -51,12 +51,12 @@ fn test_hex_format_2() {
 #[serial]
 fn test_hex_format_20() {
     let value = 20i64;
-    let hex_string = format!("0x{:X}", value);
+    let hex_string = format!("0x{value:X}");
 
     assert_eq!(hex_string, "0x14");
 
     // Test lowercase variant
-    let hex_lowercase = format!("0x{:x}", value);
+    let hex_lowercase = format!("0x{value:x}");
     assert_eq!(hex_lowercase, "0x14");
 }
 
@@ -64,12 +64,12 @@ fn test_hex_format_20() {
 #[serial]
 fn test_hex_format_40() {
     let value = 40i64;
-    let hex_string = format!("0x{:X}", value);
+    let hex_string = format!("0x{value:X}");
 
     assert_eq!(hex_string, "0x28");
 
     // Test lowercase variant
-    let hex_lowercase = format!("0x{:x}", value);
+    let hex_lowercase = format!("0x{value:x}");
     assert_eq!(hex_lowercase, "0x28");
 }
 
@@ -77,12 +77,12 @@ fn test_hex_format_40() {
 #[serial]
 fn test_hex_format_80() {
     let value = 80i64;
-    let hex_string = format!("0x{:X}", value);
+    let hex_string = format!("0x{value:X}");
 
     assert_eq!(hex_string, "0x50");
 
     // Test lowercase variant
-    let hex_lowercase = format!("0x{:x}", value);
+    let hex_lowercase = format!("0x{value:x}");
     assert_eq!(hex_lowercase, "0x50");
 }
 
@@ -90,12 +90,12 @@ fn test_hex_format_80() {
 #[serial]
 fn test_hex_format_160() {
     let value = 160i64;
-    let hex_string = format!("0x{:X}", value);
+    let hex_string = format!("0x{value:X}");
 
     assert_eq!(hex_string, "0xA0");
 
     // Test lowercase variant
-    let hex_lowercase = format!("0x{:x}", value);
+    let hex_lowercase = format!("0x{value:x}");
     assert_eq!(hex_lowercase, "0xa0");
 }
 
@@ -103,12 +103,12 @@ fn test_hex_format_160() {
 #[serial]
 fn test_hex_format_3200() {
     let value = 3200i64;
-    let hex_string = format!("0x{:X}", value);
+    let hex_string = format!("0x{value:X}");
 
     assert_eq!(hex_string, "0xC80");
 
     // Test lowercase variant
-    let hex_lowercase = format!("0x{:x}", value);
+    let hex_lowercase = format!("0x{value:x}");
     assert_eq!(hex_lowercase, "0xc80");
 }
 
@@ -116,12 +116,12 @@ fn test_hex_format_3200() {
 #[serial]
 fn test_hex_format_64000() {
     let value = 64000i64;
-    let hex_string = format!("0x{:X}", value);
+    let hex_string = format!("0x{value:X}");
 
     assert_eq!(hex_string, "0xFA00");
 
     // Test lowercase variant
-    let hex_lowercase = format!("0x{:x}", value);
+    let hex_lowercase = format!("0x{value:x}");
     assert_eq!(hex_lowercase, "0xfa00");
 }
 
@@ -129,12 +129,12 @@ fn test_hex_format_64000() {
 #[serial]
 fn test_hex_format_128345789() {
     let value = 128345789i64;
-    let hex_string = format!("0x{:X}", value);
+    let hex_string = format!("0x{value:X}");
 
     assert_eq!(hex_string, "0x7A666BD");
 
     // Test lowercase variant
-    let hex_lowercase = format!("0x{:x}", value);
+    let hex_lowercase = format!("0x{value:x}");
     assert_eq!(hex_lowercase, "0x7a666bd");
 }
 
@@ -272,7 +272,7 @@ fn test_hex_format_negative() {
 #[serial]
 fn test_hex_format_max_value() {
     let value = i64::MAX;
-    let hex_string = format!("0x{:X}", value);
+    let hex_string = format!("0x{value:X}");
 
     assert_eq!(hex_string, "0x7FFFFFFFFFFFFFFF");
 }
@@ -293,11 +293,11 @@ fn test_hex_format_with_padding() {
     let value = 255i64;
 
     // Test with zero padding
-    let hex_padded = format!("0x{:08X}", value);
+    let hex_padded = format!("0x{value:08X}");
     assert_eq!(hex_padded, "0x000000FF");
 
     // Test with different padding
-    let hex_padded_16 = format!("0x{:016X}", value);
+    let hex_padded_16 = format!("0x{value:016X}");
     assert_eq!(hex_padded_16, "0x00000000000000FF");
 }
 
@@ -306,12 +306,12 @@ fn test_hex_format_with_padding() {
 #[serial]
 fn test_binary_format() {
     let value = 85i64; // 01010101 in binary
-    let binary_string = format!("0b{:b}", value);
+    let binary_string = format!("0b{value:b}");
 
     assert_eq!(binary_string, "0b1010101");
 
     // Test with padding
-    let binary_padded = format!("0b{:08b}", value);
+    let binary_padded = format!("0b{value:08b}");
     assert_eq!(binary_padded, "0b01010101");
 }
 
@@ -320,7 +320,7 @@ fn test_binary_format() {
 #[serial]
 fn test_octal_format() {
     let value = 64i64; // 100 in octal
-    let octal_string = format!("0o{:o}", value);
+    let octal_string = format!("0o{value:o}");
 
     assert_eq!(octal_string, "0o100");
 }
@@ -330,13 +330,13 @@ fn test_octal_format() {
 #[serial]
 fn test_decimal_format() {
     let value = 12345i64;
-    let decimal_string = format!("{}", value);
+    let decimal_string = format!("{value}");
 
     assert_eq!(decimal_string, "12345");
 
     // Test with sign
     let negative_value = -12345i64;
-    let negative_decimal = format!("{}", negative_value);
+    let negative_decimal = format!("{negative_value}");
     assert_eq!(negative_decimal, "-12345");
 }
 

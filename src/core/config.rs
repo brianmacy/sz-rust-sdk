@@ -70,8 +70,7 @@ impl SzConfigCore {
                 Ok(Self { handle })
             }
             Err(e) => Err(crate::error::SzError::configuration(format!(
-                "Cannot create config with definition without initialized environment: {}",
-                e
+                "Cannot create config with definition without initialized environment: {e}"
             ))),
         }
     }
@@ -89,7 +88,7 @@ impl SzConfig for SzConfigCore {
     }
 
     fn register_data_source(&self, data_source_code: &str) -> SzResult<JsonString> {
-        let json_input = format!(r#"{{"DSRC_CODE": "{}"}}"#, data_source_code);
+        let json_input = format!(r#"{{"DSRC_CODE": "{data_source_code}"}}"#);
         let data_source_c = crate::ffi::helpers::str_to_c_string(&json_input)?;
 
         let result = unsafe {

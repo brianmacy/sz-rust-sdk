@@ -33,14 +33,14 @@ fn demo_search_operations(engine: &dyn SzEngine) -> SzResult<()> {
     let search_attrs = r#"{"NAME_LAST": "Smith", "NAME_FIRST": "John"}"#;
     let results = engine.search_by_attributes(search_attrs, None, None)?;
     println!("   ✅ Search completed");
-    println!("   Results: {}\n", results);
+    println!("   Results: {results}\n");
 
     // Search by organization name
     println!("2. Searching by organization...");
     let search_attrs = r#"{"ENTITY_TYPE": "ORGANIZATION", "ORG_NAME": "Acme Corp"}"#;
     let results = engine.search_by_attributes(search_attrs, None, None)?;
     println!("   ✅ Organization search completed");
-    println!("   Results: {}\n", results);
+    println!("   Results: {results}\n");
 
     Ok(())
 }
@@ -59,22 +59,22 @@ fn demo_entity_operations(engine: &dyn SzEngine) -> SzResult<()> {
     match engine.add_record("TEST", "DEMO001", record_data, None) {
         Ok(result) => {
             println!("   ✅ Record added successfully!");
-            println!("   Result: {}", result);
+            println!("   Result: {result}");
         }
-        Err(e) => println!("   ⚠️  Add record: {}", e),
+        Err(e) => println!("   ⚠️  Add record: {e}"),
     }
 
     // Search for the record we just added
     println!("\n2. Searching for the added record...");
     let search_attrs = r#"{"NAME_LAST": "Johnson", "NAME_FIRST": "Alice"}"#;
     let results = engine.search_by_attributes(search_attrs, None, None)?;
-    println!("   Search results: {}", results);
+    println!("   Search results: {results}");
 
     // Try getting entity by ID
     println!("\n3. Attempting to retrieve entity by ID...");
     match engine.get_entity(1, None) {
-        Ok(entity) => println!("   ✅ Entity 1: {}", entity),
-        Err(e) => println!("   ⚠️  Entity 1 not found: {}", e),
+        Ok(entity) => println!("   ✅ Entity 1: {entity}"),
+        Err(e) => println!("   ⚠️  Entity 1 not found: {e}"),
     }
 
     Ok(())

@@ -63,25 +63,22 @@ fn test_environment_initialization_with_expected_error() {
             println!("✅ Environment initialized successfully (datastore was pre-configured)");
         }
         Err(e) => {
-            let error_msg = format!("{:?}", e);
+            let error_msg = format!("{e:?}");
 
             // Verify we get proper Senzing error codes, not FFI/linking errors
             if error_msg.contains("SENZ7220") || error_msg.contains("No engine configuration") {
                 println!(
-                    "✅ Environment initialization failed with expected Senzing error: {}",
-                    error_msg
+                    "✅ Environment initialization failed with expected Senzing error: {error_msg}"
                 );
                 println!("✅ This confirms FFI integration is working correctly");
             } else if error_msg.contains("SENZ") {
                 println!(
-                    "✅ Environment initialization failed with Senzing error: {}",
-                    error_msg
+                    "✅ Environment initialization failed with Senzing error: {error_msg}"
                 );
                 println!("✅ This confirms FFI integration is working correctly");
             } else {
                 panic!(
-                    "❌ Unexpected error type (suggests FFI issues): {}",
-                    error_msg
+                    "❌ Unexpected error type (suggests FFI issues): {error_msg}"
                 );
             }
         }
@@ -101,7 +98,7 @@ fn test_error_handling_system() {
     assert!(matches!(unknown_error, SzError::Unknown { .. }));
 
     // Test error display
-    let error_string = format!("{}", config_error);
+    let error_string = format!("{config_error}");
     assert!(error_string.contains("Test configuration error"));
 
     println!("✅ Error handling system test passed");

@@ -15,7 +15,7 @@ fn main() -> SzResult<()> {
     println!("Engine primed in {:.2}s", elapsed.as_secs_f64());
 
     let stats = engine.get_stats()?;
-    println!("Stats: {}", stats);
+    println!("Stats: {stats}");
 
     ExampleEnvironment::cleanup(env)?;
     Ok(())

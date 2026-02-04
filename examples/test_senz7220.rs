@@ -14,11 +14,10 @@ fn main() -> SzResult<()> {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    let empty_db_path = format!("/tmp/G2C_empty_test_{}.db", timestamp);
+    let empty_db_path = format!("/tmp/G2C_empty_test_{timestamp}.db");
 
     let settings = format!(
-        r#"{{"PIPELINE":{{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,
-        empty_db_path
+        r#"{{"PIPELINE":{{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{empty_db_path}"}}}}"#
     );
 
     println!("Testing with settings that should trigger SENZ7220...");
@@ -26,9 +25,9 @@ fn main() -> SzResult<()> {
     match SzEnvironmentCore::new("test-senz7220", &settings, false) {
         Ok(_) => println!("Unexpected success"),
         Err(e) => {
-            println!("Error occurred: {:?}", e);
-            let error_string = format!("{}", e);
-            println!("Error string: '{}'", error_string);
+            println!("Error occurred: {e:?}");
+            let error_string = format!("{e}");
+            println!("Error string: '{error_string}'");
             println!("Error string length: {}", error_string.len());
 
             // Check for null bytes in the error message
@@ -36,7 +35,7 @@ fn main() -> SzResult<()> {
                 println!("❌ ERROR: Found literal null byte in error message!");
                 for (i, ch) in error_string.chars().enumerate() {
                     if ch == '\0' {
-                        println!("   Null byte found at position {}", i);
+                        println!("   Null byte found at position {i}");
                     }
                 }
 
@@ -61,7 +60,7 @@ fn main() -> SzResult<()> {
     // Clean up the empty database file if it was created
     if std::path::Path::new(&empty_db_path).exists() {
         let _ = std::fs::remove_file(&empty_db_path);
-        println!("Cleaned up empty test database: {}", empty_db_path);
+        println!("Cleaned up empty test database: {empty_db_path}");
     }
 
     Ok(())

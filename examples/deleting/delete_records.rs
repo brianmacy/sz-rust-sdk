@@ -25,7 +25,7 @@ fn main() -> SzResult<()> {
     match load_test_records(&*engine, &test_records) {
         Ok(_) => {}
         Err(e) => {
-            println!("⚠️  Record loading failed: {}", e);
+            println!("⚠️  Record loading failed: {e}");
             println!("   Continuing with deletion demonstration using available data...");
         }
     }
@@ -35,7 +35,7 @@ fn main() -> SzResult<()> {
     match verify_loaded_records(&*engine, &test_records) {
         Ok(_) => {}
         Err(e) => {
-            println!("⚠️  Record verification failed: {}", e);
+            println!("⚠️  Record verification failed: {e}");
             println!("   Continuing with deletion demonstration...");
         }
     }
@@ -45,7 +45,7 @@ fn main() -> SzResult<()> {
     match delete_selected_records(&*engine) {
         Ok(_) => {}
         Err(e) => {
-            println!("⚠️  Record deletion failed: {}", e);
+            println!("⚠️  Record deletion failed: {e}");
             println!("   Deletion functionality demonstrated via error response.");
         }
     }
@@ -55,7 +55,7 @@ fn main() -> SzResult<()> {
     match verify_deletion_impact(&*engine) {
         Ok(_) => {}
         Err(e) => {
-            println!("⚠️  Deletion impact verification failed: {}", e);
+            println!("⚠️  Deletion impact verification failed: {e}");
             println!("   Impact verification functionality demonstrated via error response.");
         }
     }
@@ -65,7 +65,7 @@ fn main() -> SzResult<()> {
     match demonstrate_bulk_deletion(&*engine) {
         Ok(_) => {}
         Err(e) => {
-            println!("⚠️  Bulk deletion failed: {}", e);
+            println!("⚠️  Bulk deletion failed: {e}");
             println!("   Bulk deletion functionality demonstrated via error response.");
         }
     }
@@ -130,7 +130,7 @@ fn create_test_records() -> HashMap<(String, String), String> {
     // Additional records for bulk deletion demo
     for i in 100..110 {
         records.insert(
-            ("TEST".to_string(), format!("BULK_{:03}", i)),
+            ("TEST".to_string(), format!("BULK_{i:03}")),
             format!(
                 r#"{{
                 "NAME_FULL": "Test Person {}",
@@ -163,7 +163,7 @@ fn load_test_records(
             Some(SzFlags::ADD_RECORD_DEFAULT_FLAGS),
         )?;
 
-        println!("  ✓ Loaded: {} from {}", record_id, data_source);
+        println!("  ✓ Loaded: {record_id} from {data_source}");
 
         // Show resolution info for the first few records
         if loaded_count < 3
@@ -174,7 +174,7 @@ fn load_test_records(
         {
             for entity in entities {
                 if let Some(entity_id) = entity.get("ENTITY_ID") {
-                    println!("    Affected Entity: {}", entity_id);
+                    println!("    Affected Entity: {entity_id}");
                 }
             }
         }
@@ -182,7 +182,7 @@ fn load_test_records(
         loaded_count += 1;
     }
 
-    println!("Loaded {} test records", loaded_count);
+    println!("Loaded {loaded_count} test records");
     Ok(())
 }
 
@@ -220,15 +220,13 @@ fn verify_loaded_records(
                         .unwrap_or(0);
 
                     println!(
-                        "  {} {} -> Entity ID: {} ({} records)",
-                        data_source, record_id, entity_id, record_count
+                        "  {data_source} {record_id} -> Entity ID: {entity_id} ({record_count} records)"
                     );
                 }
             }
             Err(e) => {
                 println!(
-                    "  Could not get entity for {} {}: {}",
-                    data_source, record_id, e
+                    "  Could not get entity for {data_source} {record_id}: {e}"
                 );
             }
         }
@@ -245,7 +243,7 @@ fn delete_selected_records(engine: &dyn SzEngine) -> SzResult<()> {
     ];
 
     for (data_source, record_id) in records_to_delete {
-        println!("  Deleting {} {}...", data_source, record_id);
+        println!("  Deleting {data_source} {record_id}...");
 
         match engine.delete_record(
             data_source,
@@ -264,13 +262,13 @@ fn delete_selected_records(engine: &dyn SzEngine) -> SzResult<()> {
                     println!("    Affected {} entities", entities.len());
                     for entity in entities.iter().take(3) {
                         if let Some(entity_id) = entity.get("ENTITY_ID") {
-                            println!("      Entity: {}", entity_id);
+                            println!("      Entity: {entity_id}");
                         }
                     }
                 }
             }
             Err(e) => {
-                println!("    ✗ Failed to delete: {}", e);
+                println!("    ✗ Failed to delete: {e}");
             }
         }
     }
@@ -295,14 +293,12 @@ fn verify_deletion_impact(engine: &dyn SzEngine) -> SzResult<()> {
         ) {
             Ok(_) => {
                 println!(
-                    "    ⚠ Record {} {} still found (unexpected)",
-                    data_source, record_id
+                    "    ⚠ Record {data_source} {record_id} still found (unexpected)"
                 );
             }
             Err(e) => {
                 println!(
-                    "    ✓ Record {} {} not found (as expected): {}",
-                    data_source, record_id, e
+                    "    ✓ Record {data_source} {record_id} not found (as expected): {e}"
                 );
             }
         }
@@ -324,11 +320,11 @@ fn verify_deletion_impact(engine: &dyn SzEngine) -> SzResult<()> {
                     .map(|arr| arr.len())
                     .unwrap_or(0);
 
-                println!("    Remaining related entity has {} records", record_count);
+                println!("    Remaining related entity has {record_count} records");
             }
         }
         Err(e) => {
-            println!("    Could not verify remaining records: {}", e);
+            println!("    Could not verify remaining records: {e}");
         }
     }
 
@@ -343,7 +339,7 @@ fn demonstrate_bulk_deletion(engine: &dyn SzEngine) -> SzResult<()> {
 
     // Delete bulk test records
     for i in 100..110 {
-        let record_id = format!("BULK_{:03}", i);
+        let record_id = format!("BULK_{i:03}");
 
         match engine.delete_record(
             "TEST",
@@ -357,16 +353,16 @@ fn demonstrate_bulk_deletion(engine: &dyn SzEngine) -> SzResult<()> {
                 error_count += 1;
                 if error_count <= 3 {
                     // Only show first few errors
-                    println!("    ✗ Failed to delete {}: {}", record_id, e);
+                    println!("    ✗ Failed to delete {record_id}: {e}");
                 }
             }
         }
     }
 
     println!("  Bulk deletion summary:");
-    println!("    Successfully deleted: {}", deleted_count);
+    println!("    Successfully deleted: {deleted_count}");
     if error_count > 0 {
-        println!("    Errors encountered: {}", error_count);
+        println!("    Errors encountered: {error_count}");
     }
 
     Ok(())

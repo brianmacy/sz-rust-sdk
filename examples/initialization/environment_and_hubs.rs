@@ -22,25 +22,25 @@ fn main() -> SzResult<()> {
         Ok(product) => {
             println!("✅ Product component available");
             if let Ok(version) = product.get_version() {
-                println!("   Version: {}", version);
+                println!("   Version: {version}");
             }
         }
-        Err(e) => println!("⚠️  Product component: {}", e),
+        Err(e) => println!("⚠️  Product component: {e}"),
     }
 
     match env.get_config_manager() {
         Ok(_) => println!("✅ Config Manager component available"),
-        Err(e) => println!("⚠️  Config Manager component: {}", e),
+        Err(e) => println!("⚠️  Config Manager component: {e}"),
     }
 
     match env.get_diagnostic() {
         Ok(_) => println!("✅ Diagnostic component available"),
-        Err(e) => println!("⚠️  Diagnostic component: {}", e),
+        Err(e) => println!("⚠️  Diagnostic component: {e}"),
     }
 
     match ExampleEnvironment::get_engine_with_setup(&env) {
         Ok(_) => println!("✅ Engine component available"),
-        Err(e) => println!("⚠️  Engine component: {}", e),
+        Err(e) => println!("⚠️  Engine component: {e}"),
     }
 
     // Clean up the test database

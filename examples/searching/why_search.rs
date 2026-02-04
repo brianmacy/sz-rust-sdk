@@ -25,7 +25,7 @@ fn main() -> SzResult<()> {
     }"#;
 
     println!("1. Performing initial search:");
-    println!("   Criteria: {}", search_criteria);
+    println!("   Criteria: {search_criteria}");
 
     let search_result = engine.search_by_attributes(
         search_criteria,
@@ -72,7 +72,7 @@ fn main() -> SzResult<()> {
         println!("\n2. Analyzing why each entity was returned:\n");
 
         for entity_id in entity_ids {
-            println!("--- Why Analysis for Entity ID: {} ---", entity_id);
+            println!("--- Why Analysis for Entity ID: {entity_id} ---");
 
             match engine.why_search(
                 search_criteria,
@@ -87,13 +87,13 @@ fn main() -> SzResult<()> {
                             print_why_analysis(&why_json)?;
                         }
                         Err(e) => {
-                            println!("Could not parse why analysis: {}", e);
-                            println!("Raw result: {}", why_result);
+                            println!("Could not parse why analysis: {e}");
+                            println!("Raw result: {why_result}");
                         }
                     }
                 }
                 Err(e) => {
-                    println!("Why search analysis failed: {}", e);
+                    println!("Why search analysis failed: {e}");
                 }
             }
 
@@ -114,14 +114,12 @@ fn main() -> SzResult<()> {
         ) {
             Ok(why_result) => {
                 println!(
-                    "Why analysis for entity {}: {}",
-                    example_entity_id, why_result
+                    "Why analysis for entity {example_entity_id}: {why_result}"
                 );
             }
             Err(e) => {
                 println!(
-                    "Why search failed (expected if entity doesn't exist): {}",
-                    e
+                    "Why search failed (expected if entity doesn't exist): {e}"
                 );
             }
         }
@@ -140,22 +138,22 @@ fn print_why_analysis(why_json: &Value) -> SzResult<()> {
     {
         for result in results_array {
             if let Some(entity_id) = result.get("ENTITY_ID") {
-                println!("Entity ID: {}", entity_id);
+                println!("Entity ID: {entity_id}");
             }
 
             if let Some(match_info) = result.get("MATCH_INFO") {
                 println!("Match Information:");
 
                 if let Some(why_key) = match_info.get("WHY_KEY") {
-                    println!("  Why Key: {}", why_key);
+                    println!("  Why Key: {why_key}");
                 }
 
                 if let Some(why_errule_code) = match_info.get("WHY_ERRULE_CODE") {
-                    println!("  Rule Code: {}", why_errule_code);
+                    println!("  Rule Code: {why_errule_code}");
                 }
 
                 if let Some(match_level_code) = match_info.get("MATCH_LEVEL_CODE") {
-                    println!("  Match Level: {}", match_level_code);
+                    println!("  Match Level: {match_level_code}");
                 }
 
                 // Print feature matches
@@ -165,7 +163,7 @@ fn print_why_analysis(why_json: &Value) -> SzResult<()> {
                     println!("  Feature Matches:");
                     for (feature_type, score_info) in scores_obj {
                         if let Some(score) = score_info.as_i64() {
-                            println!("    {}: {}", feature_type, score);
+                            println!("    {feature_type}: {score}");
                         }
                     }
                 }
@@ -180,7 +178,7 @@ fn print_why_analysis(why_json: &Value) -> SzResult<()> {
     {
         println!("Candidate Keys Used:");
         for (key_type, key_info) in keys_obj {
-            println!("  {}: {:?}", key_type, key_info);
+            println!("  {key_type}: {key_info:?}");
         }
     }
 

@@ -178,7 +178,7 @@ impl Drop for SenzingGuard {
                     if !e.to_string().contains("already destroyed")
                         && !e.to_string().contains("other references")
                     {
-                        eprintln!("SenzingGuard: cleanup warning: {}", e);
+                        eprintln!("SenzingGuard: cleanup warning: {e}");
                     }
                 }
             }

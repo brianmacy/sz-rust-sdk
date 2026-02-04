@@ -33,8 +33,7 @@ impl SzConfigManager for SzConfigManagerCore {
                 Ok(Box::new(config_core))
             }
             Err(e) => Err(crate::error::SzError::configuration(format!(
-                "Cannot create config without initialized environment: {}",
-                e
+                "Cannot create config without initialized environment: {e}"
             ))),
         }
     }

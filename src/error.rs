@@ -478,12 +478,12 @@ impl SzError {
             unsafe {
                 match CStr::from_ptr(buffer.as_ptr()).to_str() {
                     Ok(message) if !message.is_empty() => message.to_string(),
-                    _ => format!("Native error (code: {})", error_code),
+                    _ => format!("Native error (code: {error_code})"),
                 }
             }
         } else {
             // Failed to get exception message, use generic message
-            format!("Native error (code: {})", error_code)
+            format!("Native error (code: {error_code})")
         }
     }
 
@@ -526,8 +526,7 @@ mod test_error_mapping {
                 assert!(message.contains("7220") || !message.is_empty());
             }
             _ => panic!(
-                "Error code 7220 should map to Configuration, got: {:?}",
-                error
+                "Error code 7220 should map to Configuration, got: {error:?}"
             ),
         }
     }
@@ -541,8 +540,7 @@ mod test_error_mapping {
                     // Expected
                 }
                 _ => panic!(
-                    "Error code {} should map to NotInitialized, got: {:?}",
-                    code, error
+                    "Error code {code} should map to NotInitialized, got: {error:?}"
                 ),
             }
         }
@@ -555,7 +553,7 @@ mod test_error_mapping {
             SzError::License { .. } => {
                 // Expected
             }
-            _ => panic!("Error code 999 should map to License, got: {:?}", error),
+            _ => panic!("Error code 999 should map to License, got: {error:?}"),
         }
     }
 
@@ -566,7 +564,7 @@ mod test_error_mapping {
             SzError::Database { .. } => {
                 // Expected
             }
-            _ => panic!("Error code 1010 should map to Database, got: {:?}", error),
+            _ => panic!("Error code 1010 should map to Database, got: {error:?}"),
         }
     }
 
@@ -577,7 +575,7 @@ mod test_error_mapping {
             SzError::Unknown { .. } => {
                 // Expected
             }
-            _ => panic!("Error code 99999 should map to Unknown, got: {:?}", error),
+            _ => panic!("Error code 99999 should map to Unknown, got: {error:?}"),
         }
     }
 
@@ -590,8 +588,7 @@ mod test_error_mapping {
                 assert!(!message.is_empty());
             }
             _ => panic!(
-                "Error code 7220 should map to Configuration, got: {:?}",
-                error
+                "Error code 7220 should map to Configuration, got: {error:?}"
             ),
         }
     }

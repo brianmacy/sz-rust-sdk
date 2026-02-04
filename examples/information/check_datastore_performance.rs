@@ -154,11 +154,11 @@ fn run_extended_performance_test(diagnostic: &dyn SzDiagnostic) -> SzResult<()> 
 fn parse_and_display_performance_results(result_json: &str, test_name: &str) -> SzResult<()> {
     match serde_json::from_str::<Value>(result_json) {
         Ok(perf_data) => {
-            println!("{} Results:", test_name);
+            println!("{test_name} Results:");
 
             // Display test duration
             if let Some(duration) = perf_data.get("durationSeconds") {
-                println!("  Duration: {} seconds", duration);
+                println!("  Duration: {duration} seconds");
             }
 
             // Display operations per second metric
@@ -171,7 +171,7 @@ fn parse_and_display_performance_results(result_json: &str, test_name: &str) -> 
 
             // Total operations
             if let Some(total_ops) = perf_data.get("totalOperations") {
-                println!("  Total Operations: {}", total_ops);
+                println!("  Total Operations: {total_ops}");
             }
 
             // Average response time
@@ -203,9 +203,9 @@ fn parse_and_display_performance_results(result_json: &str, test_name: &str) -> 
                 if let Some(db_obj) = db_metrics.as_object() {
                     for (metric, value) in db_obj {
                         match value {
-                            Value::Number(n) => println!("    {}: {}", metric, n),
-                            Value::String(s) => println!("    {}: {}", metric, s),
-                            _ => println!("    {}: {:?}", metric, value),
+                            Value::Number(n) => println!("    {metric}: {n}"),
+                            Value::String(s) => println!("    {metric}: {s}"),
+                            _ => println!("    {metric}: {value:?}"),
                         }
                     }
                 }
@@ -229,9 +229,9 @@ fn parse_and_display_performance_results(result_json: &str, test_name: &str) -> 
             assess_performance(&perf_data)?;
         }
         Err(e) => {
-            println!("Could not parse performance results: {}", e);
+            println!("Could not parse performance results: {e}");
             println!("Raw performance data:");
-            println!("{}", result_json);
+            println!("{result_json}");
         }
     }
 
@@ -247,16 +247,15 @@ fn assess_performance(perf_data: &Value) -> SzResult<()> {
 
         match ops_rate {
             rate if rate >= 1000.0 => {
-                println!("    ✓ Excellent performance ({:.0} ops/sec)", rate)
+                println!("    ✓ Excellent performance ({rate:.0} ops/sec)")
             }
-            rate if rate >= 500.0 => println!("    ✓ Good performance ({:.0} ops/sec)", rate),
-            rate if rate >= 100.0 => println!("    ⚠ Fair performance ({:.0} ops/sec)", rate),
+            rate if rate >= 500.0 => println!("    ✓ Good performance ({rate:.0} ops/sec)"),
+            rate if rate >= 100.0 => println!("    ⚠ Fair performance ({rate:.0} ops/sec)"),
             rate if rate >= 50.0 => {
-                println!("    ⚠ Below average performance ({:.0} ops/sec)", rate)
+                println!("    ⚠ Below average performance ({rate:.0} ops/sec)")
             }
             rate => println!(
-                "    ✗ Poor performance ({:.0} ops/sec) - consider optimization",
-                rate
+                "    ✗ Poor performance ({rate:.0} ops/sec) - consider optimization"
             ),
         }
     }
@@ -266,11 +265,11 @@ fn assess_performance(perf_data: &Value) -> SzResult<()> {
         && let Some(response_time) = avg_response.as_f64()
     {
         match response_time {
-            time if time <= 10.0 => println!("    ✓ Excellent response time ({:.2} ms)", time),
-            time if time <= 50.0 => println!("    ✓ Good response time ({:.2} ms)", time),
-            time if time <= 100.0 => println!("    ⚠ Fair response time ({:.2} ms)", time),
-            time if time <= 500.0 => println!("    ⚠ Slow response time ({:.2} ms)", time),
-            time => println!("    ✗ Very slow response time ({:.2} ms)", time),
+            time if time <= 10.0 => println!("    ✓ Excellent response time ({time:.2} ms)"),
+            time if time <= 50.0 => println!("    ✓ Good response time ({time:.2} ms)"),
+            time if time <= 100.0 => println!("    ⚠ Fair response time ({time:.2} ms)"),
+            time if time <= 500.0 => println!("    ⚠ Slow response time ({time:.2} ms)"),
+            time => println!("    ✗ Very slow response time ({time:.2} ms)"),
         }
     }
 
@@ -286,15 +285,15 @@ fn display_repository_statistics(diagnostic: &dyn SzDiagnostic) -> SzResult<()> 
         Ok(repo_json) => {
             // Display key repository statistics
             if let Some(entity_count) = repo_json.get("entityCount") {
-                println!("Total Entities: {}", entity_count);
+                println!("Total Entities: {entity_count}");
             }
 
             if let Some(record_count) = repo_json.get("recordCount") {
-                println!("Total Records: {}", record_count);
+                println!("Total Records: {record_count}");
             }
 
             if let Some(relationship_count) = repo_json.get("relationshipCount") {
-                println!("Total Relationships: {}", relationship_count);
+                println!("Total Relationships: {relationship_count}");
             }
 
             // Database size information
@@ -316,14 +315,14 @@ fn display_repository_statistics(diagnostic: &dyn SzDiagnostic) -> SzResult<()> 
                             .get("recordCount")
                             .and_then(|rc| rc.as_i64())
                             .unwrap_or(0);
-                        println!("  {}: {} records", ds_code, record_count);
+                        println!("  {ds_code}: {record_count} records");
                     }
                 }
             }
         }
         Err(e) => {
-            println!("Could not parse repository information: {}", e);
-            println!("Raw repository info: {}", repo_info);
+            println!("Could not parse repository information: {e}");
+            println!("Raw repository info: {repo_info}");
         }
     }
 

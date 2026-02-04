@@ -68,7 +68,7 @@ fn print_resolution_info(record_id: &str, data_source: &str, info_json: &str) ->
     // Parse the JSON response to extract meaningful information
     let info: Value = serde_json::from_str(info_json)?;
 
-    println!("Resolution details for {} from {}:", record_id, data_source);
+    println!("Resolution details for {record_id} from {data_source}:");
 
     // Check for affected entities
     if let Some(affected_entities) = info.get("AFFECTED_ENTITIES")
@@ -91,7 +91,7 @@ fn print_resolution_info(record_id: &str, data_source: &str, info_json: &str) ->
         println!("  Interesting entities found: {}", entities.len());
         for entity in entities {
             if let Some(entity_id) = entity.get("ENTITY_ID") {
-                println!("    Potential match: {}", entity_id);
+                println!("    Potential match: {entity_id}");
             }
         }
     }
@@ -119,27 +119,26 @@ fn main() -> SzResult<()> {
         let result =
             engine.add_record(data_source_code, record_id, record_definition, Some(flags))?;
 
-        println!("✓ Loaded record {} from {}", record_id, data_source_code);
+        println!("✓ Loaded record {record_id} from {data_source_code}");
 
         // Print detailed resolution information if available
         if !result.is_empty()
             && let Err(e) = print_resolution_info(record_id, data_source_code, &result)
         {
-            println!("  Warning: Could not parse resolution info: {}", e);
+            println!("  Warning: Could not parse resolution info: {e}");
         }
 
         loaded_count += 1;
     }
 
     println!(
-        "Successfully loaded {} records with detailed tracking",
-        loaded_count
+        "Successfully loaded {loaded_count} records with detailed tracking"
     );
 
     // Get final engine statistics
     let stats = engine.get_stats()?;
     println!("\nFinal engine statistics:");
-    println!("{}", stats);
+    println!("{stats}");
 
     // Clean up the test database
     ExampleEnvironment::cleanup(env)?;

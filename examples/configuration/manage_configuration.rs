@@ -49,7 +49,7 @@ fn display_current_config_status(config_mgr: &dyn SzConfigManager) -> SzResult<(
 
     // Get the current default configuration ID
     let default_config_id = config_mgr.get_default_config_id()?;
-    println!("Default Configuration ID: {}", default_config_id);
+    println!("Default Configuration ID: {default_config_id}");
 
     // Get the data source registry from config manager instead of individual config
     let data_source_registry = config_mgr.get_config_registry()?;
@@ -64,13 +64,13 @@ fn display_current_config_status(config_mgr: &dyn SzConfigManager) -> SzResult<(
                 for ds in ds_array {
                     if let Some(ds_code) = ds.get("DSRC_CODE") {
                         let ds_id = ds.get("DSRC_ID").and_then(|id| id.as_i64()).unwrap_or(0);
-                        println!("  - {} (ID: {})", ds_code, ds_id);
+                        println!("  - {ds_code} (ID: {ds_id})");
                     }
                 }
             }
         }
         Err(e) => {
-            println!("Could not parse data source registry: {}", e);
+            println!("Could not parse data source registry: {e}");
         }
     }
 
@@ -91,10 +91,10 @@ fn create_new_configuration(config_mgr: &dyn SzConfigManager) -> SzResult<()> {
     for ds_code in &test_data_sources {
         match config.register_data_source(ds_code) {
             Ok(result) => {
-                println!("  ✓ Added data source: {} - {}", ds_code, result);
+                println!("  ✓ Added data source: {ds_code} - {result}");
             }
             Err(e) => {
-                println!("  ✗ Failed to add data source {}: {}", ds_code, e);
+                println!("  ✗ Failed to add data source {ds_code}: {e}");
             }
         }
     }
@@ -108,7 +108,7 @@ fn create_new_configuration(config_mgr: &dyn SzConfigManager) -> SzResult<()> {
         Some("Test configuration created by Rust SDK demo"),
     )?;
 
-    println!("✓ Registered new configuration with ID: {}", new_config_id);
+    println!("✓ Registered new configuration with ID: {new_config_id}");
     println!();
 
     Ok(())
@@ -121,14 +121,14 @@ fn modify_existing_configuration(config_mgr: &dyn SzConfigManager) -> SzResult<(
     let default_config_id = config_mgr.get_default_config_id()?;
     let config = config_mgr.create_config_from_id(default_config_id)?;
 
-    println!("Working with configuration ID: {}", default_config_id);
+    println!("Working with configuration ID: {default_config_id}");
 
     // Add a new data source
     let new_data_source = "MODIFIED_CONFIG_DS";
 
     match config.register_data_source(new_data_source) {
         Ok(result) => {
-            println!("  ✓ Added data source: {} - {}", new_data_source, result);
+            println!("  ✓ Added data source: {new_data_source} - {result}");
 
             // Export and register the modified configuration
             let modified_config_json = config.export()?;
@@ -138,12 +138,11 @@ fn modify_existing_configuration(config_mgr: &dyn SzConfigManager) -> SzResult<(
             )?;
 
             println!(
-                "✓ Registered modified configuration with ID: {}",
-                modified_config_id
+                "✓ Registered modified configuration with ID: {modified_config_id}"
             );
         }
         Err(e) => {
-            println!("  ✗ Failed to modify configuration: {}", e);
+            println!("  ✗ Failed to modify configuration: {e}");
         }
     }
 
@@ -181,20 +180,19 @@ fn display_configuration_registry(config_mgr: &dyn SzConfigManager) -> SzResult<
                                 .unwrap_or("Unknown");
 
                             println!(
-                                "  Config ID: {} | Created: {} | Comment: {}",
-                                config_id, created, comment
+                                "  Config ID: {config_id} | Created: {created} | Comment: {comment}"
                             );
                         }
                     }
                 }
                 Err(e) => {
-                    println!("Could not parse configuration registry: {}", e);
-                    println!("Raw registry data: {}", registry_json);
+                    println!("Could not parse configuration registry: {e}");
+                    println!("Raw registry data: {registry_json}");
                 }
             }
         }
         Err(e) => {
-            println!("Could not retrieve configuration registry: {}", e);
+            println!("Could not retrieve configuration registry: {e}");
         }
     }
 
@@ -210,7 +208,7 @@ fn configuration_export_import_demo(config_mgr: &dyn SzConfigManager) -> SzResul
     let config = config_mgr.create_config_from_id(default_config_id)?;
     let exported_config = config.export()?;
 
-    println!("Exported configuration from ID: {}", default_config_id);
+    println!("Exported configuration from ID: {default_config_id}");
     println!("Configuration size: {} characters", exported_config.len());
 
     // Create a new configuration from the exported JSON
@@ -220,7 +218,7 @@ fn configuration_export_import_demo(config_mgr: &dyn SzConfigManager) -> SzResul
     // Modify the imported configuration
     match imported_config.register_data_source("IMPORTED_CONFIG_TEST") {
         Ok(result) => {
-            println!("  ✓ Added test data source to imported config: {}", result);
+            println!("  ✓ Added test data source to imported config: {result}");
 
             // Re-export and register
             let re_exported = imported_config.export()?;
@@ -229,10 +227,10 @@ fn configuration_export_import_demo(config_mgr: &dyn SzConfigManager) -> SzResul
                 Some("Configuration created from export/import demo"),
             )?;
 
-            println!("✓ Re-registered modified configuration with ID: {}", new_id);
+            println!("✓ Re-registered modified configuration with ID: {new_id}");
         }
         Err(e) => {
-            println!("  ✗ Failed to modify imported configuration: {}", e);
+            println!("  ✗ Failed to modify imported configuration: {e}");
         }
     }
 

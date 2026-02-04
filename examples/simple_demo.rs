@@ -38,9 +38,9 @@ fn demonstrate_components(env: &std::sync::Arc<SzEnvironmentCore>) -> SzResult<(
     match engine.search_by_attributes(search_attrs, None, None) {
         Ok(results) => {
             println!("✅ Search completed successfully");
-            println!("   Results: {}", results);
+            println!("   Results: {results}");
         }
-        Err(e) => println!("⚠️  Search operation: {}", e),
+        Err(e) => println!("⚠️  Search operation: {e}"),
     }
 
     // Test find path operation
@@ -48,9 +48,9 @@ fn demonstrate_components(env: &std::sync::Arc<SzEnvironmentCore>) -> SzResult<(
     match engine.find_path(1, 2, 3, None, None, None) {
         Ok(path_result) => {
             println!("✅ Find path completed");
-            println!("   Path: {}", path_result);
+            println!("   Path: {path_result}");
         }
-        Err(e) => println!("⚠️  Find path: {} (expected - no entities loaded yet)", e),
+        Err(e) => println!("⚠️  Find path: {e} (expected - no entities loaded yet)"),
     }
 
     Ok(())

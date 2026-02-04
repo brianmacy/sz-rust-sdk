@@ -9,16 +9,16 @@ fn main() -> SzResult<()> {
     match env.get_product() {
         Ok(product) => {
             match product.get_version() {
-                Ok(version) => println!("Version: {}", version),
-                Err(e) => println!("Version unavailable: {}", e),
+                Ok(version) => println!("Version: {version}"),
+                Err(e) => println!("Version unavailable: {e}"),
             }
 
             match product.get_license() {
-                Ok(license) => println!("License: {}", license),
-                Err(e) => println!("License unavailable: {}", e),
+                Ok(license) => println!("License: {license}"),
+                Err(e) => println!("License unavailable: {e}"),
             }
         }
-        Err(e) => println!("Product component unavailable: {}", e),
+        Err(e) => println!("Product component unavailable: {e}"),
     }
 
     ExampleEnvironment::cleanup(env)?;

@@ -172,7 +172,7 @@ fn test_engine_priming() -> SzResult<()> {
         }
         Err(e) => {
             // Some configurations might not support priming - that's okay
-            eprintln!("Engine priming not supported (acceptable): {:?}", e);
+            eprintln!("Engine priming not supported (acceptable): {e:?}");
         }
     }
 

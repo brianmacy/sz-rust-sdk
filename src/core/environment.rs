@@ -443,8 +443,7 @@ impl SzEnvironmentCore {
             && let Some(err_msg) = guard.as_ref()
         {
             return Err(SzError::unrecoverable(format!(
-                "Sz_init failed: {}",
-                err_msg
+                "Sz_init failed: {err_msg}"
             )));
         }
 
@@ -494,8 +493,7 @@ impl SzEnvironmentCore {
             && let Some(err_msg) = guard.as_ref()
         {
             return Err(SzError::unrecoverable(format!(
-                "SzConfigMgr_init failed: {}",
-                err_msg
+                "SzConfigMgr_init failed: {err_msg}"
             )));
         }
 
@@ -545,8 +543,7 @@ impl SzEnvironmentCore {
             && let Some(err_msg) = guard.as_ref()
         {
             return Err(SzError::unrecoverable(format!(
-                "SzProduct_init failed: {}",
-                err_msg
+                "SzProduct_init failed: {err_msg}"
             )));
         }
 

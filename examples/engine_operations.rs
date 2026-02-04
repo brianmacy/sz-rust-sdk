@@ -23,7 +23,7 @@ fn main() -> SzResult<()> {
     let search_attrs = r#"{"NAME_LAST": "Johnson", "NAME_FIRST": "John"}"#;
     let search_results = engine.search_by_attributes(search_attrs, None, None)?;
     println!("   Search completed successfully");
-    println!("   Results: {}\n", search_results);
+    println!("   Results: {search_results}\n");
 
     // 2. Add a record
     println!("2. Adding a record...");
@@ -36,25 +36,24 @@ fn main() -> SzResult<()> {
     match engine.add_record("TEST", "REC001", record_data, None) {
         Ok(result) => {
             println!("   ✅ Record added successfully");
-            println!("   Add result: {}", result);
+            println!("   Add result: {result}");
         }
-        Err(e) => println!("   ⚠️  Add record failed: {}", e),
+        Err(e) => println!("   ⚠️  Add record failed: {e}"),
     }
 
     // 3. Search again to see if record was added
     println!("\n3. Searching for the added record...");
     let search_attrs2 = r#"{"NAME_LAST": "Smith", "NAME_FIRST": "Jane"}"#;
     let search_results2 = engine.search_by_attributes(search_attrs2, None, None)?;
-    println!("   Search results: {}", search_results2);
+    println!("   Search results: {search_results2}");
 
     // 4. Find network relationships
     println!("\n4. Testing network analysis...");
     println!("   Note: Testing with non-existent entity IDs for demonstration");
     match engine.find_network(&[999999, 999998], 2, 1, 10, None) {
-        Ok(network) => println!("   Network found: {}", network),
+        Ok(network) => println!("   Network found: {network}"),
         Err(e) => println!(
-            "   Network analysis error (expected for non-existent IDs): {}",
-            e
+            "   Network analysis error (expected for non-existent IDs): {e}"
         ),
     }
 

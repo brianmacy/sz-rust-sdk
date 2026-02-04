@@ -92,22 +92,22 @@ fn main() -> SzResult<()> {
             Some(SzFlags::ADD_RECORD_DEFAULT_FLAGS),
         )?;
 
-        println!("Record {} from {} added", record_id, data_source_code);
+        println!("Record {record_id} from {data_source_code} added");
 
         // Optionally print the resolution result
         if !result.is_empty() {
-            println!("  Resolution info: {}", result);
+            println!("  Resolution info: {result}");
         }
 
         loaded_count += 1;
     }
 
-    println!("\nSuccessfully loaded {} records", loaded_count);
+    println!("\nSuccessfully loaded {loaded_count} records");
 
     // Get updated engine statistics
     let stats = engine.get_stats()?;
     println!("\nEngine statistics after loading:");
-    println!("{}", stats);
+    println!("{stats}");
 
     // Clean up the test database
     ExampleEnvironment::cleanup(env)?;

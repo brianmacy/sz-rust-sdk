@@ -14,18 +14,18 @@ fn main() -> SzResult<()> {
     println!("=== Before Registration ===");
     let before_export = config.export()?;
     let before_count = before_export.matches("DSRC_CODE").count();
-    println!("DSRC_CODE entries before: {}", before_count);
+    println!("DSRC_CODE entries before: {before_count}");
 
     // Register a data source
     println!("\n=== Registering Data Source ===");
     let result = config.register_data_source("QUICK_TEST")?;
-    println!("Registration result: {}", result);
+    println!("Registration result: {result}");
 
     // Check after registration
     println!("\n=== After Registration ===");
     let after_export = config.export()?;
     let after_count = after_export.matches("DSRC_CODE").count();
-    println!("DSRC_CODE entries after: {}", after_count);
+    println!("DSRC_CODE entries after: {after_count}");
     println!(
         "Size change: {} chars",
         after_export.len() as i64 - before_export.len() as i64
@@ -41,13 +41,13 @@ fn main() -> SzResult<()> {
     // Try to register and persist
     println!("\n=== Persisting Configuration ===");
     let new_config_id = config_mgr.register_config(&after_export, Some("Added QUICK_TEST"))?;
-    println!("New config ID: {}", new_config_id);
+    println!("New config ID: {new_config_id}");
 
     // Immediately retrieve and check
     let retrieved_config = config_mgr.create_config_from_id(new_config_id)?;
     let retrieved_export = retrieved_config.export()?;
     let retrieved_count = retrieved_export.matches("DSRC_CODE").count();
-    println!("Retrieved DSRC_CODE entries: {}", retrieved_count);
+    println!("Retrieved DSRC_CODE entries: {retrieved_count}");
 
     if retrieved_export.contains("QUICK_TEST") {
         println!("✅ QUICK_TEST persisted successfully");

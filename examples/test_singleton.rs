@@ -47,9 +47,9 @@ fn main() -> SzResult<()> {
     match engine1.search_by_attributes(r#"{"NAME_LAST": "Test"}"#, None, None) {
         Ok(results) => {
             println!("✅ Search successful with first engine");
-            println!("   Results: {}", results);
+            println!("   Results: {results}");
         }
-        Err(e) => println!("⚠️  Search failed: {}", e),
+        Err(e) => println!("⚠️  Search failed: {e}"),
     }
 
     // Test search operation with second engine
@@ -57,9 +57,9 @@ fn main() -> SzResult<()> {
     match engine2.search_by_attributes(r#"{"NAME_FIRST": "Demo"}"#, None, None) {
         Ok(results) => {
             println!("✅ Search successful with second engine");
-            println!("   Results: {}", results);
+            println!("   Results: {results}");
         }
-        Err(e) => println!("⚠️  Search failed: {}", e),
+        Err(e) => println!("⚠️  Search failed: {e}"),
     }
 
     // Test 6: Check if we can get existing instance

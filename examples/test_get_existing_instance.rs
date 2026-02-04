@@ -17,7 +17,7 @@ fn main() -> SzResult<()> {
             ));
         }
         Err(e) => {
-            println!("✅ get_existing_instance() correctly failed: {}", e);
+            println!("✅ get_existing_instance() correctly failed: {e}");
         }
     }
 
@@ -89,8 +89,7 @@ fn main() -> SzResult<()> {
         }
         Err(e) => {
             println!(
-                "❌ ERROR: get_instance() with different module name should have succeeded: {}",
-                e
+                "❌ ERROR: get_instance() with different module name should have succeeded: {e}"
             );
             return Err(e);
         }
@@ -106,8 +105,7 @@ fn main() -> SzResult<()> {
         }
         Err(e) => {
             println!(
-                "✅ get_instance() with different ini_params correctly failed: {}",
-                e
+                "✅ get_instance() with different ini_params correctly failed: {e}"
             );
         }
     }
@@ -121,8 +119,7 @@ fn main() -> SzResult<()> {
         }
         Err(e) => {
             println!(
-                "✅ get_instance() with different verbose_logging correctly failed: {}",
-                e
+                "✅ get_instance() with different verbose_logging correctly failed: {e}"
             );
         }
     }

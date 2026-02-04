@@ -33,7 +33,7 @@ fn main() -> SzResult<()> {
     // Export and register the configuration
     let config_json = config.export()?;
     let config_id = config_mgr.set_default_config(&config_json, Some("Added CUSTOMERS"))?;
-    println!("Configuration registered with ID: {}", config_id);
+    println!("Configuration registered with ID: {config_id}");
 
     // Step 3: Destroy and recreate environment to pick up new config
     env.destroy()?;
@@ -45,12 +45,12 @@ fn main() -> SzResult<()> {
     // Step 5: Add a record
     let record = r#"{"NAME_FULL": "John Smith", "EMAIL_ADDRESS": "john@example.com"}"#;
     let result = engine.add_record("CUSTOMERS", "CUST001", record, None)?;
-    println!("Record added: {}", result);
+    println!("Record added: {result}");
 
     // Step 6: Search for the entity
     let search_attrs = r#"{"NAME_FULL": "Jon Smith"}"#;
     let results = engine.search_by_attributes(search_attrs, None, None)?;
-    println!("Search results: {}", results);
+    println!("Search results: {results}");
 
     // Cleanup - destroy environment before removing database
     env.destroy()?;

@@ -51,7 +51,7 @@ fn get_search_criteria() -> Vec<String> {
 fn print_search_results(criteria: &str, result_json: &str) -> SzResult<()> {
     let result: Value = serde_json::from_str(result_json)?;
 
-    println!("Search criteria: {}", criteria);
+    println!("Search criteria: {criteria}");
 
     if let Some(resolved_entities) = result.get("RESOLVED_ENTITIES")
         && let Some(entities_array) = resolved_entities.as_array()
@@ -86,7 +86,7 @@ fn print_search_results(criteria: &str, result_json: &str) -> SzResult<()> {
                     if let Some(match_info) = entity_obj.get("MATCH_INFO")
                         && let Some(match_score) = match_info.get("MATCH_SCORE")
                     {
-                        println!("       Match Score: {}", match_score);
+                        println!("       Match Score: {match_score}");
                     }
 
                     // Print some record details
@@ -106,7 +106,7 @@ fn print_search_results(criteria: &str, result_json: &str) -> SzResult<()> {
                                 .get("RECORD_ID")
                                 .and_then(|id| id.as_str())
                                 .unwrap_or("Unknown");
-                            println!("         - {}: {}", data_source, record_id);
+                            println!("         - {data_source}: {record_id}");
                         }
                     }
                 }
@@ -141,14 +141,14 @@ fn main() -> SzResult<()> {
 
         // Print the search results
         if let Err(e) = print_search_results(criteria, &result) {
-            println!("Warning: Could not parse search results: {}", e);
-            println!("Raw result: {}", result);
+            println!("Warning: Could not parse search results: {e}");
+            println!("Raw result: {result}");
         }
 
         searches_performed += 1;
     }
 
-    println!("Completed {} searches", searches_performed);
+    println!("Completed {searches_performed} searches");
 
     // Demonstrate search with specific search profile (if supported)
     println!("\n--- Advanced Search Example ---");

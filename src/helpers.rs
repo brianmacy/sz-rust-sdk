@@ -65,13 +65,13 @@ thread_local! {
 /// print_error_with_backtrace(&error);
 /// ```
 pub fn print_error_with_backtrace(error: &crate::error::SzError) {
-    eprintln!("Error: {}", error);
+    eprintln!("Error: {error}");
 
     // Print the error chain
     let mut source = std::error::Error::source(error);
     let mut level = 1;
     while let Some(err) = source {
-        eprintln!("  {}: {}", level, err);
+        eprintln!("  {level}: {err}");
         source = std::error::Error::source(err);
         level += 1;
     }
@@ -81,7 +81,7 @@ pub fn print_error_with_backtrace(error: &crate::error::SzError) {
         // Capture backtrace from the current error location
         let backtrace = std::backtrace::Backtrace::capture();
         eprintln!("\nBacktrace from FFI error detection:");
-        eprintln!("{}", backtrace);
+        eprintln!("{backtrace}");
     }
 }
 
@@ -149,8 +149,8 @@ impl ExampleEnvironment {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let random_suffix = format!("{:x}", timestamp);
-        format!("/tmp/senzing_test_{}.db", random_suffix)
+        let random_suffix = format!("{timestamp:x}");
+        format!("/tmp/senzing_test_{random_suffix}.db")
     }
 
     /// Set up a new database by executing the SQLite schema SQL
@@ -161,22 +161,20 @@ impl ExampleEnvironment {
         // Check if schema SQL exists
         if !Path::new(&schema_path).exists() {
             return Err(SzError::configuration(format!(
-                "SQLite schema SQL not found at {}. Set SENZING_RESOURCEPATH environment variable.",
-                schema_path
+                "SQLite schema SQL not found at {schema_path}. Set SENZING_RESOURCEPATH environment variable."
             )));
         }
 
         // Read the schema SQL
         let schema_sql = std::fs::read_to_string(&schema_path).map_err(|e| {
             SzError::configuration(format!(
-                "Failed to read schema SQL from {}: {}",
-                schema_path, e
+                "Failed to read schema SQL from {schema_path}: {e}"
             ))
         })?;
 
         // Create database and execute schema SQL using rusqlite
         let conn = rusqlite::Connection::open(&db_path).map_err(|e| {
-            SzError::configuration(format!("Failed to create database at {}: {}", db_path, e))
+            SzError::configuration(format!("Failed to create database at {db_path}: {e}"))
         })?;
 
         // Execute each statement in the schema (split by semicolons)
@@ -184,7 +182,7 @@ impl ExampleEnvironment {
         conn.execute_batch(&schema_sql).map_err(|e| {
             // Clean up the partially created database
             let _ = std::fs::remove_file(&db_path);
-            SzError::configuration(format!("Failed to execute schema SQL: {}", e))
+            SzError::configuration(format!("Failed to execute schema SQL: {e}"))
         })?;
 
         // Store the path for cleanup in thread-local storage
@@ -192,7 +190,7 @@ impl ExampleEnvironment {
             *db.borrow_mut() = Some(db_path.clone());
         });
 
-        println!("Created test database from SQL schema: {}", db_path);
+        println!("Created test database from SQL schema: {db_path}");
 
         // Set up initial configuration in the new database
         Self::setup_initial_configuration(&db_path)?;
@@ -230,8 +228,7 @@ impl ExampleEnvironment {
         config_mgr.set_default_config_id(config_id)?;
 
         println!(
-            "✅ Initial configuration setup complete with ID: {}",
-            config_id
+            "✅ Initial configuration setup complete with ID: {config_id}"
         );
 
         // Destroy the temporary environment so the main environment can be created fresh
@@ -303,7 +300,7 @@ impl ExampleEnvironment {
                     println!("No configuration found, setting up default configuration...");
                     // Try to set up default configuration
                     let temp_env = SzEnvironmentCore::get_instance(
-                        &format!("{}-setup", instance_name),
+                        &format!("{instance_name}-setup"),
                         &settings,
                         false,
                     )?;
@@ -315,7 +312,7 @@ impl ExampleEnvironment {
                         Some("Default configuration for tests"),
                     )?;
                     config_mgr.set_default_config_id(config_id)?;
-                    println!("✅ Configuration setup complete with ID: {}", config_id);
+                    println!("✅ Configuration setup complete with ID: {config_id}");
 
                     // Now try again with the main instance name
                     SzEnvironmentCore::get_instance(instance_name, &settings, false)
@@ -338,7 +335,7 @@ impl ExampleEnvironment {
         let db_path = SHARED_DB_PATH.get_or_init(|| {
             let path = Self::setup_test_database()
                 .unwrap_or_else(|_| "/tmp/senzing_shared_test.db".to_string());
-            println!("Using shared test database: {}", path);
+            println!("Using shared test database: {path}");
             path
         });
 
@@ -365,7 +362,7 @@ impl ExampleEnvironment {
         let db_path = SHARED_DB_PATH.get_or_init(|| {
             let path = Self::setup_test_database()
                 .unwrap_or_else(|_| "/tmp/senzing_shared_test.db".to_string());
-            println!("Using shared test database: {}", path);
+            println!("Using shared test database: {path}");
             path
         });
 
@@ -392,7 +389,7 @@ impl ExampleEnvironment {
                 if matches!(e, SzError::Configuration { .. }) {
                     // Try to set up default configuration with verbose logging
                     let temp_env = SzEnvironmentCore::get_instance(
-                        &format!("{}-setup", instance_name),
+                        &format!("{instance_name}-setup"),
                         &settings,
                         true,
                     )?;

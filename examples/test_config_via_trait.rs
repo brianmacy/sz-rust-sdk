@@ -24,7 +24,7 @@ fn main() -> SzResult<()> {
 
     // Test that we can get the default config ID
     let config_id = config_mgr.get_default_config_id()?;
-    println!("✅ Default config ID: {}", config_id);
+    println!("✅ Default config ID: {config_id}");
 
     // Test that we can use the engine
     let engine = env.get_engine()?;
@@ -34,7 +34,7 @@ fn main() -> SzResult<()> {
     println!("\n🔍 Testing search operation...");
     let results = engine.search_by_attributes(r#"{"NAME_LAST": "TestTrait"}"#, None, None)?;
     println!("✅ Search completed successfully");
-    println!("   Results: {}", results);
+    println!("   Results: {results}");
 
     println!("\n🎯 Config manager trait test complete");
 

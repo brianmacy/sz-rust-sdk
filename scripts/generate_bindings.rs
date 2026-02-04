@@ -17,12 +17,11 @@ fn find_senzing_sdk_path() -> Option<PathBuf> {
     if let Ok(path) = env::var("SENZING_SDK_PATH") {
         let p = PathBuf::from(&path);
         if p.exists() {
-            println!("Using SENZING_SDK_PATH: {}", path);
+            println!("Using SENZING_SDK_PATH: {path}");
             return Some(p);
         }
         eprintln!(
-            "Warning: SENZING_SDK_PATH set but path doesn't exist: {}",
-            path
+            "Warning: SENZING_SDK_PATH set but path doesn't exist: {path}"
         );
     }
 

@@ -35,18 +35,18 @@ fn demonstrate_working_features(env: &Arc<SzEnvironmentCore>) -> SzResult<()> {
             match engine.search_by_attributes(search_attrs, None, None) {
                 Ok(results) => {
                     println!("✅ Search operation successful");
-                    println!("   Results: {}", results);
+                    println!("   Results: {results}");
                 }
-                Err(e) => println!("⚠️  Search operation: {}", e),
+                Err(e) => println!("⚠️  Search operation: {e}"),
             }
         }
-        Err(e) => println!("⚠️  Engine component: {}", e),
+        Err(e) => println!("⚠️  Engine component: {e}"),
     }
 
     // Test other components
     match env.get_product() {
         Ok(_) => println!("✅ Product component available"),
-        Err(e) => println!("⚠️  Product component: {}", e),
+        Err(e) => println!("⚠️  Product component: {e}"),
     }
 
     println!("\n🎯 Demo complete! SDK is functional and ready to use.");

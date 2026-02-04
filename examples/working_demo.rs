@@ -25,15 +25,15 @@ fn main() -> SzResult<()> {
     match engine.search_by_attributes(search_attributes, None, None) {
         Ok(results) => {
             println!("✅ Search operation successful");
-            println!("   Results: {}", results);
+            println!("   Results: {results}");
         }
-        Err(e) => println!("⚠️  Search failed: {}", e),
+        Err(e) => println!("⚠️  Search failed: {e}"),
     }
 
     // Test find path (basic operation)
     match engine.find_path(1, 2, 3, None, None, None) {
-        Ok(result) => println!("✅ Find path successful: {}", result),
-        Err(e) => println!("⚠️  Find path failed (expected): {}", e),
+        Ok(result) => println!("✅ Find path successful: {result}"),
+        Err(e) => println!("⚠️  Find path failed (expected): {e}"),
     }
 
     println!("\n🎯 Demo complete! This shows working SDK operations.");
