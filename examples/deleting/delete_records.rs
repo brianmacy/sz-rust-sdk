@@ -225,9 +225,7 @@ fn verify_loaded_records(
                 }
             }
             Err(e) => {
-                println!(
-                    "  Could not get entity for {data_source} {record_id}: {e}"
-                );
+                println!("  Could not get entity for {data_source} {record_id}: {e}");
             }
         }
     }
@@ -292,14 +290,10 @@ fn verify_deletion_impact(engine: &dyn SzEngine) -> SzResult<()> {
             Some(SzFlags::ENTITY_DEFAULT_FLAGS),
         ) {
             Ok(_) => {
-                println!(
-                    "    ⚠ Record {data_source} {record_id} still found (unexpected)"
-                );
+                println!("    ⚠ Record {data_source} {record_id} still found (unexpected)");
             }
             Err(e) => {
-                println!(
-                    "    ✓ Record {data_source} {record_id} not found (as expected): {e}"
-                );
+                println!("    ✓ Record {data_source} {record_id} not found (as expected): {e}");
             }
         }
     }

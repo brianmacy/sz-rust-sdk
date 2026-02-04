@@ -104,9 +104,7 @@ fn main() -> SzResult<()> {
             return Err(SzError::unknown("Parameter validation failed".to_string()));
         }
         Err(e) => {
-            println!(
-                "✅ get_instance() with different ini_params correctly failed: {e}"
-            );
+            println!("✅ get_instance() with different ini_params correctly failed: {e}");
         }
     }
 
@@ -118,9 +116,7 @@ fn main() -> SzResult<()> {
             return Err(SzError::unknown("Parameter validation failed".to_string()));
         }
         Err(e) => {
-            println!(
-                "✅ get_instance() with different verbose_logging correctly failed: {e}"
-            );
+            println!("✅ get_instance() with different verbose_logging correctly failed: {e}");
         }
     }
 

@@ -23,9 +23,7 @@ fn main() -> SzResult<()> {
     // Network analysis
     match engine.find_network(&[1, 2, 3], 2, 1, 10, None) {
         Ok(network_result) => println!("Network: {network_result}"),
-        Err(e) => println!(
-            "Network analysis failed: {e} (expected - no entities loaded)"
-        ),
+        Err(e) => println!("Network analysis failed: {e} (expected - no entities loaded)"),
     }
 
     Ok(())

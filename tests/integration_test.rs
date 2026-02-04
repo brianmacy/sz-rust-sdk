@@ -72,14 +72,10 @@ fn test_environment_initialization_with_expected_error() {
                 );
                 println!("✅ This confirms FFI integration is working correctly");
             } else if error_msg.contains("SENZ") {
-                println!(
-                    "✅ Environment initialization failed with Senzing error: {error_msg}"
-                );
+                println!("✅ Environment initialization failed with Senzing error: {error_msg}");
                 println!("✅ This confirms FFI integration is working correctly");
             } else {
-                panic!(
-                    "❌ Unexpected error type (suggests FFI issues): {error_msg}"
-                );
+                panic!("❌ Unexpected error type (suggests FFI issues): {error_msg}");
             }
         }
     }

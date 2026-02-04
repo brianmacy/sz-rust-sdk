@@ -131,9 +131,7 @@ fn main() -> SzResult<()> {
         loaded_count += 1;
     }
 
-    println!(
-        "Successfully loaded {loaded_count} records with detailed tracking"
-    );
+    println!("Successfully loaded {loaded_count} records with detailed tracking");
 
     // Get final engine statistics
     let stats = engine.get_stats()?;

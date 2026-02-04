@@ -525,9 +525,7 @@ mod test_error_mapping {
                 // Message should either be from getLastException or fallback format
                 assert!(message.contains("7220") || !message.is_empty());
             }
-            _ => panic!(
-                "Error code 7220 should map to Configuration, got: {error:?}"
-            ),
+            _ => panic!("Error code 7220 should map to Configuration, got: {error:?}"),
         }
     }
 
@@ -539,9 +537,7 @@ mod test_error_mapping {
                 SzError::NotInitialized { .. } => {
                     // Expected
                 }
-                _ => panic!(
-                    "Error code {code} should map to NotInitialized, got: {error:?}"
-                ),
+                _ => panic!("Error code {code} should map to NotInitialized, got: {error:?}"),
             }
         }
     }
@@ -587,9 +583,7 @@ mod test_error_mapping {
                 // Message should either be from getLastException or fallback format
                 assert!(!message.is_empty());
             }
-            _ => panic!(
-                "Error code 7220 should map to Configuration, got: {error:?}"
-            ),
+            _ => panic!("Error code 7220 should map to Configuration, got: {error:?}"),
         }
     }
 }

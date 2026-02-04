@@ -49,9 +49,7 @@ fn main() -> SzResult<()> {
 
     let mut current_config_id = current_config_id;
     for (data_source_code, description) in &data_sources_to_test {
-        println!(
-            "Registering data source: {data_source_code} ({description})"
-        );
+        println!("Registering data source: {data_source_code} ({description})");
 
         // Create a fresh config from the current configuration ID
         let incremental_config = config_mgr.create_config_from_id(current_config_id)?;
@@ -76,9 +74,7 @@ fn main() -> SzResult<()> {
                     &incremental_export,
                     Some(&format!("Added data source: {data_source_code}")),
                 )?;
-                println!(
-                    "  💾 Registered incremental config ID: {incremental_config_id}"
-                );
+                println!("  💾 Registered incremental config ID: {incremental_config_id}");
 
                 // Use this as the base for the next iteration
                 current_config_id = incremental_config_id;
@@ -108,17 +104,13 @@ fn main() -> SzResult<()> {
 
     // Verify the environment is using the correct configuration
     let verify_config_id = new_config_mgr.get_default_config_id()?;
-    println!(
-        "✅ Environment reinitialized with configuration ID: {verify_config_id}"
-    );
+    println!("✅ Environment reinitialized with configuration ID: {verify_config_id}");
 
     // Debug: Check what's actually in the current configuration
     let current_config = new_config_mgr.create_config_from_id(verify_config_id)?;
     let current_config_export = current_config.export()?;
     let current_ds_count = current_config_export.matches("DSRC_CODE").count();
-    println!(
-        "Debug: Current config export has {current_ds_count} DSRC_CODE entries"
-    );
+    println!("Debug: Current config export has {current_ds_count} DSRC_CODE entries");
 
     // Also check the data source registry specifically
     match current_config.get_data_source_registry() {
@@ -165,9 +157,7 @@ fn main() -> SzResult<()> {
             None,
         ) {
             Ok(_) => {
-                println!(
-                    "  ✅ Data source {data_source} is now available and functional"
-                );
+                println!("  ✅ Data source {data_source} is now available and functional");
 
                 // Verify record was added by searching for it
                 let search_criteria = format!(r#"{{"NAME_LAST": "Person{data_source}"}}"#);
@@ -181,9 +171,7 @@ fn main() -> SzResult<()> {
                         }
                     }
                     Err(e) => {
-                        println!(
-                            "  ⚠️  Search verification failed for {data_source}: {e}"
-                        );
+                        println!("  ⚠️  Search verification failed for {data_source}: {e}");
                     }
                 }
 
@@ -193,9 +181,7 @@ fn main() -> SzResult<()> {
                         println!("  ✅ Test record cleaned up for {data_source}");
                     }
                     Err(e) => {
-                        println!(
-                            "  ⚠️  Failed to clean up test record for {data_source}: {e}"
-                        );
+                        println!("  ⚠️  Failed to clean up test record for {data_source}: {e}");
                     }
                 }
             }

@@ -113,14 +113,10 @@ fn main() -> SzResult<()> {
             Some(SzFlags::WHY_ENTITIES_DEFAULT_FLAGS),
         ) {
             Ok(why_result) => {
-                println!(
-                    "Why analysis for entity {example_entity_id}: {why_result}"
-                );
+                println!("Why analysis for entity {example_entity_id}: {why_result}");
             }
             Err(e) => {
-                println!(
-                    "Why search failed (expected if entity doesn't exist): {e}"
-                );
+                println!("Why search failed (expected if entity doesn't exist): {e}");
             }
         }
     }

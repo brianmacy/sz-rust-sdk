@@ -167,9 +167,7 @@ impl ExampleEnvironment {
 
         // Read the schema SQL
         let schema_sql = std::fs::read_to_string(&schema_path).map_err(|e| {
-            SzError::configuration(format!(
-                "Failed to read schema SQL from {schema_path}: {e}"
-            ))
+            SzError::configuration(format!("Failed to read schema SQL from {schema_path}: {e}"))
         })?;
 
         // Create database and execute schema SQL using rusqlite
@@ -227,9 +225,7 @@ impl ExampleEnvironment {
         // Set as default
         config_mgr.set_default_config_id(config_id)?;
 
-        println!(
-            "✅ Initial configuration setup complete with ID: {config_id}"
-        );
+        println!("✅ Initial configuration setup complete with ID: {config_id}");
 
         // Destroy the temporary environment so the main environment can be created fresh
         temp_env.destroy()?;

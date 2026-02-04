@@ -52,9 +52,7 @@ fn main() -> SzResult<()> {
     println!("   Note: Testing with non-existent entity IDs for demonstration");
     match engine.find_network(&[999999, 999998], 2, 1, 10, None) {
         Ok(network) => println!("   Network found: {network}"),
-        Err(e) => println!(
-            "   Network analysis error (expected for non-existent IDs): {e}"
-        ),
+        Err(e) => println!("   Network analysis error (expected for non-existent IDs): {e}"),
     }
 
     println!("\n🎯 Engine operations demo complete!");

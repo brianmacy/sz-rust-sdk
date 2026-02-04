@@ -442,9 +442,7 @@ impl SzEnvironmentCore {
         if let Ok(guard) = self.init_error.lock()
             && let Some(err_msg) = guard.as_ref()
         {
-            return Err(SzError::unrecoverable(format!(
-                "Sz_init failed: {err_msg}"
-            )));
+            return Err(SzError::unrecoverable(format!("Sz_init failed: {err_msg}")));
         }
 
         Ok(())

@@ -31,9 +31,7 @@ fn main() -> SzResult<()> {
             println!("   ✓ Find path completed");
             println!("     Path: {path_result}");
         }
-        Err(e) => println!(
-            "   ⚠️  Find path: {e} (expected - no entities loaded yet)"
-        ),
+        Err(e) => println!("   ⚠️  Find path: {e} (expected - no entities loaded yet)"),
     }
 
     // Step 4: Test network analysis
@@ -44,9 +42,7 @@ fn main() -> SzResult<()> {
             println!("   ✓ Network analysis completed");
             println!("     Network: {network_result}");
         }
-        Err(e) => println!(
-            "   ⚠️  Network analysis: {e} (expected - no entities loaded yet)"
-        ),
+        Err(e) => println!("   ⚠️  Network analysis: {e} (expected - no entities loaded yet)"),
     }
 
     println!("\n=== Complete Workflow Demo Finished Successfully! ===");

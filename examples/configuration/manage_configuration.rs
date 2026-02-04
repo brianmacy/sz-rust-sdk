@@ -137,9 +137,7 @@ fn modify_existing_configuration(config_mgr: &dyn SzConfigManager) -> SzResult<(
                 Some("Configuration modified by Rust SDK demo"),
             )?;
 
-            println!(
-                "✓ Registered modified configuration with ID: {modified_config_id}"
-            );
+            println!("✓ Registered modified configuration with ID: {modified_config_id}");
         }
         Err(e) => {
             println!("  ✗ Failed to modify configuration: {e}");

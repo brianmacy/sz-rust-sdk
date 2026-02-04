@@ -254,9 +254,7 @@ fn assess_performance(perf_data: &Value) -> SzResult<()> {
             rate if rate >= 50.0 => {
                 println!("    ⚠ Below average performance ({rate:.0} ops/sec)")
             }
-            rate => println!(
-                "    ✗ Poor performance ({rate:.0} ops/sec) - consider optimization"
-            ),
+            rate => println!("    ✗ Poor performance ({rate:.0} ops/sec) - consider optimization"),
         }
     }
 

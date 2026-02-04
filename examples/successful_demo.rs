@@ -52,9 +52,7 @@ fn main() -> SzResult<()> {
             println!("   Network: {network_result}");
         }
         Err(e) => {
-            println!(
-                "⚠️  Network analysis: {e} (expected - no entities loaded yet)"
-            );
+            println!("⚠️  Network analysis: {e} (expected - no entities loaded yet)");
         }
     }
 

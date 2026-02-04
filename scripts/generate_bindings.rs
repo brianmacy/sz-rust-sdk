@@ -20,9 +20,7 @@ fn find_senzing_sdk_path() -> Option<PathBuf> {
             println!("Using SENZING_SDK_PATH: {path}");
             return Some(p);
         }
-        eprintln!(
-            "Warning: SENZING_SDK_PATH set but path doesn't exist: {path}"
-        );
+        eprintln!("Warning: SENZING_SDK_PATH set but path doesn't exist: {path}");
     }
 
     // Priority 2: macOS Homebrew ARM

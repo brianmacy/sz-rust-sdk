@@ -289,9 +289,7 @@ fn test_concurrent_engine_initialization() -> SzResult<()> {
         )));
     }
 
-    eprintln!(
-        "All {NUM_THREADS} threads successfully initialized engine concurrently"
-    );
+    eprintln!("All {NUM_THREADS} threads successfully initialized engine concurrently");
     Ok(())
 }
 
