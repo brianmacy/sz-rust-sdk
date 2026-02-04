@@ -1,4 +1,5 @@
 use std::env;
+#[cfg(target_os = "macos")]
 use std::path::Path;
 
 fn main() {
