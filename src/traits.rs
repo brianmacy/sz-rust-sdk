@@ -314,14 +314,15 @@ pub trait SzEngine: Send + Sync {
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString>;
 
-    /// Gets entity information by entity ID.
+    /// Gets entity information by entity ID or record key.
     ///
     /// Retrieves complete entity data including all constituent records and
-    /// relationships.
+    /// relationships. The entity can be specified either by its entity ID
+    /// or by a record key (data source + record ID).
     ///
     /// # Arguments
     ///
-    /// * `entity_id` - The entity identifier
+    /// * `entity_ref` - Reference to the entity (entity ID or record key)
     /// * `flags` - Optional flags controlling what data is included
     ///
     /// # Returns
@@ -330,32 +331,22 @@ pub trait SzEngine: Send + Sync {
     ///
     /// # Errors
     ///
-    /// * `SzError::NotFound` - Entity does not exist
-    fn get_entity(&self, entity_id: EntityId, flags: Option<SzFlags>) -> SzResult<JsonString>;
-
-    /// Gets entity information by record identifier.
+    /// * `SzError::NotFound` - Entity or record does not exist
     ///
-    /// Retrieves the entity containing the specified record.
+    /// # Examples
     ///
-    /// # Arguments
+    /// ```ignore
+    /// // By entity ID (use .into() or EntityRef::Id)
+    /// let result = engine.get_entity(entity_id.into(), None)?;
+    /// let result = engine.get_entity(EntityRef::Id(entity_id), None)?;
     ///
-    /// * `data_source_code` - The data source identifier
-    /// * `record_id` - The record identifier
-    /// * `flags` - Optional flags controlling what data is included
-    ///
-    /// # Returns
-    ///
-    /// JSON string with entity details.
-    ///
-    /// # Errors
-    ///
-    /// * `SzError::NotFound` - Record does not exist
-    fn get_entity_by_record(
-        &self,
-        data_source_code: &str,
-        record_id: &str,
-        flags: Option<SzFlags>,
-    ) -> SzResult<JsonString>;
+    /// // By record key
+    /// let result = engine.get_entity(
+    ///     EntityRef::Record { data_source: "CUSTOMERS", record_id: "1001" },
+    ///     None
+    /// )?;
+    /// ```
+    fn get_entity(&self, entity_ref: EntityRef, flags: Option<SzFlags>) -> SzResult<JsonString>;
 
     /// Gets record information.
     ///
@@ -381,43 +372,37 @@ pub trait SzEngine: Send + Sync {
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString>;
 
-    /// Finds interesting entities related to a given entity.
+    /// Finds interesting entities related to a given entity or record.
     ///
     /// Identifies entities with notable relationships to the specified entity,
-    /// such as disclosed relationships or possible matches.
+    /// such as disclosed relationships or possible matches. The entity can be
+    /// specified either by its entity ID or by a record key.
     ///
     /// # Arguments
     ///
-    /// * `entity_id` - The entity to analyze
+    /// * `entity_ref` - Reference to the entity (entity ID or record key)
     /// * `flags` - Optional flags controlling result detail
     ///
     /// # Returns
     ///
     /// JSON string with interesting entity relationships.
-    fn find_interesting_entities_by_entity_id(
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// // By entity ID (use .into() or EntityRef::Id)
+    /// let result = engine.find_interesting_entities(entity_id.into(), None)?;
+    /// let result = engine.find_interesting_entities(EntityRef::Id(entity_id), None)?;
+    ///
+    /// // By record key
+    /// let result = engine.find_interesting_entities(
+    ///     EntityRef::Record { data_source: "CUSTOMERS", record_id: "1001" },
+    ///     None
+    /// )?;
+    /// ```
+    fn find_interesting_entities(
         &self,
-        entity_id: EntityId,
-        flags: Option<SzFlags>,
-    ) -> SzResult<JsonString>;
-
-    /// Finds interesting entities related to a given record.
-    ///
-    /// Identifies entities with notable relationships to the entity containing
-    /// the specified record.
-    ///
-    /// # Arguments
-    ///
-    /// * `data_source_code` - The data source identifier
-    /// * `record_id` - The record identifier
-    /// * `flags` - Optional flags controlling result detail
-    ///
-    /// # Returns
-    ///
-    /// JSON string with interesting entity relationships.
-    fn find_interesting_entities_by_record(
-        &self,
-        data_source_code: &str,
-        record_id: &str,
+        entity_ref: EntityRef,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString>;
 
@@ -487,7 +472,7 @@ pub trait SzEngine: Send + Sync {
     /// # Returns
     ///
     /// JSON string with relationship analysis.
-    fn why_entity(
+    fn why_entities(
         &self,
         entity_id1: EntityId,
         entity_id2: EntityId,

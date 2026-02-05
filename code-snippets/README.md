@@ -78,40 +78,48 @@ fn get_environment() -> SzResult<std::sync::Arc<SzEnvironmentCore>> {
 ## Snippet Categories
 
 ### Configuration (2 snippets)
+
 - `init_default_config.rs` - Initialize default configuration
 - `register_data_sources.rs` - Register new data sources
 
 ### Deleting (2 snippets)
+
 - `delete_records.rs` - Delete individual records
 - `delete_via_loop.rs` - Bulk record deletion
 
 ### Information (3 snippets)
+
 - `database_demo.rs` - Database information demo
 - `get_license.rs` - Retrieve license information
 - `get_version.rs` - Retrieve version information
 
 ### Initialization (3 snippets)
+
 - `engine_priming.rs` - Prime engine for performance
 - `environment_and_hubs.rs` - Access all SDK interfaces
 - `purge_repository.rs` - Clean repository data
 
 ### Loading (3 snippets)
+
 - `load_records.rs` - Load individual records
 - `load_via_loop.rs` - Bulk record loading
 - `load_via_loop_threadpool.rs` - Multi-threaded loading
 
 ### Redo (4 snippets)
+
 - `load_with_redo_via_loop.rs` - Loading with redo processing
 - `redo_continuous.rs` - Continuous redo processing
 - `redo_continuous_via_futures.rs` - Async redo processing
 - `redo_with_info_continuous.rs` - Redo with detailed info
 
 ### Searching (3 snippets)
+
 - `search_records.rs` - Basic entity search
 - `search_threadpool.rs` - Multi-threaded search
 - `why_search.rs` - Search with explanations
 
 ### Stewardship (2 snippets)
+
 - `force_resolve.rs` - Force entity resolution
 - `force_unresolve.rs` - Force entity separation
 

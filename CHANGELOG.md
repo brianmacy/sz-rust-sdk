@@ -7,14 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING**: Renamed `why_entity` to `why_entities` to correctly reflect that it compares TWO entities
+- **BREAKING**: Unified `get_entity` and `get_entity_by_record` into single `get_entity(EntityRef, flags)` function
+- **BREAKING**: Unified `find_interesting_entities_by_entity_id` and `find_interesting_entities_by_record` into single `find_interesting_entities(EntityRef, flags)` function
+
+### Added
+
+- New `EntityRef` enum to specify entity by ID or by record key (data source + record ID)
+- `EntityRef::Id(EntityId)` variant for entity ID references
+- `EntityRef::Record { data_source, record_id }` variant for record key references
+- `From<EntityId>` trait implementation for automatic conversion to `EntityRef::Id`
+
+### Removed
+
+- `get_entity_by_record()` - replaced by `get_entity(EntityRef::Record {...})`
+- `find_interesting_entities_by_entity_id()` - replaced by `find_interesting_entities(EntityRef::Id(...))`
+- `find_interesting_entities_by_record()` - replaced by `find_interesting_entities(EntityRef::Record {...})`
+
+### Migration Guide
+
+```rust
+// Old API
+engine.why_entity(id1, id2, flags)?;
+engine.get_entity(entity_id, flags)?;
+engine.get_entity_by_record("TEST", "123", flags)?;
+engine.find_interesting_entities_by_entity_id(entity_id, flags)?;
+engine.find_interesting_entities_by_record("TEST", "123", flags)?;
+
+// New API
+engine.why_entities(id1, id2, flags)?;  // Plural: compares TWO entities
+engine.get_entity(entity_id.into(), flags)?;
+engine.get_entity(EntityRef::Record { data_source: "TEST", record_id: "123" }, flags)?;
+engine.find_interesting_entities(entity_id.into(), flags)?;
+engine.find_interesting_entities(EntityRef::Record { data_source: "TEST", record_id: "123" }, flags)?;
+```
+
 ## [0.9.1] - 2026-01-26
 
 ### Fixed
+
 - **Critical**: ARM Linux (aarch64-unknown-linux-gnu) portability bug in error.rs
 - Changed buffer type from hardcoded `i8` to platform-agnostic `c_char` type
 - SDK now compiles on all supported platforms: x86_64/aarch64 on Linux/macOS/Windows
 
 ### Notes
+
 - Apple Silicon uses signed char (i8) deviating from ARM standard
 - ARM Linux uses unsigned char (u8) following ARM ABI specification
 - Fix ensures portability across all architectures without platform-specific conditionals
@@ -22,30 +61,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.8.0] - 2026-01-24
 
 ### Changed
+
 - Test databases now created from SQL schema instead of copying template files
 - Removed dependency on `SENZING_TEMPLATE_DB` environment variable
 - Database schema read from `SENZING_RESOURCEPATH/schema/szcore-schema-sqlite-create.sql`
 
 ### Added
+
 - `rusqlite` dependency for database creation from SQL schema
 - `Zlib` license added to allowed licenses in `deny.toml`
 
 ### Notes
+
 - Tests are now more self-contained and don't require pre-existing template databases
 - Only `SENZING_RESOURCEPATH` environment variable needed for schema location
 
 ## [0.7.0] - 2026-01-24
 
 ### Changed
+
 - Replaced static `destroy_global_instance()` with instance method `destroy(self: Arc<Self>)`
 - Uses `Arc::try_unwrap` for safe ownership-based cleanup
 - `destroy()` only succeeds when caller holds sole reference to the environment
 - Removed `destroy(&mut self)` from `SzEnvironment` trait (incompatible with Arc pattern)
 
 ### Added
+
 - `test_destroy_ownership_semantics` test validating Arc ownership cleanup behavior
 
 ### Notes
+
 - Calling `destroy()` with other Arc references outstanding returns an error
 - Environment is restored to singleton storage if destroy fails
 - Proper Rust ownership semantics prevent destroying while others hold references
@@ -53,11 +98,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.0] - 2026-01-23
 
 ### Added
+
 - `Send + Sync` bounds on `SzEnvironment`, `SzEngine`, `SzProduct`, and `SzDiagnostic` traits
 - Enables sharing engine instances across threads with `Arc<dyn SzEngine>`
 - Supports rayon parallel workloads without per-item `get_engine()` calls
 
 ### Notes
+
 - `SzConfig` and `SzConfigManager` intentionally do NOT have `Send + Sync` bounds
 - Configuration operations should be coordinated, not parallelized
 - `get_engine()` cost is negligible (~2-10ns) even when called repeatedly
@@ -65,6 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.0] - 2026-01-17
 
 ### Fixed
+
 - **Critical**: 9 FFI signature mismatches with actual Senzing C headers causing undefined behavior
 - `why_entities` now correctly passes flags (uses V2 helper)
 - `why_records` now correctly passes flags (uses V2 helper)
@@ -80,11 +128,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rust 2024 unsafe block compliance in FFI helpers
 
 ### Changed
+
 - FFI bindings now auto-generated from Senzing C headers using bindgen
 - Removed manual `bindings.rs` in favor of `bindings_generated.rs`
 - Memory free function changed from `Sz_free` to `SzHelper_free`
 
 ### Added
+
 - `scripts/generate_bindings.rs` for regenerating FFI bindings
 - Support for `SENZING_SDK_PATH` environment variable override
 - Result processing macros for each component type
@@ -92,36 +142,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.0] - 2026-01-16
 
 ### Fixed
+
 - `search_by_attributes` now correctly applies flags when `search_profile` is None (uses V2 helper)
 - `get_entity` now correctly applies flags parameter (was ignored, uses V2 helper)
 - `get_entity_by_record` now correctly applies flags parameter (was ignored, uses V2 helper)
 - `get_virtual_entity` now correctly applies flags parameter (was ignored, uses V2 helper)
 
 ### Changed
+
 - `get_virtual_entity` now supports multiple record keys (previously limited to single record)
 
 ### Added
+
 - FFI bindings for `Sz_searchByAttributes_V2_helper`, `Sz_getEntityByEntityID_V2_helper`, `Sz_getEntityByRecordID_V2_helper`, `Sz_getVirtualEntityByRecordID_V2_helper`
 
 ## [0.3.0] - 2026-01-16
 
 ### Changed
+
 - Rewrite flags.rs to match C# SDK v4 exactly with correct bit positions
 - Update examples and tests for new flag constant names (`*_DEFAULT` → `*_DEFAULT_FLAGS`)
 
 ### Added
+
 - 18+ missing flags: `WITH_INFO`, `INCLUDE_FEATURE_SCORES`, `FIND_PATH_STRICT_AVOID`, `SEARCH_INCLUDE_STATS`, `ENTITY_INCLUDE_RECORD_TYPES`, `ENTITY_INCLUDE_INTERNAL_FEATURES`, `ENTITY_INCLUDE_FEATURE_STATS`, and more
 - `Once` guards for thread-safe ConfigMgr and Product initialization
 - Concurrent initialization tests in sz_environment_test.rs
 - Homebrew vs Linux installation paths documented in CLAUDE.md
 
 ### Fixed
+
 - Incorrect composite flag definitions and bit positions
 - Race condition in component initialization
 
 ## [0.2.0] - 2026-01-16
 
 ### Added
+
 - Cargo.toml metadata for crates.io publishing (repository, homepage, documentation)
 - CHANGELOG.md for version history tracking
 - Homebrew installation path auto-detection in build.rs
@@ -130,6 +187,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Platform-specific installation documentation (Linux vs macOS/Homebrew)
 
 ### Changed
+
 - **Breaking**: All Core types except `SzEnvironmentCore` are now private
 - Users must access SDK components through traits (`Box<dyn SzEngine>`, etc.)
 - `get_config_manager()` no longer requires `Sz_init`, enabling config setup before engine initialization
@@ -137,12 +195,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed template database path to use `resources/templates/G2C.db`
 
 ### Removed
+
 - Unused `SzConfigManagerCore::new()` method (use `get_config_manager()` instead)
 - Unused `SzProductCore::new()` method (use `get_product()` instead)
 
 ## [0.1.0] - 2026-01-16
 
 ### Added
+
 - Initial Rust SDK release with 100% API parity with C# Senzing v4 SDK
 - Core trait definitions: `SzEngine`, `SzConfig`, `SzConfigManager`, `SzDiagnostic`, `SzProduct`, `SzEnvironment`
 - Core implementations: `SzEngineCore`, `SzConfigCore`, `SzConfigManagerCore`, `SzDiagnosticCore`, `SzProductCore`, `SzEnvironmentCore`
@@ -164,6 +224,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Singleton pattern for `SzEnvironmentCore` with thread-safe access
 
 ### Security
+
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 

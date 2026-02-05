@@ -212,7 +212,7 @@ fn get_why_records_analysis(engine: &Box<dyn SzEngine>, entity_id: i64) -> SzRes
     println!("\n--- Record-level Analysis ---");
 
     // Get entity details to analyze individual records
-    let entity_details = engine.get_entity(entity_id, Some(SzFlags::ENTITY_INCLUDE_RECORD_DATA))?;
+    let entity_details = engine.get_entity(entity_id.into(), Some(SzFlags::ENTITY_INCLUDE_RECORD_DATA))?;
 
     let entity_data: Value = serde_json::from_str(&entity_details)
         .map_err(|e| SzError::unknown(format!("Failed to parse entity details: {}", e)))?;

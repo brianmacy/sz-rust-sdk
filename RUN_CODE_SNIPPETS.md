@@ -77,6 +77,7 @@ Use the provided script to run all snippets automatically:
 ```
 
 This script will:
+
 - Run all 22 code snippets in category order
 - Execute each snippet with a 30-second timeout
 - Provide real-time colored output (✓ success, ✗ failed, ⏰ timeout)
@@ -89,40 +90,48 @@ This script will:
 All snippets should run successfully and demonstrate specific Senzing SDK capabilities:
 
 ### Configuration (2 snippets)
+
 - **init_default_config**: Initialize default Senzing configuration
 - **register_data_sources**: Register new data sources in configuration
 
 ### Deleting (2 snippets)
+
 - **delete_records**: Delete individual records with verification
 - **delete_via_loop**: Bulk record deletion with error handling
 
 ### Information (3 snippets)
+
 - **database_demo**: Database information and statistics
 - **get_license**: Retrieve Senzing license information
 - **get_version**: Retrieve Senzing version information
 
 ### Initialization (3 snippets)
+
 - **engine_priming**: Prime the Senzing engine for optimal performance
 - **environment_and_hubs**: Initialize environment and access all interfaces
 - **purge_repository**: Safely purge all data from repository
 
 ### Loading (3 snippets)
+
 - **load_records**: Load individual records with simple error handling
 - **load_via_loop**: Bulk record loading with comprehensive error handling
 - **load_via_loop_threadpool**: Multi-threaded record loading
 
 ### Redo (4 snippets)
+
 - **load_with_redo_via_loop**: Loading with redo processing
 - **redo_continuous**: Continuous redo processing
 - **redo_continuous_via_futures**: Future-based redo processing
 - **redo_with_info_continuous**: Redo processing with detailed information
 
 ### Searching (3 snippets)
+
 - **search_records**: Basic entity search functionality
 - **search_threadpool**: Multi-threaded search operations
 - **why_search**: Search with explanations and analysis
 
 ### Stewardship (2 snippets)
+
 - **force_resolve**: Force entity resolution
 - **force_unresolve**: Force entity separation
 

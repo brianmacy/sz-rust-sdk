@@ -3,11 +3,13 @@
 ## Mandatory Test Failure Conditions
 
 ### 1. **No Silent Failures**
+
 - If any core functionality fails, the test MUST return `Err()`
 - Never use `println!("❌ Failed")` followed by `Ok(())`
 - Every `❌` message must be paired with error propagation
 
 ### 2. **Verification Requirements**
+
 - Every "registration" or "creation" operation must be followed by verification
 - If verification fails, the entire test fails
 - No partial success acceptance
@@ -61,6 +63,7 @@ engine.add_record(data_source, "TEST", &test_record, None)?; // Must succeed or 
 ### 5. **Mandatory Verification Steps**
 
 For any "register" or "create" operation:
+
 1. ✅ Operation returns success
 2. ✅ Data is retrievable immediately
 3. ✅ Data persists after save/reload cycle
@@ -76,6 +79,7 @@ For any "register" or "create" operation:
 ### 7. **Integration Test Requirements**
 
 Every integration test must verify the complete workflow:
+
 - Setup → Operation → Persistence → Retrieval → Functional Use → Cleanup
 
 ### 8. **Error Message Standards**

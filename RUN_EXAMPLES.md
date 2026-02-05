@@ -5,6 +5,7 @@ This directory contains scripts to run all Senzing Rust SDK examples for testing
 ## Scripts
 
 ### `run_all_examples.sh`
+
 Runs all examples quietly with just pass/fail status. Good for quick verification.
 
 ```bash
@@ -12,6 +13,7 @@ Runs all examples quietly with just pass/fail status. Good for quick verificatio
 ```
 
 **Features:**
+
 - ✅ Runs all 28 examples
 - ⏰ 30-second timeout per example
 - 📊 Summary report with pass/fail counts
@@ -19,6 +21,7 @@ Runs all examples quietly with just pass/fail status. Good for quick verificatio
 - 🚀 Fast execution for CI/testing
 
 ### `run_all_examples_verbose.sh`
+
 Runs all examples with full output. Good for debugging issues.
 
 ```bash
@@ -26,6 +29,7 @@ Runs all examples with full output. Good for debugging issues.
 ```
 
 **Features:**
+
 - ✅ Runs all 28 examples
 - ⏰ 30-second timeout per example
 - 📋 Full output from each example
@@ -35,6 +39,7 @@ Runs all examples with full output. Good for debugging issues.
 ## Example Output
 
 ### Silent Mode
+
 ```
 === Running All Senzing Rust SDK Examples ===
 Found 28 examples to run
@@ -56,11 +61,13 @@ Failed: 2
 ```
 
 ### Verbose Mode
+
 Shows full compilation and execution output for each example, making it easy to debug any issues.
 
 ## Use Cases
 
 ### Development Testing
+
 ```bash
 # Quick check after code changes
 ./run_all_examples.sh
@@ -70,13 +77,16 @@ Shows full compilation and execution output for each example, making it easy to 
 ```
 
 ### Continuous Integration
+
 ```bash
 # In CI pipeline
 ./run_all_examples.sh || exit 1
 ```
 
 ### Memory Error Detection
+
 Both scripts help identify:
+
 - Memory leaks
 - Double free errors
 - Segmentation faults

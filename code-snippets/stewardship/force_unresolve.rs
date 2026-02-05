@@ -116,7 +116,7 @@ fn main() -> SzResult<()> {
 
     // Show the entity before unresolving
     println!("\n3. Entity details before force unresolve:");
-    let entity_json = engine.get_entity(primary_entity_id, None)?;
+    let entity_json = engine.get_entity(primary_entity_id.into(), None)?;
     println!("Entity: {}", get_entity_summary(&entity_json)?);
 
     // Demonstrate force unresolve by deleting and reloading a record
@@ -162,8 +162,8 @@ fn main() -> SzResult<()> {
     );
 
     // Get updated entity details
-    let updated_entity1 = engine.get_entity(primary_entity_id, None)?;
-    let new_entity2 = engine.get_entity(new_entity_id2, None)?;
+    let updated_entity1 = engine.get_entity(primary_entity_id.into(), None)?;
+    let new_entity2 = engine.get_entity(new_entity_id2.into(), None)?;
 
     println!(
         "Updated original entity: {}",
@@ -175,7 +175,7 @@ fn main() -> SzResult<()> {
     println!("\n6. Why analysis for the unresolve operation:");
     if primary_entity_id != new_entity_id2 {
         let why_flags = SzFlags::WHY_ENTITY_DEFAULT;
-        let why_result = engine.why_entity(primary_entity_id, new_entity_id2, Some(why_flags))?;
+        let why_result = engine.why_entities(primary_entity_id, new_entity_id2, Some(why_flags))?;
         println!("Why entities result: {}", why_result);
     } else {
         println!("Records are still resolved together - separation didn't occur");
@@ -189,8 +189,8 @@ fn main() -> SzResult<()> {
 
     // Final entity state
     println!("\n8. Final entity states:");
-    let final_entity1 = engine.get_entity(primary_entity_id, None)?;
-    let final_entity2 = engine.get_entity(new_entity_id2, None)?;
+    let final_entity1 = engine.get_entity(primary_entity_id.into(), None)?;
+    let final_entity2 = engine.get_entity(new_entity_id2.into(), None)?;
 
     println!(
         "Final original entity: {}",

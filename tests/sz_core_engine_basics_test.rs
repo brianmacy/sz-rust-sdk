@@ -38,7 +38,7 @@ fn test_engine_with_registered_data_sources() -> SzResult<()> {
     let env = ExampleEnvironment::initialize("sz-rust-sdk-data-source-test")?;
     let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
     // Test get entity by ID that doesn't exist - should return not found
-    let result = engine.get_entity(99999, Some(SzFlags::ENTITY_DEFAULT_FLAGS));
+    let result = engine.get_entity(99999.into(), Some(SzFlags::ENTITY_DEFAULT_FLAGS));
     assert!(result.is_err());
     // Expected not found error or other acceptable error for non-existent entities
 

@@ -199,9 +199,11 @@ fn verify_loaded_records(
     ];
 
     for (data_source, record_id) in test_records {
-        match engine.get_entity_by_record(
-            data_source,
-            record_id,
+        match engine.get_entity(
+            EntityRef::Record {
+                data_source,
+                record_id,
+            },
             Some(SzFlags::ENTITY_DEFAULT_FLAGS),
         ) {
             Ok(entity_json) => {
@@ -284,9 +286,11 @@ fn verify_deletion_impact(engine: &dyn SzEngine) -> SzResult<()> {
     ];
 
     for (data_source, record_id) in deleted_records {
-        match engine.get_entity_by_record(
-            data_source,
-            record_id,
+        match engine.get_entity(
+            EntityRef::Record {
+                data_source,
+                record_id,
+            },
             Some(SzFlags::ENTITY_DEFAULT_FLAGS),
         ) {
             Ok(_) => {
@@ -299,9 +303,11 @@ fn verify_deletion_impact(engine: &dyn SzEngine) -> SzResult<()> {
     }
 
     // Check if remaining related records are still resolved
-    match engine.get_entity_by_record(
-        "TEST",
-        "DELETE_TEST_002",
+    match engine.get_entity(
+        EntityRef::Record {
+            data_source: "TEST",
+            record_id: "DELETE_TEST_002",
+        },
         Some(SzFlags::ENTITY_DEFAULT_FLAGS),
     ) {
         Ok(entity_json) => {

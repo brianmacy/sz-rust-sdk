@@ -186,33 +186,31 @@ impl SzEngine for SzEngineCore {
         process_engine_result!(result)
     }
 
-    fn get_entity(&self, entity_id: EntityId, flags: Option<SzFlags>) -> SzResult<JsonString> {
+    fn get_entity(&self, entity_ref: EntityRef, flags: Option<SzFlags>) -> SzResult<JsonString> {
         let flags_bits = flags.unwrap_or(SzFlags::ENTITY_DEFAULT_FLAGS).bits() as i64;
 
-        let result = unsafe { crate::ffi::Sz_getEntityByEntityID_V2_helper(entity_id, flags_bits) };
-
-        process_engine_result!(result)
-    }
-
-    fn get_entity_by_record(
-        &self,
-        data_source_code: &str,
-        record_id: &str,
-        flags: Option<SzFlags>,
-    ) -> SzResult<JsonString> {
-        let data_source_c = crate::ffi::helpers::str_to_c_string(data_source_code)?;
-        let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
-        let flags_bits = flags.unwrap_or(SzFlags::ENTITY_DEFAULT_FLAGS).bits() as i64;
-
-        let result = unsafe {
-            crate::ffi::Sz_getEntityByRecordID_V2_helper(
-                data_source_c.as_ptr(),
-                record_id_c.as_ptr(),
-                flags_bits,
-            )
-        };
-
-        process_engine_result!(result)
+        match entity_ref {
+            EntityRef::Id(entity_id) => {
+                let result =
+                    unsafe { crate::ffi::Sz_getEntityByEntityID_V2_helper(entity_id, flags_bits) };
+                process_engine_result!(result)
+            }
+            EntityRef::Record {
+                data_source,
+                record_id,
+            } => {
+                let data_source_c = crate::ffi::helpers::str_to_c_string(data_source)?;
+                let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
+                let result = unsafe {
+                    crate::ffi::Sz_getEntityByRecordID_V2_helper(
+                        data_source_c.as_ptr(),
+                        record_id_c.as_ptr(),
+                        flags_bits,
+                    )
+                };
+                process_engine_result!(result)
+            }
+        }
     }
 
     fn get_record(
@@ -237,43 +235,38 @@ impl SzEngine for SzEngineCore {
         process_engine_result!(result)
     }
 
-    fn find_interesting_entities_by_entity_id(
+    fn find_interesting_entities(
         &self,
-        entity_id: EntityId,
+        entity_ref: EntityRef,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
         let flags_bits = flags
             .unwrap_or(SzFlags::FIND_INTERESTING_ENTITIES_DEFAULT_FLAGS)
             .bits() as i64;
 
-        let result = unsafe {
-            crate::ffi::Sz_findInterestingEntitiesByEntityID_helper(entity_id, flags_bits)
-        };
-
-        process_engine_result!(result)
-    }
-
-    fn find_interesting_entities_by_record(
-        &self,
-        data_source_code: &str,
-        record_id: &str,
-        flags: Option<SzFlags>,
-    ) -> SzResult<JsonString> {
-        let data_source_c = crate::ffi::helpers::str_to_c_string(data_source_code)?;
-        let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
-        let flags_bits = flags
-            .unwrap_or(SzFlags::FIND_INTERESTING_ENTITIES_DEFAULT_FLAGS)
-            .bits() as i64;
-
-        let result = unsafe {
-            crate::ffi::Sz_findInterestingEntitiesByRecordID_helper(
-                data_source_c.as_ptr(),
-                record_id_c.as_ptr(),
-                flags_bits,
-            )
-        };
-
-        process_engine_result!(result)
+        match entity_ref {
+            EntityRef::Id(entity_id) => {
+                let result = unsafe {
+                    crate::ffi::Sz_findInterestingEntitiesByEntityID_helper(entity_id, flags_bits)
+                };
+                process_engine_result!(result)
+            }
+            EntityRef::Record {
+                data_source,
+                record_id,
+            } => {
+                let data_source_c = crate::ffi::helpers::str_to_c_string(data_source)?;
+                let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
+                let result = unsafe {
+                    crate::ffi::Sz_findInterestingEntitiesByRecordID_helper(
+                        data_source_c.as_ptr(),
+                        record_id_c.as_ptr(),
+                        flags_bits,
+                    )
+                };
+                process_engine_result!(result)
+            }
+        }
     }
 
     fn find_path(
@@ -334,7 +327,7 @@ impl SzEngine for SzEngineCore {
         process_engine_result!(result)
     }
 
-    fn why_entity(
+    fn why_entities(
         &self,
         entity_id1: EntityId,
         entity_id2: EntityId,

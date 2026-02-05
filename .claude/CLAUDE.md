@@ -15,6 +15,7 @@ cargo init --name sz-rust-sdk .
 Once the project is initialized with Cargo:
 
 ### Build Commands
+
 ```bash
 # Build the project
 cargo build
@@ -27,6 +28,7 @@ cargo check
 ```
 
 ### Test Commands
+
 ```bash
 # Run all tests
 cargo test
@@ -42,6 +44,7 @@ cargo tarpaulin --out html
 ```
 
 ### Code Quality Commands
+
 ```bash
 # Format code
 cargo fmt
@@ -57,6 +60,7 @@ cargo clippy --all-targets --all-features -- -D warnings
 ```
 
 ### Documentation
+
 ```bash
 # Build and open documentation
 cargo doc --open
@@ -107,6 +111,7 @@ This is a Rust SDK for Senzing entity resolution engine following the same patte
 - **FFI Completeness** - Bind to ALL native Senzing functions that the C# SDK uses, not just a subset
 
 ### Critical Missing Functions (MUST IMPLEMENT)
+
 - `reevaluate_entity` - Required for stewardship operations
 - `reevaluate_record` - Required for record-level stewardship
 - `why_record_in_entity` - Required for entity analysis
@@ -114,17 +119,20 @@ This is a Rust SDK for Senzing entity resolution engine following the same patte
 - Any other method gaps identified through C# SDK comparison
 
 ### Quality Standards
+
 - Senzing uses a synchronous design
 - **MANDATORY: Use Thread Pools, NOT Async/Await** - Senzing SDK scales with real OS threads, use thread pools and futures for parallelization
 - **Thread Pool Architecture** - Each thread gets its own engine instance, engines are thread-safe at C library level
 - **No Async/Await** - Do not use tokio, async/await, or async runtimes. Use std::thread and mpsc channels for coordination
 - **Thread Scaling** - Examples must demonstrate proper scaling with 4+ OS threads showing per-thread performance metrics
-- No mock tests for this project.  Only ones that actually use the SDK.
+- No mock tests for this project. Only ones that actually use the SDK.
 
 ### Senzing Installation Paths
 
 #### macOS (Homebrew)
+
 Installed via: `brew install senzingsdk-runtime-unofficial`
+
 ```
 Base:       /opt/homebrew/opt/senzing/runtime
 Library:    /opt/homebrew/opt/senzing/runtime/er/lib/libSz.dylib
@@ -134,6 +142,7 @@ Support:    /opt/homebrew/opt/senzing/runtime/data
 ```
 
 Environment variables for macOS:
+
 ```bash
 export DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib
 export SENZING_CONFIGPATH=/opt/homebrew/opt/senzing/runtime/er/resources/templates
@@ -142,6 +151,7 @@ export SENZING_SUPPORTPATH=/opt/homebrew/opt/senzing/runtime/data
 ```
 
 #### Linux (Standard Installation)
+
 ```
 Base:       /opt/senzing/er
 Library:    /opt/senzing/er/lib/libSz.so
@@ -151,14 +161,16 @@ Support:    /opt/senzing/data
 ```
 
 Environment variables for Linux:
+
 ```bash
 export LD_LIBRARY_PATH=/opt/senzing/er/lib
 export SENZING_CONFIGPATH=/opt/senzing/er/resources/templates
 export SENZING_RESOURCEPATH=/opt/senzing/er/resources
 export SENZING_SUPPORTPATH=/opt/senzing/data
 ```
+
 - Look to the C# code for guidance on which native functions to use for FFI.
-- Do not create mock tests for use without the native library.  All tests should require the native library.
+- Do not create mock tests for use without the native library. All tests should require the native library.
 - All the examples must run successfully (target: 22/22 = 100%)
 - Code-snippets are located in simplified structure: `code-snippets/category/example.rs`
 - Make sure all error checking and processing is happening in all the core functions
@@ -170,10 +182,12 @@ export SENZING_SUPPORTPATH=/opt/senzing/data
 ### CRITICAL: Return Codes vs Exception Codes
 
 Native Senzing functions return **simple return codes** (0, -1, -2, etc.) that only indicate whether an error occurred, NOT the actual error type. The return codes are:
+
 - `0` = Success
 - Non-zero = Error occurred (check getLastExceptionCode for details)
 
 **WRONG approach:**
+
 ```rust
 // DO NOT map simple return codes directly to error types!
 match return_code {
@@ -183,6 +197,7 @@ match return_code {
 ```
 
 **CORRECT approach:**
+
 ```rust
 if return_code != 0 {
     // Call getLastExceptionCode() to get the ACTUAL Senzing error code
@@ -195,6 +210,7 @@ if return_code != 0 {
 ### Required FFI Bindings for Error Handling
 
 Each component MUST have these error functions bound:
+
 - `Sz_getLastException()` / `Sz_getLastExceptionCode()` - Engine
 - `SzConfig_getLastException()` / `SzConfig_getLastExceptionCode()` - Config
 - `SzConfigMgr_getLastException()` / `SzConfigMgr_getLastExceptionCode()` - ConfigMgr
@@ -228,6 +244,7 @@ SzError (base)
 ### Error Code Ranges (from getLastExceptionCode)
 
 Map actual Senzing error codes to error types:
+
 - `0-46, 64-100` → BadInput
 - `47-63` → NotInitialized
 - `999` → License
@@ -242,9 +259,10 @@ Map actual Senzing error codes to error types:
 ### Helper Methods Required
 
 Each error type should support:
+
 - `is_retryable()` - Returns true for Retryable and its subtypes
 - `is_unrecoverable()` - Returns true for Unrecoverable and its subtypes
 - `is_bad_input()` - Returns true for BadInput and its subtypes
-- DEMAND code-snippets are minimal demonstrations of a single concept and should limit themselves to the minimal needed to know to accomplish the specific task.  Also, document the Senzing SDK usage well.
+- DEMAND code-snippets are minimal demonstrations of a single concept and should limit themselves to the minimal needed to know to accomplish the specific task. Also, document the Senzing SDK usage well.
 - DEMAND all SDK methods must be implemented and tested
 - DEMAND read both user and project requirements

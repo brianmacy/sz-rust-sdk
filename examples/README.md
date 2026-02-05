@@ -46,61 +46,61 @@ cargo run --example 2>&1 | grep "available examples"
 
 Examples demonstrating SDK initialization and environment setup.
 
-| Example | Description | Run Command |
-|---------|-------------|-------------|
+| Example                | Description                              | Run Command                                |
+| ---------------------- | ---------------------------------------- | ------------------------------------------ |
 | `environment_and_hubs` | Initialize SDK and get component handles | `cargo run --example environment_and_hubs` |
-| `engine_priming` | Prime the engine for optimal performance | `cargo run --example engine_priming` |
+| `engine_priming`       | Prime the engine for optimal performance | `cargo run --example engine_priming`       |
 
 ### 📥 Loading
 
 Examples showing how to load records into the Senzing repository.
 
-| Example | Description | Run Command |
-|---------|-------------|-------------|
-| `load_records` | Basic record loading with various data types | `cargo run --example load_records` |
+| Example          | Description                                    | Run Command                          |
+| ---------------- | ---------------------------------------------- | ------------------------------------ |
+| `load_records`   | Basic record loading with various data types   | `cargo run --example load_records`   |
 | `load_with_info` | Load records with detailed resolution tracking | `cargo run --example load_with_info` |
 
 ### 🔍 Searching
 
 Examples demonstrating entity search capabilities.
 
-| Example | Description | Run Command |
-|---------|-------------|-------------|
-| `search_records` | Search entities by various attribute combinations | `cargo run --example search_records` |
-| `why_search` | Analyze why entities were returned in search results | `cargo run --example why_search` |
+| Example          | Description                                          | Run Command                          |
+| ---------------- | ---------------------------------------------------- | ------------------------------------ |
+| `search_records` | Search entities by various attribute combinations    | `cargo run --example search_records` |
+| `why_search`     | Analyze why entities were returned in search results | `cargo run --example why_search`     |
 
 ### ⚙️ Configuration
 
 Examples showing configuration management and data source registration.
 
-| Example | Description | Run Command |
-|---------|-------------|-------------|
-| `register_data_sources` | Add data sources to Senzing configuration | `cargo run --example register_data_sources` |
-| `manage_configuration` | Comprehensive configuration management demo | `cargo run --example manage_configuration` |
+| Example                 | Description                                 | Run Command                                 |
+| ----------------------- | ------------------------------------------- | ------------------------------------------- |
+| `register_data_sources` | Add data sources to Senzing configuration   | `cargo run --example register_data_sources` |
+| `manage_configuration`  | Comprehensive configuration management demo | `cargo run --example manage_configuration`  |
 
 ### ℹ️ Information
 
 Examples for retrieving system and product information.
 
-| Example | Description | Run Command |
-|---------|-------------|-------------|
-| `get_version` | Get product version and license information | `cargo run --example get_version` |
-| `check_datastore_performance` | Run performance tests on the datastore | `cargo run --example check_datastore_performance` |
+| Example                       | Description                                 | Run Command                                       |
+| ----------------------------- | ------------------------------------------- | ------------------------------------------------- |
+| `get_version`                 | Get product version and license information | `cargo run --example get_version`                 |
+| `check_datastore_performance` | Run performance tests on the datastore      | `cargo run --example check_datastore_performance` |
 
 ### 🗑️ Deleting
 
 Examples demonstrating record deletion and impact analysis.
 
-| Example | Description | Run Command |
-|---------|-------------|-------------|
+| Example          | Description                                         | Run Command                          |
+| ---------------- | --------------------------------------------------- | ------------------------------------ |
 | `delete_records` | Delete records and observe entity resolution impact | `cargo run --example delete_records` |
 
 ### 🎯 Complete Workflow
 
 A comprehensive example demonstrating all major SDK capabilities in sequence.
 
-| Example | Description | Run Command |
-|---------|-------------|-------------|
+| Example             | Description                                                                      | Run Command                             |
+| ------------------- | -------------------------------------------------------------------------------- | --------------------------------------- |
 | `complete_workflow` | End-to-end demo: initialization → configuration → loading → searching → analysis | `cargo run --example complete_workflow` |
 
 ## Example Features
@@ -177,21 +177,27 @@ cargo test --examples -- --nocapture
 ### Common Issues
 
 1. **Missing Environment Variable**
+
    ```
    Error: Configuration error: Unable to get SENZING_ENGINE_CONFIGURATION_JSON environment variable
    ```
+
    Solution: Set the `SENZING_ENGINE_CONFIGURATION_JSON` environment variable
 
 2. **Native Library Not Found**
+
    ```
    Error: FFI error: Failed to load native library
    ```
+
    Solution: Ensure Senzing native libraries are installed and in your library path
 
 3. **Permission Errors**
+
    ```
    Error: Database error: Permission denied
    ```
+
    Solution: Check file permissions for Senzing data directories
 
 4. **Configuration Conflicts**

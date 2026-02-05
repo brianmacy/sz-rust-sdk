@@ -91,8 +91,8 @@ fn main() -> SzResult<()> {
         // Show entity details before force resolve
         println!("\n3. Entity details before force resolve:");
 
-        let entity1_json = engine.get_entity(entity_id1, None)?;
-        let entity2_json = engine.get_entity(entity_id2, None)?;
+        let entity1_json = engine.get_entity(entity_id1.into(), None)?;
+        let entity2_json = engine.get_entity(entity_id2.into(), None)?;
 
         println!(
             "Entity {}: {}",
@@ -128,8 +128,8 @@ fn main() -> SzResult<()> {
         println!("\n6. Final entity state:");
 
         // Get updated entity information
-        let final_entity1 = engine.get_entity(entity_id1, None)?;
-        let final_entity2 = engine.get_entity(entity_id2, None)?;
+        let final_entity1 = engine.get_entity(entity_id1.into(), None)?;
+        let final_entity2 = engine.get_entity(entity_id2.into(), None)?;
 
         println!(
             "Entity {}: {}",
@@ -146,7 +146,7 @@ fn main() -> SzResult<()> {
     // Show why analysis for the resolution
     println!("\n7. Why analysis for entity resolution:");
     let why_flags = SzFlags::WHY_ENTITY_DEFAULT;
-    let why_result = engine.why_entity(entity_id1, entity_id2, Some(why_flags))?;
+    let why_result = engine.why_entities(entity_id1, entity_id2, Some(why_flags))?;
     println!("Why entities result: {}", why_result);
 
     // Clean up test records

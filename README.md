@@ -46,6 +46,7 @@ brew install senzing/tap/senzing
 Senzing installs to `/opt/homebrew/opt/senzing/runtime/er/` (Apple Silicon) or `/usr/local/opt/senzing/runtime/er/` (Intel).
 
 **Required environment variables:**
+
 ```bash
 export DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib
 export SENZING_CONFIGPATH=/opt/homebrew/opt/senzing/runtime/er/etc
@@ -58,6 +59,7 @@ export SENZING_SUPPORTPATH=/opt/homebrew/opt/senzing/runtime/data
 Install Senzing following the [official instructions](https://senzing.com/). Senzing typically installs to `/opt/senzing/er/`.
 
 **Required environment variables:**
+
 ```bash
 export LD_LIBRARY_PATH=/opt/senzing/er/lib
 export SENZING_CONFIGPATH=/opt/senzing/er/etc
@@ -68,12 +70,14 @@ export SENZING_SUPPORTPATH=/opt/senzing/er/data
 ### Build Configuration
 
 The SDK's `build.rs` automatically detects Senzing in these locations (in order):
+
 1. `SENZING_LIB_PATH` environment variable (if set)
 2. Homebrew location: `/opt/homebrew/opt/senzing/runtime/er/lib`
 3. Intel Homebrew: `/usr/local/opt/senzing/runtime/er/lib`
 4. Default Linux: `/opt/senzing/er/lib`
 
 To override, set `SENZING_LIB_PATH` before building:
+
 ```bash
 export SENZING_LIB_PATH=/custom/path/to/senzing/lib
 cargo build
@@ -134,14 +138,14 @@ fn main() -> SzResult<()> {
 
 The SDK follows a "concrete entry point, trait interfaces" pattern:
 
-| Component | Type | Purpose |
-|-----------|------|---------|
-| `SzEnvironmentCore` | Concrete struct | Entry point - use `get_instance()` to initialize |
-| `SzEngine` | Trait (`Box<dyn SzEngine>`) | Entity resolution operations |
-| `SzConfig` | Trait (`Box<dyn SzConfig>`) | Configuration editing |
-| `SzConfigManager` | Trait (`Box<dyn SzConfigManager>`) | Configuration lifecycle |
-| `SzDiagnostic` | Trait (`Box<dyn SzDiagnostic>`) | Diagnostics and performance |
-| `SzProduct` | Trait (`Box<dyn SzProduct>`) | Version and license info |
+| Component           | Type                               | Purpose                                          |
+| ------------------- | ---------------------------------- | ------------------------------------------------ |
+| `SzEnvironmentCore` | Concrete struct                    | Entry point - use `get_instance()` to initialize |
+| `SzEngine`          | Trait (`Box<dyn SzEngine>`)        | Entity resolution operations                     |
+| `SzConfig`          | Trait (`Box<dyn SzConfig>`)        | Configuration editing                            |
+| `SzConfigManager`   | Trait (`Box<dyn SzConfigManager>`) | Configuration lifecycle                          |
+| `SzDiagnostic`      | Trait (`Box<dyn SzDiagnostic>`)    | Diagnostics and performance                      |
+| `SzProduct`         | Trait (`Box<dyn SzProduct>`)       | Version and license info                         |
 
 This allows your code to depend on traits rather than concrete implementations, improving testability and flexibility.
 
@@ -150,24 +154,29 @@ This allows your code to depend on traits rather than concrete implementations, 
 The SDK includes comprehensive examples demonstrating various use cases:
 
 ### Basic Operations
+
 - **`minimal_test`** - Basic SDK functionality verification
 - **`basic_usage`** - Simple entity operations
 - **`complete_workflow`** - End-to-end entity resolution workflow
 
 ### Entity Management
+
 - **`load_records`** - Loading and managing entity records
 - **`delete_records`** - Deleting records and observing impact
 - **`search_records`** - Searching and finding entities
 
 ### Configuration
+
 - **`register_data_sources`** - Adding new data sources
 - **`manage_configuration`** - Configuration lifecycle management
 
 ### Performance & Diagnostics
+
 - **`check_datastore_performance`** - Performance benchmarking
 - **`engine_priming`** - Engine optimization
 
 Run examples with:
+
 ```bash
 cargo run --example minimal_test
 cargo run --example register_data_sources
@@ -179,11 +188,13 @@ cargo run --example load_records
 The SDK provides comprehensive code snippets organized by category, providing complete feature parity with C# v4 code snippets:
 
 ### Information Retrieval
+
 - **`information/get_version`** - Retrieve SDK and engine version information
 - **`information/get_license`** - Display licensing details and limits
 - **`information/database_demo`** - Database operations demonstration
 
 ### Initialization & Configuration
+
 - **`initialization/environment_and_hubs`** - Environment setup and management
 - **`initialization/engine_priming`** - Engine performance optimization
 - **`initialization/purge_repository`** - Repository cleanup operations
@@ -191,35 +202,42 @@ The SDK provides comprehensive code snippets organized by category, providing co
 - **`configuration/register_data_sources`** - Data source registration
 
 ### Loading Operations
+
 - **`loading/load_records`** - Basic record loading
 - **`loading/load_via_loop`** - Batch loading with monitoring
 - **`loading/load_via_loop_threadpool`** - Thread pool batch loading
 
 ### Search Operations
+
 - **`searching/search_records`** - Entity search by attributes
 - **`searching/search_threadpool`** - Thread pool search operations
 - **`searching/why_search`** - Understanding search results
 
 ### Deletion Operations
+
 - **`deleting/delete_records`** - Basic record deletion
 - **`deleting/delete_via_loop`** - Batch deletion with retry logic
 
 ### Redo Processing
+
 - **`redo/load_with_redo_via_loop`** - Loading with redo processing phases
 - **`redo/redo_continuous`** - Continuous redo monitoring
 - **`redo/redo_continuous_via_futures`** - Thread pool redo processing
 - **`redo/redo_with_info_continuous`** - Comprehensive redo tracking
 
 ### Stewardship Operations
+
 - **`stewardship/force_resolve`** - Manual entity resolution forcing
 - **`stewardship/force_unresolve`** - Manual entity separation
 
 Run all code snippets with:
+
 ```bash
 ./run_all_code_snippets.sh
 ```
 
 Run individual snippets with:
+
 ```bash
 cd code-snippets/rust/snippets/[category]/[example]
 cargo run
@@ -228,12 +246,14 @@ cargo run
 ## Development
 
 ### Building
+
 ```bash
 cargo build
 cargo build --release
 ```
 
 ### Testing
+
 ```bash
 # Run all tests
 cargo test
@@ -243,6 +263,7 @@ cargo test -- --nocapture
 ```
 
 ### Code Quality
+
 ```bash
 # Format code
 cargo fmt
@@ -252,6 +273,7 @@ cargo clippy --all-targets --all-features -- -D warnings
 ```
 
 ### Documentation
+
 ```bash
 # Build and open documentation
 cargo doc --open
@@ -295,6 +317,7 @@ Senzing configuration can be provided through:
 1. **Environment Variables** (recommended for development):
 
    **macOS (Homebrew):**
+
    ```bash
    export SENZING_ENGINE_CONFIGURATION_JSON='{
      "PIPELINE": {
@@ -307,6 +330,7 @@ Senzing configuration can be provided through:
    ```
 
    **Linux:**
+
    ```bash
    export SENZING_ENGINE_CONFIGURATION_JSON='{
      "PIPELINE": {

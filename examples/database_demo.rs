@@ -72,7 +72,7 @@ fn demo_entity_operations(engine: &dyn SzEngine) -> SzResult<()> {
 
     // Try getting entity by ID
     println!("\n3. Attempting to retrieve entity by ID...");
-    match engine.get_entity(1, None) {
+    match engine.get_entity(1.into(), None) {
         Ok(entity) => println!("   ✅ Entity 1: {entity}"),
         Err(e) => println!("   ⚠️  Entity 1 not found: {e}"),
     }
