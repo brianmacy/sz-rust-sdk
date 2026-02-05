@@ -7,11 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-02-05
+
 ### Changed
 
 - **BREAKING**: Renamed `why_entity` to `why_entities` to correctly reflect that it compares TWO entities
 - **BREAKING**: Unified `get_entity` and `get_entity_by_record` into single `get_entity(EntityRef, flags)` function
 - **BREAKING**: Unified `find_interesting_entities_by_entity_id` and `find_interesting_entities_by_record` into single `find_interesting_entities(EntityRef, flags)` function
+- **BREAKING**: Error variants now use `ErrorContext` struct instead of individual fields (enables error code/component preservation)
+- **BREAKING**: Error variant matching syntax changed from `SzError::BadInput { message, .. }` to `SzError::BadInput(ctx)`
+- Fixed error code 10 to map to `RetryTimeoutExceeded` instead of `BadInput`
+- Fixed error code 87 to map to `Unhandled` instead of `BadInput`
+- Fixed error codes 1006-1007 to map to `DatabaseConnectionLost` instead of generic `Database`
+- Fixed error code 1008 to map to `DatabaseTransient` instead of generic `Database`
+- Narrowed `NotInitialized` error code range to only codes 48, 49, 50, 53 (was 47-63)
 
 ### Added
 
@@ -19,6 +28,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `EntityRef::Id(EntityId)` variant for entity ID references
 - `EntityRef::Record { data_source, record_id }` variant for record key references
 - `From<EntityId>` trait implementation for automatic conversion to `EntityRef::Id`
+- `ErrorContext` struct to reduce error code duplication and preserve error metadata
+- `SzError::error_code()` method to retrieve native Senzing error codes
+- `SzError::component()` method to identify which SDK component generated the error
+- `SzError::message()` method to extract error message string
+- `SzError::category()` method to get error classification ("database", "license", etc.)
+- `SzError::severity()` method to get error severity level ("critical", "high", "medium", "low")
+- `SzError::is_database()` method to catch all database-related errors
+- `SzError::is_license()` method to catch all license-related errors
+- `SzError::is_configuration()` method to catch all configuration-related errors
+- `SzError::is_initialization()` method to catch all initialization-related errors
+- `SzError::with_source()` builder method for adding error sources
+- `SzResultExt` trait with `.or_retry()`, `.filter_retryable()`, and error checking methods
+- `#[non_exhaustive]` attribute to `SzError` enum for future API stability
 
 ### Removed
 

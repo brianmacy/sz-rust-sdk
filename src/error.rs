@@ -30,27 +30,63 @@
 //!
 //! # Examples
 //!
+//! ## Basic Usage
+//!
 //! ```no_run
 //! use sz_rust_sdk::error::{SzError, SzResult};
 //!
 //! fn example_function() -> SzResult<String> {
-//!     // This would normally come from a Senzing operation
+//!     // Simple error creation
 //!     Err(SzError::configuration("Database not initialized"))
 //! }
 //!
 //! match example_function() {
 //!     Ok(result) => println!("Success: {}", result),
-//!     Err(SzError::Configuration { message, .. }) => {
-//!         eprintln!("Configuration error: {}", message);
+//!     Err(SzError::Configuration(_)) => {
+//!         eprintln!("Configuration error occurred");
 //!     }
 //!     Err(e) => eprintln!("Other error: {}", e),
+//! }
+//! ```
+//!
+//! ## Advanced Usage with Error Context
+//!
+//! ```no_run
+//! use sz_rust_sdk::error::{SzError, SzResult};
+//!
+//! fn check_error_details() -> SzResult<()> {
+//!     let err = SzError::configuration("Invalid config");
+//!
+//!     // Access error code if available
+//!     if let Some(code) = err.error_code() {
+//!         eprintln!("Senzing error code: {}", code);
+//!     }
+//!
+//!     // Check error category
+//!     if err.is_retryable() {
+//!         eprintln!("This error can be retried");
+//!     }
+//!
+//!     Err(err)
+//! }
+//! ```
+//!
+//! ## Error with Source
+//!
+//! ```no_run
+//! use sz_rust_sdk::error::{SzError, SzResult};
+//!
+//! fn parse_json(data: &str) -> SzResult<serde_json::Value> {
+//!     let json_err = serde_json::from_str(data)
+//!         .map_err(|e| SzError::bad_input("Invalid JSON").with_source(e))?;
+//!     Ok(json_err)
 //! }
 //! ```
 
 use std::ffi::{CStr, NulError};
 
 /// Senzing SDK component for error reporting
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SzComponent {
     Engine,
     Config,
@@ -58,7 +94,81 @@ pub enum SzComponent {
     Diagnostic,
     Product,
 }
-use thiserror::Error;
+
+/// Error context containing message, error code, component, and optional cause
+///
+/// This struct is used internally by all error variants to store common error information.
+/// It reduces code duplication and makes error handling more maintainable.
+///
+/// # Fields
+///
+/// * `message` - Human-readable error description
+/// * `code` - Optional Senzing native error code from getLastExceptionCode()
+/// * `component` - Optional SDK component where the error originated
+/// * `source` - Optional underlying error that caused this error (error chaining)
+///
+/// # When to use `source`
+///
+/// Use `source` to preserve error chains when:
+/// - Wrapping a native library error
+/// - An operation fails due to another error
+/// - You need to preserve the error chain for debugging
+///
+/// Don't use `source` for:
+/// - User input validation errors
+/// - Simple state errors (not initialized, etc.)
+#[derive(Debug)]
+pub struct ErrorContext {
+    /// Human-readable error message
+    pub message: String,
+    /// Optional Senzing native error code
+    pub code: Option<i64>,
+    /// Optional SDK component that generated the error
+    pub component: Option<SzComponent>,
+    /// Optional underlying cause of this error
+    pub source: Option<Box<dyn std::error::Error + Send + Sync>>,
+}
+
+impl ErrorContext {
+    /// Creates a new ErrorContext with just a message
+    pub fn new<S: Into<String>>(message: S) -> Self {
+        Self {
+            message: message.into(),
+            code: None,
+            component: None,
+            source: None,
+        }
+    }
+
+    /// Creates an ErrorContext with message, code, and component
+    pub fn with_code<S: Into<String>>(message: S, code: i64, component: SzComponent) -> Self {
+        Self {
+            message: message.into(),
+            code: Some(code),
+            component: Some(component),
+            source: None,
+        }
+    }
+
+    /// Adds a source error to this context
+    pub fn with_source<E>(mut self, source: E) -> Self
+    where
+        E: std::error::Error + Send + Sync + 'static,
+    {
+        self.source = Some(Box::new(source));
+        self
+    }
+}
+
+impl std::fmt::Display for ErrorContext {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.message)?;
+        if let Some(code) = self.code {
+            write!(f, " (code: {})", code)?;
+        }
+        Ok(())
+    }
+}
 
 /// Result type alias for Senzing SDK operations
 ///
@@ -77,6 +187,135 @@ use thiserror::Error;
 /// ```
 pub type SzResult<T> = Result<T, SzError>;
 
+/// Extension trait for Result<T, SzError> to provide error classification helpers
+///
+/// This trait adds convenient methods for handling specific error categories
+/// without having to manually check error types.
+///
+/// # Examples
+///
+/// ```no_run
+/// use sz_rust_sdk::error::{SzResult, SzResultExt};
+/// # use sz_rust_sdk::error::SzError;
+///
+/// fn example() -> SzResult<String> {
+///     let result: SzResult<String> = Err(SzError::database_transient("Deadlock"));
+///
+///     // Map retryable errors to a retry action
+///     result.or_retry(|e| {
+///         println!("Retrying due to: {}", e);
+///         Ok("Retry succeeded".to_string())
+///     })
+/// }
+/// ```
+pub trait SzResultExt<T> {
+    /// If the error is retryable, call the provided closure; otherwise propagate the error
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::{SzResult, SzResultExt};
+    /// # use sz_rust_sdk::error::SzError;
+    ///
+    /// # fn retry_operation() -> SzResult<String> { Ok("success".to_string()) }
+    /// # fn original_operation() -> SzResult<String> { Err(SzError::database_transient("deadlock")) }
+    /// let result = original_operation().or_retry(|e| {
+    ///     eprintln!("Retrying due to: {}", e);
+    ///     retry_operation()
+    /// });
+    /// ```
+    fn or_retry<F>(self, f: F) -> SzResult<T>
+    where
+        F: FnOnce(SzError) -> SzResult<T>;
+
+    /// Maps retryable errors using the provided function, propagates non-retryable errors
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::{SzResult, SzResultExt};
+    /// # use sz_rust_sdk::error::SzError;
+    ///
+    /// # fn operation() -> SzResult<i32> { Err(SzError::database_transient("deadlock")) }
+    /// let result = operation().map_retryable(|e| {
+    ///     println!("Will retry: {}", e);
+    ///     Ok(42)  // Return default value on retry
+    /// });
+    /// ```
+    fn map_retryable<F>(self, f: F) -> SzResult<T>
+    where
+        F: FnOnce(SzError) -> SzResult<T>;
+
+    /// Returns Ok(None) for retryable errors, Err for non-retryable errors
+    ///
+    /// This is useful when you want to filter out retryable errors and handle them
+    /// separately from non-retryable ones.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::{SzResult, SzResultExt};
+    /// # use sz_rust_sdk::error::SzError;
+    ///
+    /// # fn operation() -> SzResult<String> { Err(SzError::database_transient("deadlock")) }
+    /// match operation().filter_retryable() {
+    ///     Ok(Some(value)) => println!("Success: {}", value),
+    ///     Ok(None) => println!("Retryable error, will retry"),
+    ///     Err(e) => println!("Fatal error: {}", e),
+    /// }
+    /// ```
+    fn filter_retryable(self) -> Result<Option<T>, SzError>;
+
+    /// Returns true if the result is an error and that error is retryable
+    fn is_retryable_error(&self) -> bool;
+
+    /// Returns true if the result is an error and that error is unrecoverable
+    fn is_unrecoverable_error(&self) -> bool;
+
+    /// Returns true if the result is an error and that error is bad input
+    fn is_bad_input_error(&self) -> bool;
+}
+
+impl<T> SzResultExt<T> for SzResult<T> {
+    fn or_retry<F>(self, f: F) -> SzResult<T>
+    where
+        F: FnOnce(SzError) -> SzResult<T>,
+    {
+        match self {
+            Ok(value) => Ok(value),
+            Err(e) if e.is_retryable() => f(e),
+            Err(e) => Err(e),
+        }
+    }
+
+    fn map_retryable<F>(self, f: F) -> SzResult<T>
+    where
+        F: FnOnce(SzError) -> SzResult<T>,
+    {
+        self.or_retry(f)
+    }
+
+    fn filter_retryable(self) -> Result<Option<T>, SzError> {
+        match self {
+            Ok(value) => Ok(Some(value)),
+            Err(e) if e.is_retryable() => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    fn is_retryable_error(&self) -> bool {
+        matches!(self, Err(e) if e.is_retryable())
+    }
+
+    fn is_unrecoverable_error(&self) -> bool {
+        matches!(self, Err(e) if e.is_unrecoverable())
+    }
+
+    fn is_bad_input_error(&self) -> bool {
+        matches!(self, Err(e) if e.is_bad_input())
+    }
+}
+
 /// Base error type for all Senzing SDK operations
 ///
 /// This enum represents all possible errors that can occur when using the
@@ -85,291 +324,358 @@ pub type SzResult<T> = Result<T, SzError>;
 ///
 /// The error hierarchy is designed to match the Senzing C# SDK for consistency
 /// across language bindings.
-#[derive(Error, Debug)]
+///
+/// # Non-exhaustive
+///
+/// This enum is marked `#[non_exhaustive]` to allow adding new error variants
+/// in future versions without breaking existing code. Always include a catch-all
+/// pattern when matching.
+///
+/// # Examples
+///
+/// ```no_run
+/// use sz_rust_sdk::error::SzError;
+///
+/// fn handle_error(error: SzError) {
+///     match error {
+///         SzError::NotFound(_) => println!("Resource not found"),
+///         SzError::Configuration(_) => println!("Configuration error"),
+///         // Always include catch-all for non-exhaustive enums
+///         _ => println!("Other error: {}", error),
+///     }
+/// }
+/// ```
+#[derive(Debug)]
+#[non_exhaustive]
 pub enum SzError {
     /// Errors related to invalid input parameters
-    #[error("Bad input: {message}")]
-    BadInput {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    BadInput(ErrorContext),
 
     /// Configuration-related errors
-    #[error("Configuration error: {message}")]
-    Configuration {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    Configuration(ErrorContext),
 
     /// Database operation errors
-    #[error("Database error: {message}")]
-    Database {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    Database(ErrorContext),
 
     /// License-related errors
-    #[error("License error: {message}")]
-    License {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    License(ErrorContext),
 
     /// Resource not found errors
-    #[error("Not found: {message}")]
-    NotFound {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    NotFound(ErrorContext),
 
     /// Errors that indicate the operation should be retried
-    #[error("Retryable error: {message}")]
-    Retryable {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    Retryable(ErrorContext),
 
     /// Unrecoverable errors that require reinitialization
-    #[error("Unrecoverable error: {message}")]
-    Unrecoverable {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    Unrecoverable(ErrorContext),
 
     /// Unknown or unexpected errors
-    #[error("Unknown error: {message}")]
-    Unknown {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    Unknown(ErrorContext),
 
     /// System not initialized errors
-    #[error("Not initialized: {message}")]
-    NotInitialized {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    NotInitialized(ErrorContext),
 
     /// Database connection lost errors
-    #[error("Database connection lost: {message}")]
-    DatabaseConnectionLost {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    DatabaseConnectionLost(ErrorContext),
 
-    /// Database transient errors
-    #[error("Database transient error: {message}")]
-    DatabaseTransient {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    /// Database transient errors (e.g., deadlocks)
+    DatabaseTransient(ErrorContext),
 
     /// Replace conflict errors
-    #[error("Replace conflict: {message}")]
-    ReplaceConflict {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    ReplaceConflict(ErrorContext),
 
     /// Retry timeout exceeded errors
-    #[error("Retry timeout exceeded: {message}")]
-    RetryTimeoutExceeded {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    RetryTimeoutExceeded(ErrorContext),
 
     /// Unhandled errors
-    #[error("Unhandled error: {message}")]
-    Unhandled {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    Unhandled(ErrorContext),
 
     /// Unknown data source errors
-    #[error("Unknown data source: {message}")]
-    UnknownDataSource {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    UnknownDataSource(ErrorContext),
 
     /// Environment has been destroyed
     ///
     /// Corresponds to SzEnvironmentDestroyedException in C# SDK.
     /// This error occurs when attempting to use an environment that has already
     /// been destroyed.
-    #[error("Environment destroyed: {message}")]
-    EnvironmentDestroyed {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    EnvironmentDestroyed(ErrorContext),
 
     /// FFI-related errors
-    #[error("FFI error: {message}")]
-    Ffi {
-        message: String,
-        #[source]
-        source: Option<Box<dyn std::error::Error + Send + Sync>>,
-    },
+    Ffi(ErrorContext),
 
     /// JSON serialization/deserialization errors
-    #[error("JSON error: {0}")]
-    Json(#[from] serde_json::Error),
+    Json(serde_json::Error),
 
     /// String conversion errors (C string handling)
-    #[error("String conversion error: {0}")]
-    StringConversion(#[from] NulError),
+    StringConversion(NulError),
+}
+
+// Manual implementation of Display and Error traits
+impl std::fmt::Display for SzError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::BadInput(ctx) => write!(f, "Bad input: {}", ctx),
+            Self::Configuration(ctx) => write!(f, "Configuration error: {}", ctx),
+            Self::Database(ctx) => write!(f, "Database error: {}", ctx),
+            Self::License(ctx) => write!(f, "License error: {}", ctx),
+            Self::NotFound(ctx) => write!(f, "Not found: {}", ctx),
+            Self::Retryable(ctx) => write!(f, "Retryable error: {}", ctx),
+            Self::Unrecoverable(ctx) => write!(f, "Unrecoverable error: {}", ctx),
+            Self::Unknown(ctx) => write!(f, "Unknown error: {}", ctx),
+            Self::NotInitialized(ctx) => write!(f, "Not initialized: {}", ctx),
+            Self::DatabaseConnectionLost(ctx) => write!(f, "Database connection lost: {}", ctx),
+            Self::DatabaseTransient(ctx) => write!(f, "Database transient error: {}", ctx),
+            Self::ReplaceConflict(ctx) => write!(f, "Replace conflict: {}", ctx),
+            Self::RetryTimeoutExceeded(ctx) => write!(f, "Retry timeout exceeded: {}", ctx),
+            Self::Unhandled(ctx) => write!(f, "Unhandled error: {}", ctx),
+            Self::UnknownDataSource(ctx) => write!(f, "Unknown data source: {}", ctx),
+            Self::EnvironmentDestroyed(ctx) => write!(f, "Environment destroyed: {}", ctx),
+            Self::Ffi(ctx) => write!(f, "FFI error: {}", ctx),
+            Self::Json(e) => write!(f, "JSON error: {}", e),
+            Self::StringConversion(e) => write!(f, "String conversion error: {}", e),
+        }
+    }
+}
+
+impl std::error::Error for SzError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::BadInput(ctx)
+            | Self::Configuration(ctx)
+            | Self::Database(ctx)
+            | Self::License(ctx)
+            | Self::NotFound(ctx)
+            | Self::Retryable(ctx)
+            | Self::Unrecoverable(ctx)
+            | Self::Unknown(ctx)
+            | Self::NotInitialized(ctx)
+            | Self::DatabaseConnectionLost(ctx)
+            | Self::DatabaseTransient(ctx)
+            | Self::ReplaceConflict(ctx)
+            | Self::RetryTimeoutExceeded(ctx)
+            | Self::Unhandled(ctx)
+            | Self::UnknownDataSource(ctx)
+            | Self::EnvironmentDestroyed(ctx)
+            | Self::Ffi(ctx) => ctx.source.as_ref().map(|e| &**e as &dyn std::error::Error),
+            Self::Json(e) => Some(e),
+            Self::StringConversion(e) => Some(e),
+        }
+    }
+}
+
+// Implement From for automatic conversions
+impl From<serde_json::Error> for SzError {
+    fn from(err: serde_json::Error) -> Self {
+        Self::Json(err)
+    }
+}
+
+impl From<NulError> for SzError {
+    fn from(err: NulError) -> Self {
+        Self::StringConversion(err)
+    }
 }
 
 impl SzError {
+    // ========================================================================
+    // Error Construction - Simple Constructors
+    // ========================================================================
+
     /// Creates a new BadInput error
     pub fn bad_input<S: Into<String>>(message: S) -> Self {
-        Self::BadInput {
-            message: message.into(),
-            source: None,
-        }
+        Self::BadInput(ErrorContext::new(message))
     }
 
     /// Creates a new Configuration error
     pub fn configuration<S: Into<String>>(message: S) -> Self {
-        Self::Configuration {
-            message: message.into(),
-            source: None,
-        }
+        Self::Configuration(ErrorContext::new(message))
     }
 
     /// Creates a new Database error
     pub fn database<S: Into<String>>(message: S) -> Self {
-        Self::Database {
-            message: message.into(),
-            source: None,
-        }
+        Self::Database(ErrorContext::new(message))
     }
 
     /// Creates a new License error
     pub fn license<S: Into<String>>(message: S) -> Self {
-        Self::License {
-            message: message.into(),
-            source: None,
-        }
+        Self::License(ErrorContext::new(message))
     }
 
     /// Creates a new NotFound error
     pub fn not_found<S: Into<String>>(message: S) -> Self {
-        Self::NotFound {
-            message: message.into(),
-            source: None,
-        }
+        Self::NotFound(ErrorContext::new(message))
     }
 
     /// Creates a new Retryable error
     pub fn retryable<S: Into<String>>(message: S) -> Self {
-        Self::Retryable {
-            message: message.into(),
-            source: None,
-        }
+        Self::Retryable(ErrorContext::new(message))
     }
 
     /// Creates a new Unrecoverable error
     pub fn unrecoverable<S: Into<String>>(message: S) -> Self {
-        Self::Unrecoverable {
-            message: message.into(),
-            source: None,
-        }
+        Self::Unrecoverable(ErrorContext::new(message))
     }
 
     /// Creates a new Unknown error
     pub fn unknown<S: Into<String>>(message: S) -> Self {
-        Self::Unknown {
-            message: message.into(),
-            source: None,
-        }
+        Self::Unknown(ErrorContext::new(message))
     }
 
     /// Creates a new FFI error
     pub fn ffi<S: Into<String>>(message: S) -> Self {
-        Self::Ffi {
-            message: message.into(),
-            source: None,
-        }
+        Self::Ffi(ErrorContext::new(message))
     }
 
     /// Creates a new NotInitialized error
     pub fn not_initialized<S: Into<String>>(message: S) -> Self {
-        Self::NotInitialized {
-            message: message.into(),
-            source: None,
-        }
+        Self::NotInitialized(ErrorContext::new(message))
     }
 
     /// Creates a new DatabaseConnectionLost error
     pub fn database_connection_lost<S: Into<String>>(message: S) -> Self {
-        Self::DatabaseConnectionLost {
-            message: message.into(),
-            source: None,
-        }
+        Self::DatabaseConnectionLost(ErrorContext::new(message))
     }
 
     /// Creates a new DatabaseTransient error
     pub fn database_transient<S: Into<String>>(message: S) -> Self {
-        Self::DatabaseTransient {
-            message: message.into(),
-            source: None,
-        }
+        Self::DatabaseTransient(ErrorContext::new(message))
     }
 
     /// Creates a new ReplaceConflict error
     pub fn replace_conflict<S: Into<String>>(message: S) -> Self {
-        Self::ReplaceConflict {
-            message: message.into(),
-            source: None,
-        }
+        Self::ReplaceConflict(ErrorContext::new(message))
     }
 
     /// Creates a new RetryTimeoutExceeded error
     pub fn retry_timeout_exceeded<S: Into<String>>(message: S) -> Self {
-        Self::RetryTimeoutExceeded {
-            message: message.into(),
-            source: None,
-        }
+        Self::RetryTimeoutExceeded(ErrorContext::new(message))
     }
 
     /// Creates a new Unhandled error
     pub fn unhandled<S: Into<String>>(message: S) -> Self {
-        Self::Unhandled {
-            message: message.into(),
-            source: None,
-        }
+        Self::Unhandled(ErrorContext::new(message))
     }
 
     /// Creates a new UnknownDataSource error
     pub fn unknown_data_source<S: Into<String>>(message: S) -> Self {
-        Self::UnknownDataSource {
-            message: message.into(),
-            source: None,
-        }
+        Self::UnknownDataSource(ErrorContext::new(message))
     }
 
     /// Creates a new EnvironmentDestroyed error
     pub fn environment_destroyed<S: Into<String>>(message: S) -> Self {
-        Self::EnvironmentDestroyed {
-            message: message.into(),
-            source: None,
+        Self::EnvironmentDestroyed(ErrorContext::new(message))
+    }
+
+    // ========================================================================
+    // Error Inspection - Helper Methods
+    // ========================================================================
+
+    /// Returns the error code if available
+    ///
+    /// Error codes are populated when errors are created from native Senzing
+    /// error codes via `from_code()` or `from_code_with_message()`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::SzError;
+    ///
+    /// let error = SzError::from_code(999);
+    /// assert_eq!(error.error_code(), Some(999));
+    /// ```
+    pub fn error_code(&self) -> Option<i64> {
+        match self {
+            Self::BadInput(ctx)
+            | Self::Configuration(ctx)
+            | Self::Database(ctx)
+            | Self::License(ctx)
+            | Self::NotFound(ctx)
+            | Self::Retryable(ctx)
+            | Self::Unrecoverable(ctx)
+            | Self::Unknown(ctx)
+            | Self::NotInitialized(ctx)
+            | Self::DatabaseConnectionLost(ctx)
+            | Self::DatabaseTransient(ctx)
+            | Self::ReplaceConflict(ctx)
+            | Self::RetryTimeoutExceeded(ctx)
+            | Self::Unhandled(ctx)
+            | Self::UnknownDataSource(ctx)
+            | Self::EnvironmentDestroyed(ctx)
+            | Self::Ffi(ctx) => ctx.code,
+            Self::Json(_) | Self::StringConversion(_) => None,
+        }
+    }
+
+    /// Returns the component that generated this error
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::{SzError, SzComponent};
+    ///
+    /// let error = SzError::from_code_with_message(999, SzComponent::Engine);
+    /// assert_eq!(error.component(), Some(SzComponent::Engine));
+    /// ```
+    pub fn component(&self) -> Option<SzComponent> {
+        match self {
+            Self::BadInput(ctx)
+            | Self::Configuration(ctx)
+            | Self::Database(ctx)
+            | Self::License(ctx)
+            | Self::NotFound(ctx)
+            | Self::Retryable(ctx)
+            | Self::Unrecoverable(ctx)
+            | Self::Unknown(ctx)
+            | Self::NotInitialized(ctx)
+            | Self::DatabaseConnectionLost(ctx)
+            | Self::DatabaseTransient(ctx)
+            | Self::ReplaceConflict(ctx)
+            | Self::RetryTimeoutExceeded(ctx)
+            | Self::Unhandled(ctx)
+            | Self::UnknownDataSource(ctx)
+            | Self::EnvironmentDestroyed(ctx)
+            | Self::Ffi(ctx) => ctx.component,
+            Self::Json(_) | Self::StringConversion(_) => None,
+        }
+    }
+
+    /// Returns the error message
+    ///
+    /// This extracts just the message string without the error type prefix.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::SzError;
+    ///
+    /// let error = SzError::database_connection_lost("Connection failed");
+    /// assert_eq!(error.message(), "Connection failed");
+    ///
+    /// let error = SzError::from_code(1008);
+    /// // Returns the message from getLastException()
+    /// assert!(!error.message().is_empty());
+    /// ```
+    pub fn message(&self) -> &str {
+        match self {
+            Self::BadInput(ctx)
+            | Self::Configuration(ctx)
+            | Self::Database(ctx)
+            | Self::License(ctx)
+            | Self::NotFound(ctx)
+            | Self::Retryable(ctx)
+            | Self::Unrecoverable(ctx)
+            | Self::Unknown(ctx)
+            | Self::NotInitialized(ctx)
+            | Self::DatabaseConnectionLost(ctx)
+            | Self::DatabaseTransient(ctx)
+            | Self::ReplaceConflict(ctx)
+            | Self::RetryTimeoutExceeded(ctx)
+            | Self::Unhandled(ctx)
+            | Self::UnknownDataSource(ctx)
+            | Self::EnvironmentDestroyed(ctx)
+            | Self::Ffi(ctx) => &ctx.message,
+            Self::Json(_) => "JSON error",
+            Self::StringConversion(_) => "String conversion error",
         }
     }
 
@@ -379,13 +685,22 @@ impl SzError {
     /// - DatabaseConnectionLost
     /// - DatabaseTransient
     /// - RetryTimeoutExceeded
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::SzError;
+    ///
+    /// let error = SzError::database_connection_lost("Connection lost");
+    /// assert!(error.is_retryable());
+    /// ```
     pub fn is_retryable(&self) -> bool {
         matches!(
             self,
-            SzError::Retryable { .. }
-                | SzError::DatabaseConnectionLost { .. }
-                | SzError::DatabaseTransient { .. }
-                | SzError::RetryTimeoutExceeded { .. }
+            SzError::Retryable(_)
+                | SzError::DatabaseConnectionLost(_)
+                | SzError::DatabaseTransient(_)
+                | SzError::RetryTimeoutExceeded(_)
         )
     }
 
@@ -396,14 +711,23 @@ impl SzError {
     /// - License
     /// - NotInitialized
     /// - Unhandled
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::SzError;
+    ///
+    /// let error = SzError::license("License expired");
+    /// assert!(error.is_unrecoverable());
+    /// ```
     pub fn is_unrecoverable(&self) -> bool {
         matches!(
             self,
-            SzError::Unrecoverable { .. }
-                | SzError::Database { .. }
-                | SzError::License { .. }
-                | SzError::NotInitialized { .. }
-                | SzError::Unhandled { .. }
+            SzError::Unrecoverable(_)
+                | SzError::Database(_)
+                | SzError::License(_)
+                | SzError::NotInitialized(_)
+                | SzError::Unhandled(_)
         )
     }
 
@@ -412,34 +736,220 @@ impl SzError {
     /// This includes BadInput and its subtypes:
     /// - NotFound
     /// - UnknownDataSource
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::SzError;
+    ///
+    /// let error = SzError::not_found("Entity not found");
+    /// assert!(error.is_bad_input());
+    /// ```
     pub fn is_bad_input(&self) -> bool {
         matches!(
             self,
-            SzError::BadInput { .. } | SzError::NotFound { .. } | SzError::UnknownDataSource { .. }
+            SzError::BadInput(_) | SzError::NotFound(_) | SzError::UnknownDataSource(_)
         )
     }
 
+    /// Returns true if this is a database-related error
+    ///
+    /// This includes ALL database errors regardless of retryability:
+    /// - Database (unrecoverable)
+    /// - DatabaseConnectionLost (retryable)
+    /// - DatabaseTransient (retryable)
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::SzError;
+    ///
+    /// // Unrecoverable database error
+    /// let error = SzError::database("Schema error");
+    /// assert!(error.is_database());
+    /// assert!(error.is_unrecoverable());
+    ///
+    /// // Retryable database error
+    /// let error = SzError::database_transient("Deadlock");
+    /// assert!(error.is_database());
+    /// assert!(error.is_retryable());
+    /// ```
+    pub fn is_database(&self) -> bool {
+        matches!(
+            self,
+            SzError::Database(_)
+                | SzError::DatabaseConnectionLost(_)
+                | SzError::DatabaseTransient(_)
+        )
+    }
+
+    /// Returns true if this is a license-related error
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::SzError;
+    ///
+    /// let error = SzError::license("License expired");
+    /// assert!(error.is_license());
+    /// ```
+    pub fn is_license(&self) -> bool {
+        matches!(self, SzError::License(_))
+    }
+
+    /// Returns true if this is a configuration-related error
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::SzError;
+    ///
+    /// let error = SzError::configuration("Invalid config");
+    /// assert!(error.is_configuration());
+    /// ```
+    pub fn is_configuration(&self) -> bool {
+        matches!(self, SzError::Configuration(_))
+    }
+
+    /// Returns true if this is an initialization-related error
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::SzError;
+    ///
+    /// let error = SzError::not_initialized("SDK not initialized");
+    /// assert!(error.is_initialization());
+    /// ```
+    pub fn is_initialization(&self) -> bool {
+        matches!(self, SzError::NotInitialized(_))
+    }
+
+    // ========================================================================
+    // Error Metadata - For Error Reporting Integration
+    // ========================================================================
+
+    /// Returns the error category as a string
+    ///
+    /// This is useful for error reporting tools and logging systems that need
+    /// to categorize errors.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::SzError;
+    ///
+    /// let error = SzError::from_code(1008);
+    /// assert_eq!(error.category(), "database_transient");
+    ///
+    /// let error = SzError::license("Expired");
+    /// assert_eq!(error.category(), "license");
+    /// ```
+    pub fn category(&self) -> &'static str {
+        match self {
+            Self::BadInput(_) | Self::NotFound(_) | Self::UnknownDataSource(_) => "bad_input",
+            Self::Configuration(_) => "configuration",
+            Self::Database(_) => "database",
+            Self::DatabaseConnectionLost(_) => "database_connection",
+            Self::DatabaseTransient(_) => "database_transient",
+            Self::License(_) => "license",
+            Self::NotInitialized(_) => "not_initialized",
+            Self::Retryable(_) | Self::RetryTimeoutExceeded(_) => "retryable",
+            Self::Unrecoverable(_) | Self::Unhandled(_) => "unrecoverable",
+            Self::ReplaceConflict(_) => "replace_conflict",
+            Self::EnvironmentDestroyed(_) => "environment_destroyed",
+            Self::Unknown(_) => "unknown",
+            Self::Ffi(_) => "ffi",
+            Self::Json(_) => "json",
+            Self::StringConversion(_) => "string_conversion",
+        }
+    }
+
+    /// Returns the severity level of this error
+    ///
+    /// Severity levels:
+    /// - `"critical"`: License failures, unhandled errors
+    /// - `"high"`: Database errors, not initialized
+    /// - `"medium"`: Connection issues, transient errors, configuration
+    /// - `"low"`: Input validation, not found
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::SzError;
+    ///
+    /// let error = SzError::license("Expired");
+    /// assert_eq!(error.severity(), "critical");
+    ///
+    /// let error = SzError::database_transient("Deadlock");
+    /// assert_eq!(error.severity(), "medium");
+    /// ```
+    pub fn severity(&self) -> &'static str {
+        match self {
+            Self::License(_) | Self::Unrecoverable(_) | Self::Unhandled(_) => "critical",
+            Self::Database(_) | Self::NotInitialized(_) => "high",
+            Self::DatabaseConnectionLost(_)
+            | Self::DatabaseTransient(_)
+            | Self::Configuration(_) => "medium",
+            _ => "low",
+        }
+    }
+
+    // ========================================================================
+    // Error Code Mapping - From Native Senzing Errors
+    // ========================================================================
+
     /// Creates an error from getLastExceptionCode() with message from getLastException()
+    ///
+    /// This method maps native Senzing error codes to the appropriate Rust error type.
+    /// The mapping is based on the C# SDK v4.2.0 error code mappings.
+    ///
+    /// # Error Code Mapping
+    ///
+    /// Specific codes (checked first):
+    /// - 10: RetryTimeoutExceeded
+    /// - 87: Unhandled
+    /// - 48, 49, 50, 53: NotInitialized
+    /// - 999: License
+    /// - 1006, 1007: DatabaseConnectionLost
+    /// - 1008: DatabaseTransient
+    ///
+    /// Ranges (checked after specific codes):
+    /// - 2-98 (excluding specific codes): BadInput
+    /// - 1000-1019 (excluding specific codes): Database
+    /// - 2000-2300: Configuration
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::{SzError, SzComponent};
+    ///
+    /// let error = SzError::from_code_with_message(999, SzComponent::Engine);
+    /// assert!(matches!(error, SzError::License(_)));
+    /// assert_eq!(error.error_code(), Some(999));
+    /// ```
     pub fn from_code_with_message(error_code: i64, component: SzComponent) -> Self {
         let error_msg = Self::get_last_exception_message(component, error_code);
+        let ctx = ErrorContext::with_code(error_msg, error_code, component);
 
+        // Match specific error codes FIRST (most specific)
+        // Based on C# SDK v4.2.0 SzExceptionMapper.cs
         match error_code {
-            // Specific error codes that map to new error types (check these first)
-            47..=63 => Self::not_initialized(error_msg), // Not initialized errors
+            // Specific exception mappings (highest priority)
+            10 => Self::RetryTimeoutExceeded(ctx),
+            87 => Self::Unhandled(ctx),
+            48 | 49 | 50 | 53 => Self::NotInitialized(ctx),
+            999 => Self::License(ctx),
+            1006 | 1007 => Self::DatabaseConnectionLost(ctx),
+            1008 => Self::DatabaseTransient(ctx),
 
-            // Detailed error code ranges from getLastExceptionCode()
-            0..=46 | 64..=100 => Self::bad_input(error_msg), // Bad input range (excluding not_initialized)
-            999 => Self::license(error_msg),                 // License error
-            1000..=1020 => Self::database(error_msg),        // Database errors
-            2000..=2300 => Self::configuration(error_msg),   // Configuration errors
-            7200..=7299 => Self::configuration(error_msg),   // Configuration errors (extended)
-            7301..=7400 => Self::bad_input(error_msg),       // Bad input errors (extended)
-            8500..=8600 => Self::database(error_msg),        // Secure storage/database
-            9000..=9099 | 9201..=9999 => Self::license(error_msg), // License errors (extended)
-            9100..=9200 => Self::configuration(error_msg),   // Configuration errors (extended)
+            // Range mappings (checked after specific codes)
+            2..=98 => Self::BadInput(ctx),
+            1000..=1019 => Self::Database(ctx),
+            2000..=2300 => Self::Configuration(ctx),
 
-            // Default to unknown for any other codes
-            _ => Self::unknown(error_msg),
+            // Unknown for any other codes
+            _ => Self::Unknown(ctx),
         }
     }
 
@@ -495,10 +1005,13 @@ impl SzError {
 
     /// Creates an Unknown error from a source error
     pub fn from_source(source: Box<dyn std::error::Error + Send + Sync>) -> Self {
-        Self::Unknown {
-            message: source.to_string(),
+        let message = source.to_string();
+        Self::Unknown(ErrorContext {
+            message,
+            code: None,
+            component: None,
             source: Some(source),
-        }
+        })
     }
 
     /// Creates an Unknown error with a custom message and source
@@ -506,84 +1019,423 @@ impl SzError {
         message: S,
         source: Box<dyn std::error::Error + Send + Sync>,
     ) -> Self {
-        Self::Unknown {
+        Self::Unknown(ErrorContext {
             message: message.into(),
+            code: None,
+            component: None,
             source: Some(source),
-        }
+        })
     }
 }
+
+// ========================================================================
+// ErrorContext Extension Methods
+// ========================================================================
+
+impl ErrorContext {
+    /// Adds a source error (builder pattern)
+    ///
+    /// This is useful for chaining error construction:
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::ErrorContext;
+    ///
+    /// let ctx = ErrorContext::new("Parse failed")
+    ///     .with_source(std::io::Error::other("IO error"));
+    /// ```
+    pub fn chain_source<E>(mut self, source: E) -> Self
+    where
+        E: std::error::Error + Send + Sync + 'static,
+    {
+        self.source = Some(Box::new(source));
+        self
+    }
+}
+
+// ========================================================================
+// SzError Extension Methods for Builder Pattern
+// ========================================================================
+
+impl SzError {
+    /// Adds a source error to this error (builder pattern)
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::SzError;
+    ///
+    /// fn parse_config(data: &str) -> Result<(), SzError> {
+    ///     let json_result: Result<serde_json::Value, _> = serde_json::from_str(data);
+    ///     json_result.map_err(|e|
+    ///         SzError::configuration("Invalid JSON config")
+    ///             .with_source(e)
+    ///     )?;
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn with_source<E>(mut self, source: E) -> Self
+    where
+        E: std::error::Error + Send + Sync + 'static,
+    {
+        match &mut self {
+            Self::BadInput(ctx)
+            | Self::Configuration(ctx)
+            | Self::Database(ctx)
+            | Self::License(ctx)
+            | Self::NotFound(ctx)
+            | Self::Retryable(ctx)
+            | Self::Unrecoverable(ctx)
+            | Self::Unknown(ctx)
+            | Self::NotInitialized(ctx)
+            | Self::DatabaseConnectionLost(ctx)
+            | Self::DatabaseTransient(ctx)
+            | Self::ReplaceConflict(ctx)
+            | Self::RetryTimeoutExceeded(ctx)
+            | Self::Unhandled(ctx)
+            | Self::UnknownDataSource(ctx)
+            | Self::EnvironmentDestroyed(ctx)
+            | Self::Ffi(ctx) => {
+                ctx.source = Some(Box::new(source));
+            }
+            // Json and StringConversion already have their source
+            Self::Json(_) | Self::StringConversion(_) => {}
+        }
+        self
+    }
+}
+
+// ========================================================================
+// Tests
+// ========================================================================
 
 #[cfg(test)]
 mod test_error_mapping {
     use super::*;
+    use std::error::Error;
 
     #[test]
-    fn test_error_code_7220_maps_to_configuration() {
-        let error = SzError::from_code(7220);
-        match error {
-            SzError::Configuration { message, .. } => {
-                // Message should either be from getLastException or fallback format
-                assert!(message.contains("7220") || !message.is_empty());
-            }
-            _ => panic!("Error code 7220 should map to Configuration, got: {error:?}"),
-        }
+    fn test_error_code_10_maps_to_retry_timeout() {
+        let error = SzError::from_code(10);
+        assert!(
+            matches!(error, SzError::RetryTimeoutExceeded(_)),
+            "Error code 10 should map to RetryTimeoutExceeded, got: {error:?}"
+        );
+        assert_eq!(error.error_code(), Some(10));
+    }
+
+    #[test]
+    fn test_error_code_87_maps_to_unhandled() {
+        let error = SzError::from_code(87);
+        assert!(
+            matches!(error, SzError::Unhandled(_)),
+            "Error code 87 should map to Unhandled, got: {error:?}"
+        );
+        assert_eq!(error.error_code(), Some(87));
+    }
+
+    #[test]
+    fn test_error_code_1006_maps_to_connection_lost() {
+        let error = SzError::from_code(1006);
+        assert!(
+            matches!(error, SzError::DatabaseConnectionLost(_)),
+            "Error code 1006 should map to DatabaseConnectionLost, got: {error:?}"
+        );
+        assert!(error.is_retryable());
+        assert_eq!(error.error_code(), Some(1006));
+    }
+
+    #[test]
+    fn test_error_code_1007_maps_to_connection_lost() {
+        let error = SzError::from_code(1007);
+        assert!(
+            matches!(error, SzError::DatabaseConnectionLost(_)),
+            "Error code 1007 should map to DatabaseConnectionLost, got: {error:?}"
+        );
+        assert!(error.is_retryable());
+    }
+
+    #[test]
+    fn test_error_code_1008_maps_to_database_transient() {
+        let error = SzError::from_code(1008);
+        assert!(
+            matches!(error, SzError::DatabaseTransient(_)),
+            "Error code 1008 should map to DatabaseTransient, got: {error:?}"
+        );
+        assert!(error.is_retryable());
+        assert_eq!(error.error_code(), Some(1008));
     }
 
     #[test]
     fn test_not_initialized_error_codes() {
-        for code in 47..=63 {
+        for code in [48, 49, 50, 53] {
             let error = SzError::from_code(code);
-            match error {
-                SzError::NotInitialized { .. } => {
-                    // Expected
-                }
-                _ => panic!("Error code {code} should map to NotInitialized, got: {error:?}"),
-            }
+            assert!(
+                matches!(error, SzError::NotInitialized(_)),
+                "Error code {code} should map to NotInitialized, got: {error:?}"
+            );
         }
     }
 
     #[test]
     fn test_license_error_code_999() {
         let error = SzError::from_code(999);
-        match error {
-            SzError::License { .. } => {
-                // Expected
-            }
-            _ => panic!("Error code 999 should map to License, got: {error:?}"),
-        }
+        assert!(
+            matches!(error, SzError::License(_)),
+            "Error code 999 should map to License, got: {error:?}"
+        );
+        assert_eq!(error.error_code(), Some(999));
     }
 
     #[test]
     fn test_database_error_range() {
         let error = SzError::from_code(1010);
-        match error {
-            SzError::Database { .. } => {
-                // Expected
-            }
-            _ => panic!("Error code 1010 should map to Database, got: {error:?}"),
+        assert!(
+            matches!(error, SzError::Database(_)),
+            "Error code 1010 should map to Database, got: {error:?}"
+        );
+    }
+
+    #[test]
+    fn test_bad_input_range() {
+        for code in [2, 7, 22, 33, 51, 88] {
+            let error = SzError::from_code(code);
+            assert!(
+                matches!(error, SzError::BadInput(_)),
+                "Error code {code} should map to BadInput, got: {error:?}"
+            );
         }
+    }
+
+    #[test]
+    fn test_configuration_range() {
+        let error = SzError::from_code(2001);
+        assert!(
+            matches!(error, SzError::Configuration(_)),
+            "Error code 2001 should map to Configuration, got: {error:?}"
+        );
     }
 
     #[test]
     fn test_unknown_error_default() {
         let error = SzError::from_code(99999);
-        match error {
-            SzError::Unknown { .. } => {
-                // Expected
-            }
-            _ => panic!("Error code 99999 should map to Unknown, got: {error:?}"),
-        }
+        assert!(
+            matches!(error, SzError::Unknown(_)),
+            "Error code 99999 should map to Unknown, got: {error:?}"
+        );
     }
 
     #[test]
     fn test_from_code_with_message() {
-        let error = SzError::from_code_with_message(7220, SzComponent::Config);
-        match error {
-            SzError::Configuration { message, .. } => {
-                // Message should either be from getLastException or fallback format
-                assert!(!message.is_empty());
-            }
-            _ => panic!("Error code 7220 should map to Configuration, got: {error:?}"),
-        }
+        let error = SzError::from_code_with_message(999, SzComponent::Config);
+        assert!(matches!(error, SzError::License(_)));
+        assert_eq!(error.component(), Some(SzComponent::Config));
+        assert_eq!(error.error_code(), Some(999));
+    }
+
+    #[test]
+    fn test_error_with_source() {
+        let json_err = serde_json::from_str::<serde_json::Value>("invalid").unwrap_err();
+        let error = SzError::configuration("Parse failed").with_source(json_err);
+
+        assert!(matches!(error, SzError::Configuration(_)));
+        assert!(error.source().is_some());
+    }
+
+    #[test]
+    fn test_is_retryable_methods() {
+        assert!(SzError::retry_timeout_exceeded("Timeout").is_retryable());
+        assert!(SzError::database_connection_lost("Lost").is_retryable());
+        assert!(SzError::database_transient("Deadlock").is_retryable());
+        assert!(!SzError::bad_input("Invalid").is_retryable());
+    }
+
+    #[test]
+    fn test_is_unrecoverable_methods() {
+        assert!(SzError::license("Expired").is_unrecoverable());
+        assert!(SzError::not_initialized("Not init").is_unrecoverable());
+        assert!(SzError::database("DB error").is_unrecoverable());
+        assert!(!SzError::bad_input("Invalid").is_unrecoverable());
+    }
+
+    #[test]
+    fn test_is_bad_input_methods() {
+        assert!(SzError::bad_input("Invalid").is_bad_input());
+        assert!(SzError::not_found("Missing").is_bad_input());
+        assert!(SzError::unknown_data_source("Unknown").is_bad_input());
+        assert!(!SzError::configuration("Config").is_bad_input());
+    }
+
+    #[test]
+    fn test_error_context_preservation() {
+        let error = SzError::from_code_with_message(1008, SzComponent::Engine);
+
+        assert_eq!(error.error_code(), Some(1008));
+        assert_eq!(error.component(), Some(SzComponent::Engine));
+        assert!(error.is_retryable());
+    }
+
+    #[test]
+    fn test_error_category() {
+        assert_eq!(
+            SzError::database_transient("test").category(),
+            "database_transient"
+        );
+        assert_eq!(SzError::license("test").category(), "license");
+        assert_eq!(SzError::bad_input("test").category(), "bad_input");
+        assert_eq!(SzError::not_found("test").category(), "bad_input");
+        assert_eq!(SzError::configuration("test").category(), "configuration");
+    }
+
+    #[test]
+    fn test_error_severity() {
+        assert_eq!(SzError::license("test").severity(), "critical");
+        assert_eq!(SzError::unhandled("test").severity(), "critical");
+        assert_eq!(SzError::database("test").severity(), "high");
+        assert_eq!(SzError::database_transient("test").severity(), "medium");
+        assert_eq!(SzError::bad_input("test").severity(), "low");
+    }
+
+    #[test]
+    fn test_error_metadata_complete() {
+        let error = SzError::from_code_with_message(1008, SzComponent::Engine);
+
+        // Verify all metadata is accessible
+        assert_eq!(error.error_code(), Some(1008));
+        assert_eq!(error.component(), Some(SzComponent::Engine));
+        assert_eq!(error.category(), "database_transient");
+        assert_eq!(error.severity(), "medium");
+        assert!(error.is_retryable());
+        assert!(!error.is_unrecoverable());
+        assert!(!error.is_bad_input());
+    }
+
+    #[test]
+    fn test_result_ext_or_retry() {
+        use super::SzResultExt;
+
+        // Retryable error should trigger retry
+        let result: SzResult<i32> = Err(SzError::database_transient("Deadlock"));
+        let retried = result.or_retry(|e| {
+            assert!(e.is_retryable());
+            Ok(42)
+        });
+        assert_eq!(retried.unwrap(), 42);
+
+        // Non-retryable error should propagate
+        let result: SzResult<i32> = Err(SzError::license("Expired"));
+        let retried = result.or_retry(|_| Ok(42));
+        assert!(retried.is_err());
+        assert!(retried.unwrap_err().is_unrecoverable());
+    }
+
+    #[test]
+    fn test_result_ext_filter_retryable() {
+        use super::SzResultExt;
+
+        // Success should return Some
+        let result: SzResult<i32> = Ok(42);
+        assert_eq!(result.filter_retryable().unwrap(), Some(42));
+
+        // Retryable error should return None
+        let result: SzResult<i32> = Err(SzError::database_transient("Deadlock"));
+        assert_eq!(result.filter_retryable().unwrap(), None);
+
+        // Non-retryable error should propagate
+        let result: SzResult<i32> = Err(SzError::license("Expired"));
+        assert!(result.filter_retryable().is_err());
+    }
+
+    #[test]
+    fn test_result_ext_is_retryable_error() {
+        use super::SzResultExt;
+
+        let ok_result: SzResult<i32> = Ok(42);
+        assert!(!ok_result.is_retryable_error());
+
+        let retryable: SzResult<i32> = Err(SzError::database_transient("Deadlock"));
+        assert!(retryable.is_retryable_error());
+
+        let not_retryable: SzResult<i32> = Err(SzError::license("Expired"));
+        assert!(!not_retryable.is_retryable_error());
+    }
+
+    #[test]
+    fn test_result_ext_is_unrecoverable_error() {
+        use super::SzResultExt;
+
+        let ok_result: SzResult<i32> = Ok(42);
+        assert!(!ok_result.is_unrecoverable_error());
+
+        let unrecoverable: SzResult<i32> = Err(SzError::license("Expired"));
+        assert!(unrecoverable.is_unrecoverable_error());
+
+        let recoverable: SzResult<i32> = Err(SzError::bad_input("Invalid"));
+        assert!(!recoverable.is_unrecoverable_error());
+    }
+
+    #[test]
+    fn test_result_ext_is_bad_input_error() {
+        use super::SzResultExt;
+
+        let ok_result: SzResult<i32> = Ok(42);
+        assert!(!ok_result.is_bad_input_error());
+
+        let bad_input: SzResult<i32> = Err(SzError::bad_input("Invalid"));
+        assert!(bad_input.is_bad_input_error());
+
+        let not_bad_input: SzResult<i32> = Err(SzError::license("Expired"));
+        assert!(!not_bad_input.is_bad_input_error());
+    }
+
+    #[test]
+    fn test_is_database_methods() {
+        // All database-related errors
+        assert!(SzError::database("Schema error").is_database());
+        assert!(SzError::database_connection_lost("Lost").is_database());
+        assert!(SzError::database_transient("Deadlock").is_database());
+
+        // Non-database errors
+        assert!(!SzError::license("Expired").is_database());
+        assert!(!SzError::configuration("Invalid").is_database());
+
+        // Database errors can be retryable or unrecoverable
+        assert!(SzError::database("Schema").is_database());
+        assert!(SzError::database("Schema").is_unrecoverable());
+
+        assert!(SzError::database_transient("Deadlock").is_database());
+        assert!(SzError::database_transient("Deadlock").is_retryable());
+    }
+
+    #[test]
+    fn test_is_license_methods() {
+        assert!(SzError::license("Expired").is_license());
+        assert!(!SzError::database("Error").is_license());
+    }
+
+    #[test]
+    fn test_is_configuration_methods() {
+        assert!(SzError::configuration("Invalid").is_configuration());
+        assert!(!SzError::database("Error").is_configuration());
+    }
+
+    #[test]
+    fn test_is_initialization_methods() {
+        assert!(SzError::not_initialized("Not init").is_initialization());
+        assert!(!SzError::database("Error").is_initialization());
+    }
+
+    #[test]
+    fn test_error_domain_and_behavior_combined() {
+        // Database error that's retryable
+        let error = SzError::database_transient("Deadlock");
+        assert!(error.is_database());
+        assert!(error.is_retryable());
+        assert!(!error.is_unrecoverable());
+
+        // Database error that's unrecoverable
+        let error = SzError::database("Schema error");
+        assert!(error.is_database());
+        assert!(error.is_unrecoverable());
+        assert!(!error.is_retryable());
     }
 }
