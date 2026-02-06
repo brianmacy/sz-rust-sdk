@@ -319,9 +319,14 @@ impl ExampleEnvironment {
         }
     }
 
-    /// Get the standard Senzing configuration for examples with shared database
+    /// Get the standard Senzing configuration for examples with verbose logging
     fn get_configuration_verbose() -> SzResult<String> {
         if let Ok(config) = std::env::var("SENZING_ENGINE_CONFIGURATION_JSON") {
+            if !config.contains("CONNECTION") {
+                return Err(SzError::configuration(
+                    "SENZING_ENGINE_CONFIGURATION_JSON is set but missing SQL.CONNECTION",
+                ));
+            }
             return Ok(config);
         }
 
@@ -349,6 +354,11 @@ impl ExampleEnvironment {
     /// Get the standard Senzing configuration for examples with shared database
     fn get_configuration() -> SzResult<String> {
         if let Ok(config) = std::env::var("SENZING_ENGINE_CONFIGURATION_JSON") {
+            if !config.contains("CONNECTION") {
+                return Err(SzError::configuration(
+                    "SENZING_ENGINE_CONFIGURATION_JSON is set but missing SQL.CONNECTION",
+                ));
+            }
             return Ok(config);
         }
 

@@ -49,6 +49,7 @@
 
 pub mod core;
 pub mod error;
+mod error_mappings_generated; // Internal - generated error mappings used by error module
 mod ffi; // Internal FFI module - not part of public API
 pub mod flags;
 pub mod traits;

@@ -1,0 +1,2738 @@
+{
+    "2": {
+        "code": "SENZ0002",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_INVALID_MESSAGE",
+        "comment": "Invalid Message"
+    },
+    "5": {
+        "code": "SENZ0005",
+        "class": "SzError",
+        "name": "EAS_ERR_EXCEEDED_MAX_RETRIES",
+        "comment": "Exceeded the Maximum Number of Retries Allowed"
+    },
+    "7": {
+        "code": "SENZ0007",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_EMPTY_MESSAGE",
+        "comment": "Empty Message"
+    },
+    "10": {
+        "code": "SENZ0010",
+        "class": "SzRetryTimeoutExceededError",
+        "name": "EAS_ERR_RETRY_TIMEOUT",
+        "comment": "Retry timeout exceeded resolved entity locklist [{0}]"
+    },
+    "14": {
+        "code": "SENZ0014",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_DATASTORE_CONFIGURATION_TYPE",
+        "comment": "Invalid Datastore Configuration Type"
+    },
+    "18": {
+        "code": "SENZ0018",
+        "class": "SzError",
+        "name": "EAS_ERR_COULD_NOT_PROCESS_INITIALIZATION_SETTINGS",
+        "comment": "Could not process initialization settings"
+    },
+    "19": {
+        "code": "SENZ0019",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_NO_CONFIGURATION_FOUND",
+        "comment": "Configuration not found"
+    },
+    "20": {
+        "code": "SENZ0020",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CONFIG_CANNOT_BE_NULL_DATABASE",
+        "comment": "Configuration cannot be loaded from database connection"
+    },
+    "21": {
+        "code": "SENZ0021",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CONFIG_CANNOT_BE_NULL_CONFIG_FILE",
+        "comment": "Configuration cannot be loaded from config file"
+    },
+    "22": {
+        "code": "SENZ0022",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_INVALID_DOCTYPE",
+        "comment": "Invalid DocType {0}"
+    },
+    "23": {
+        "code": "SENZ0023",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_CONFLICTING_DATA_SOURCE_VALUES",
+        "comment": "Conflicting DATA_SOURCE values '{0}' and '{1}'"
+    },
+    "24": {
+        "code": "SENZ0024",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_CONFLICTING_RECORD_ID_VALUES",
+        "comment": "Conflicting RECORD_ID values '{0}' and '{1}'"
+    },
+    "25": {
+        "code": "SENZ0025",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_INVALID_BULK_REQUEST",
+        "comment": "Invalid Bulk Request [{0}]"
+    },
+    "26": {
+        "code": "SENZ0026",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_RESERVED_WORD_USED_IN_DOCUMENT",
+        "comment": "Inbound data contains a reserved keyword '{0}'"
+    },
+    "27": {
+        "code": "SENZ0027",
+        "class": "SzError",
+        "name": "EAS_ERR_INVALID_VALUE_FOR_SEARCH_ATTRIBUTES",
+        "comment": "Invalid value for search-attributes"
+    },
+    "28": {
+        "code": "SENZ0028",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_JSON_CONFIG_DOCUMENT",
+        "comment": "Invalid JSON config document"
+    },
+    "29": {
+        "code": "SENZ0029",
+        "class": "SzError",
+        "name": "EAS_ERR_INVALID_VALUE_OF_MAX_ENTITIES",
+        "comment": "Invalid value of max entities '{0}'"
+    },
+    "30": {
+        "code": "SENZ0030",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_MATCH_LEVEL",
+        "comment": "Invalid match level '{0}'"
+    },
+    "31": {
+        "code": "SENZ0031",
+        "class": "SzError",
+        "name": "EAS_ERR_INVALID_VALUE_OF_MAX_DEGREE",
+        "comment": "Invalid value of max degree '{0}'"
+    },
+    "32": {
+        "code": "SENZ0032",
+        "class": "SzError",
+        "name": "EAS_ERR_INVALID_VALUE_OF_BUILDOUT_DEGREE",
+        "comment": "Invalid value of build out degree '{0}'"
+    },
+    "33": {
+        "code": "SENZ0033",
+        "class": "SzNotFoundError",
+        "name": "EAS_ERR_UNKNOWN_DSRC_RECORD_ID",
+        "comment": "Unknown record: dsrc[{0}], record[{1}]"
+    },
+    "34": {
+        "code": "SENZ0034",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_AMBIGUOUS_ENTITY_FTYPE_MISSING",
+        "comment": "AMBIGUOUS_ENTITY Feature Type is not configured"
+    },
+    "35": {
+        "code": "SENZ0035",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_AMBIGUOUS_TIER_FELEM_MISSING",
+        "comment": "AMBIGUOUS_TIER Feature Element is not configured"
+    },
+    "36": {
+        "code": "SENZ0036",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_AMBIGUOUS_FTYPE_ID_FELEM_MISSING",
+        "comment": "AMBIGUOUS_FTYPE_ID Feature Element is not configured"
+    },
+    "37": {
+        "code": "SENZ0037",
+        "class": "SzNotFoundError",
+        "name": "EAS_ERR_UNKNOWN_RESOLVED_ENTITY_VALUE",
+        "comment": "Unknown resolved entity value '{0}'"
+    },
+    "38": {
+        "code": "SENZ0038",
+        "class": "SzError",
+        "name": "EAS_ERR_RECORD_HAS_NO_RESOLVED_ENTITY",
+        "comment": "Data source record has no resolved entity: dsrc[{0}], recordID[{1}]"
+    },
+    "39": {
+        "code": "SENZ0039",
+        "class": "SzError",
+        "name": "EAS_ERR_NO_OBSERVED_ENTITY_FOR_DSRC_ENTITY_KEY",
+        "comment": "No observed entity for entity key: dsrc[{0}], record_id[{1}], key[{2}]"
+    },
+    "40": {
+        "code": "SENZ0040",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CONFIG_COMPATIBILITY_MISMATCH",
+        "comment": "The engine configuration compatibility version [{0}] does not match the version of the provided config[{1}]."
+    },
+    "41": {
+        "code": "SENZ0041",
+        "class": "SzError",
+        "name": "EAS_ERR_DOCUMENT_PREPROCESSING_FAILED",
+        "comment": "Document preprocessing failed"
+    },
+    "42": {
+        "code": "SENZ0042",
+        "class": "SzError",
+        "name": "EAS_ERR_DOCUMENT_LOAD_PROCESSING_FAILED",
+        "comment": "Document load processing failed"
+    },
+    "43": {
+        "code": "SENZ0043",
+        "class": "SzError",
+        "name": "EAS_ERR_DOCUMENT_ER_PROCESSING_FAILED",
+        "comment": "Document ER processing failed"
+    },
+    "45": {
+        "code": "SENZ0045",
+        "class": "SzError",
+        "name": "EAS_ERR_INPUT_PROCEDURE_PROCESSING_FAILED",
+        "comment": "Input procedure processing failed"
+    },
+    "46": {
+        "code": "SENZ0046",
+        "class": "SzError",
+        "name": "EAS_ERR_DOCUMENT_HASHING_PROCESSING_FAILED",
+        "comment": "Document hashing-processing failed"
+    },
+    "47": {
+        "code": "SENZ0047",
+        "class": "SzError",
+        "name": "EAS_ERR_SESSION_IS_INVALID",
+        "comment": "Session is invalid"
+    },
+    "48": {
+        "code": "SENZ0048",
+        "class": "SzNotInitializedError",
+        "name": "EAS_ERR_SZ_NOT_INITIALIZED",
+        "comment": "SDK is not initialized"
+    },
+    "49": {
+        "code": "SENZ0049",
+        "class": "SzNotInitializedError",
+        "name": "EAS_ERR_SZCORE_ALREADY_INITIALIZED",
+        "comment": "SzCore is already initialized - call SzCore::destroy() first"
+    },
+    "50": {
+        "code": "SENZ0050",
+        "class": "SzNotInitializedError",
+        "name": "EAS_ERR_SZCORE_NOT_INITIALIZED",
+        "comment": "SzCore is not initialized - call SzCore::init() first"
+    },
+    "51": {
+        "code": "SENZ0051",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_BOTH_RECORD_ID_AND_ENT_SRC_KEY_SPECIFIED",
+        "comment": "Cannot use both Record ID and Entity Source Key in record"
+    },
+    "52": {
+        "code": "SENZ0052",
+        "class": "SzError",
+        "name": "EAS_ERR_UNKNOWN_RELATIONSHIP_ID_VALUE",
+        "comment": "Unknown relationship ID value '{0}'"
+    },
+    "53": {
+        "code": "SENZ0053",
+        "class": "SzNotInitializedError",
+        "name": "EAS_ERR_RECORD_ID_REQUIRED",
+        "comment": "RECORD_ID must be provided"
+    },
+    "54": {
+        "code": "SENZ0054",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_SZ_DATA_REPOSITORY_WAS_PURGED",
+        "comment": "Data repository was purged"
+    },
+    "55": {
+        "code": "SENZ0055",
+        "class": "SzError",
+        "name": "EAS_ERR_NO_RESOLVED_ENTITY_FOR_DSRC_ENTITY_KEY",
+        "comment": "No resolved entity for entity key: dsrc[{0}], record_id[{1}], key[{2}]"
+    },
+    "56": {
+        "code": "SENZ0056",
+        "class": "SzError",
+        "name": "EAS_ERR_NO_RECORDS_EXIST_FOR_RESOLVED_ENTITY",
+        "comment": "No data source records exist for entity ID: entityID[{0}]"
+    },
+    "57": {
+        "code": "SENZ0057",
+        "class": "SzError",
+        "name": "EAS_ERR_UNKNOWN_FEATURE_ID_VALUE",
+        "comment": "Unknown feature ID value '{0}'"
+    },
+    "58": {
+        "code": "SENZ0058",
+        "class": "SzError",
+        "name": "EAS_ERR_SZ_INITIALIZATION_FAILURE",
+        "comment": "Sz initialization process has failed"
+    },
+    "60": {
+        "code": "SENZ0060",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CONFIG_DATABASE_MISMATCH",
+        "comment": "The engine configuration does not match the records loaded into the repository:  errors[{0}]."
+    },
+    "61": {
+        "code": "SENZ0061",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_AMBIGUOUS_SUPPRESSED_LIBFEAT_FELEM_MISSING",
+        "comment": "AMBIGUOUS_SUPPRESSED_LIBFEAT Feature Element is not configured"
+    },
+    "62": {
+        "code": "SENZ0062",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_AMBIGUOUS_TYPE_FELEM_MISSING",
+        "comment": "AMBIGUOUS_TYPE Feature Element is not configured"
+    },
+    "64": {
+        "code": "SENZ0064",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CONFUSED_ENTITY_FTYPE_MISSING",
+        "comment": "CONFUSED_ENTITY Feature Type is not configured"
+    },
+    "65": {
+        "code": "SENZ0065",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_SUPPRESSED_RELATION_DOMAIN_FTYPE_MISSING",
+        "comment": "SUPPRESSED_RELATION_DOMAIN Feature Type is not configured"
+    },
+    "66": {
+        "code": "SENZ0066",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_UNKNOWN_GENERIC_PLAN_VALUE",
+        "comment": "Unknown generic plan value '{0}'"
+    },
+    "67": {
+        "code": "SENZ0067",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_GENERIC_PLAN_VALUE",
+        "comment": "Invalid Generic Plan ID [{0}] configured for the '{1}' retention level.'"
+    },
+    "68": {
+        "code": "SENZ0068",
+        "class": "SzError",
+        "name": "EAS_ERR_UNKNOWN_ER_RESULT",
+        "comment": "Unknown ER-result."
+    },
+    "69": {
+        "code": "SENZ0069",
+        "class": "SzError",
+        "name": "EAS_ERR_NO_CANDIDATES",
+        "comment": "No candidates."
+    },
+    "76": {
+        "code": "SENZ0076",
+        "class": "SzError",
+        "name": "EAS_ERR_INBOUND_FEATURE_VERSION_NEWER_THAN_CONFIG",
+        "comment": "Inbound Feature Version [{0}] is newer than configured version [{1}] for feature type[{2}]."
+    },
+    "77": {
+        "code": "SENZ0077",
+        "class": "SzError",
+        "name": "EAS_ERR_ERROR_WHEN_PRIMING_GNR",
+        "comment": "Error when priming GNR resources '{0}'"
+    },
+    "78": {
+        "code": "SENZ0078",
+        "class": "SzError",
+        "name": "EAS_ERR_ERROR_WHEN_ENCRYPTING",
+        "comment": "Error when encrypting '{0}'"
+    },
+    "79": {
+        "code": "SENZ0079",
+        "class": "SzError",
+        "name": "EAS_ERR_ERROR_WHEN_DECRYPTING",
+        "comment": "Error when decrypting '{0}'"
+    },
+    "80": {
+        "code": "SENZ0080",
+        "class": "SzError",
+        "name": "EAS_ERR_ERROR_WHEN_VALIDATING_ENCRYPTION_SIGNATURE_COMPATIBILITY",
+        "comment": "Error when validating encryption signature compatibility '{0}'"
+    },
+    "81": {
+        "code": "SENZ0081",
+        "class": "SzError",
+        "name": "EAS_ERR_ERROR_WHEN_CHECKING_DISTINCT_FEATURE_GENERALIZATION",
+        "comment": "Error when checking distinct feature generalization '{0}'"
+    },
+    "82": {
+        "code": "SENZ0082",
+        "class": "SzError",
+        "name": "EAS_ERR_ERROR_WHEN_RUNNING_DQM",
+        "comment": "Error when running DQM '{0}'"
+    },
+    "83": {
+        "code": "SENZ0083",
+        "class": "SzError",
+        "name": "EAS_ERR_ERROR_WHEN_CREATING_EFEATS",
+        "comment": "Error when creating EFEATS '{0}'"
+    },
+    "84": {
+        "code": "SENZ0084",
+        "class": "SzError",
+        "name": "EAS_ERR_ERROR_WHEN_SIMPLE_SCORING",
+        "comment": "Error when simple scoring '{0}'"
+    },
+    "85": {
+        "code": "SENZ0085",
+        "class": "SzError",
+        "name": "EAS_ERR_ERROR_WHEN_SCORING_PAIR",
+        "comment": "Error when scoring a pair '{0}'"
+    },
+    "86": {
+        "code": "SENZ0086",
+        "class": "SzError",
+        "name": "EAS_ERR_ERROR_WHEN_SCORING_SET",
+        "comment": "Error when scoring a set '{0}'"
+    },
+    "87": {
+        "code": "SENZ0087",
+        "class": "SzUnhandledError",
+        "name": "EAS_ERR_SZ_EXCEPTION",
+        "comment": "Sz Exception '{0}'"
+    },
+    "88": {
+        "code": "SENZ0088",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_UNKNOWN_SEARCH_PROFILE_VALUE",
+        "comment": "Unknown search profile value '{0}'"
+    },
+    "89": {
+        "code": "SENZ0089",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_MISCONFIGURED_SEARCH_PROFILE_VALUE",
+        "comment": "Misconfigured search profile value '{0}'"
+    },
+    "90": {
+        "code": "SENZ0090",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CANNOT_ADD_LIBRARY_FEATURES_TO_DATASTORE",
+        "comment": "Cannot add library features to datastore:  '{0}'"
+    },
+    "91": {
+        "code": "SENZ0091",
+        "class": "SzError",
+        "name": "EAS_ERR_TRUSTED_ID_FTYPE_MISSING",
+        "comment": "TRUSTED_ID Feature Type is not configured"
+    },
+    "92": {
+        "code": "SENZ0092",
+        "class": "SzError",
+        "name": "EAS_ERR_RECORD_TYPE_FTYPE_MISSING",
+        "comment": "RECORD_TYPE Feature Type is not configured"
+    },
+    "93": {
+        "code": "SENZ0093",
+        "class": "SzError",
+        "name": "EAS_ERR_CONFUSED_ENTITY_FELEM_MISSING",
+        "comment": "YESNO_FLAG Feature Element is not configured"
+    },
+    "94": {
+        "code": "SENZ0094",
+        "class": "SzError",
+        "name": "EAS_ERR_DOMAIN_NAME_FELEM_MISSING",
+        "comment": "DOMAIN_NAME Feature Element is not configured"
+    },
+    "95": {
+        "code": "SENZ0095",
+        "class": "SzError",
+        "name": "EAS_ERR_SUPPRESSED_RELATIONSHIP_FTYPE_ID_FELEM_MISSING",
+        "comment": "SUPPRESSED_RELATIONSHIP_FTYPE_ID Feature Element is not configured"
+    },
+    "96": {
+        "code": "SENZ0096",
+        "class": "SzError",
+        "name": "EAS_ERR_SUPPRESSED_RELATIONSHIP_CONNECTING_FTYPE_ID_FELEM_MISSING",
+        "comment": "SUPPRESSED_RELATIONSHIP_CONNECTING_FTYPE_ID Feature Element is not configured"
+    },
+    "97": {
+        "code": "SENZ0097",
+        "class": "SzError",
+        "name": "EAS_ERR_ORPHANED_ENTITY_FTYPE_MISSING",
+        "comment": "ORPHANED_ENTITY Feature Type is not configured"
+    },
+    "98": {
+        "code": "SENZ0098",
+        "class": "SzError",
+        "name": "EAS_ERR_ORPHANED_ENTITY_FELEM_MISSING",
+        "comment": "VALUE Feature Element is not configured"
+    },
+    "999": {
+        "code": "SENZ0999",
+        "class": "SzLicenseError",
+        "name": "EAS_ERR_LICENSE_HAS_EXPIRED",
+        "comment": "License has expired. {0}"
+    },
+    "1000": {
+        "code": "SENZ1000",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_UNHANDLED_DATABASE_ERROR",
+        "comment": "Unhandled Database Error '{0}'"
+    },
+    "1001": {
+        "code": "SENZ1001",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_CRITICAL_DATABASE_ERROR",
+        "comment": "Critical Database Error '{0}'"
+    },
+    "1002": {
+        "code": "SENZ1002",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_DATABASE_MEMORY_ERROR",
+        "comment": "Database Memory Error '{0}'"
+    },
+    "1003": {
+        "code": "SENZ1003",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_TABLE_SPACE_OR_LOG_VIOLATION",
+        "comment": "Table Space or Log Violation '{0}'"
+    },
+    "1004": {
+        "code": "SENZ1004",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_RESOURCE_CONTENTION",
+        "comment": "Resource Contention '{0}'"
+    },
+    "1005": {
+        "code": "SENZ1005",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_USER_DEFINED_PROC_ERROR",
+        "comment": "User Defined Procedure or Function Error '{0}'"
+    },
+    "1006": {
+        "code": "SENZ1006",
+        "class": "SzDatabaseConnectionLostError",
+        "name": "EAS_ERR_DATABASE_CONNECTION_FAILURE",
+        "comment": "Database Connection Failure '{0}'"
+    },
+    "1007": {
+        "code": "SENZ1007",
+        "class": "SzDatabaseConnectionLostError",
+        "name": "EAS_ERR_DATABASE_CONNECTION_LOST",
+        "comment": "Database Connection Lost '{0}'"
+    },
+    "1008": {
+        "code": "SENZ1008",
+        "class": "SzDatabaseTransientError",
+        "name": "EAS_ERR_DEADLOCK_ERROR",
+        "comment": "Deadlock Error '{0}'"
+    },
+    "1009": {
+        "code": "SENZ1009",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_INSUFFICIENT_PERMISSIONS",
+        "comment": "Insufficient Permissions '{0}'"
+    },
+    "1010": {
+        "code": "SENZ1010",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_TRANSACTION_ERROR",
+        "comment": "Transaction Error '{0}'"
+    },
+    "1011": {
+        "code": "SENZ1011",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_UNIQUE_CONSTRAINT_VIOLATION",
+        "comment": "Unique Constraint Violation '{0}'"
+    },
+    "1012": {
+        "code": "SENZ1012",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_CONSTRAINT_VIOLATION",
+        "comment": "Constraint Violation '{0}'"
+    },
+    "1013": {
+        "code": "SENZ1013",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_SYNTAX_ERROR",
+        "comment": "Syntax Error '{0}'"
+    },
+    "1014": {
+        "code": "SENZ1014",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_CURSOR_ERROR",
+        "comment": "Cursor Error '{0}'"
+    },
+    "1015": {
+        "code": "SENZ1015",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_DATATYPE_ERROR",
+        "comment": "Data Type Error '{0}'"
+    },
+    "1016": {
+        "code": "SENZ1016",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_TRANSACTION_ABORTED_ERROR",
+        "comment": "Transaction Aborted '{0}'"
+    },
+    "1017": {
+        "code": "SENZ1017",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_DATABASE_OPERATOR_NOT_SET",
+        "comment": "Database operator not set '{0}'"
+    },
+    "1018": {
+        "code": "SENZ1018",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_DATABASE_EXCEPTION_GENERATOR_NOT_SET",
+        "comment": "Database exception generator not set '{0}'"
+    },
+    "1019": {
+        "code": "SENZ1019",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DATABASE_SCHEMA_TABLES_NOT_FOUND",
+        "comment": "Datastore schema tables not found. [{0}]"
+    },
+    "2001": {
+        "code": "SENZ2001",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FEATURE_HAS_NO_FTYPE_CODE",
+        "comment": "Cannot process feature with no FTYPE_CODE[{0}]"
+    },
+    "2002": {
+        "code": "SENZ2002",
+        "class": "SzError",
+        "name": "EAS_ERR_REQUESTED_CONFIG_FOR_INVALID_FTYPE_CODE",
+        "comment": "Requested config for invalid FTYPE_CODE[{0}]"
+    },
+    "2003": {
+        "code": "SENZ2003",
+        "class": "SzError",
+        "name": "EAS_ERR_NO_FELEM_CODE",
+        "comment": "Cannot process OBS_FELEM with no FELEM_CODE[{0}]"
+    },
+    "2005": {
+        "code": "SENZ2005",
+        "class": "SzError",
+        "name": "EAS_ERR_INVALID_FELEM_CODE",
+        "comment": "FELEM_CODE[{0}] is not configured for FTYPE_CODE[{1}]"
+    },
+    "2006": {
+        "code": "SENZ2006",
+        "class": "SzError",
+        "name": "EAS_ERR_MISSING_ENT_SRC_KEY",
+        "comment": "OBS_ENT is missing ENT_SRC_KEY"
+    },
+    "2007": {
+        "code": "SENZ2007",
+        "class": "SzError",
+        "name": "EAS_ERR_MISSING_OBS_SRC_KEY",
+        "comment": "OBS is missing OBS_SRC_KEY"
+    },
+    "2009": {
+        "code": "SENZ2009",
+        "class": "SzError",
+        "name": "EAS_ERR_NO_OBS_ENT_FOR_ENT_SRC_KEY",
+        "comment": "No OBS_ENT found for ENT_SRC_KEY[{0}]"
+    },
+    "2010": {
+        "code": "SENZ2010",
+        "class": "SzError",
+        "name": "EAS_ERR_ENT_SRC_KEY_CHANGED",
+        "comment": "Expected ENT_SRC_KEY [{0}] changed to [{1}]"
+    },
+    "2012": {
+        "code": "SENZ2012",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ERRULE_CONFIGURED_FOR_RESOLVE_AND_RELATE",
+        "comment": "ER Rule [{0}] is configured for both resolve and relate."
+    },
+    "2015": {
+        "code": "SENZ2015",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_FTYPE_CODE",
+        "comment": "Invalid FTYPE_CODE[{0}]"
+    },
+    "2027": {
+        "code": "SENZ2027",
+        "class": "SzError",
+        "name": "EAS_ERR_PLUGIN_INIT",
+        "comment": "Plugin initialization error {0}"
+    },
+    "2029": {
+        "code": "SENZ2029",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_REQUESTED_CONFIG_FOR_INVALID_PLUGIN",
+        "comment": "Configuration not found for plugin type: {0}"
+    },
+    "2034": {
+        "code": "SENZ2034",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_CFRTN_VAL",
+        "comment": "CFRTN_ID[{0}]/FTYPE[{1}] is expecting CFRTN_VAL[{2}] which is not offered by CFUNC_ID[{3}][{4}]. Available scores are [{5}]"
+    },
+    "2036": {
+        "code": "SENZ2036",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FTYPE_HAS_NO_BOM",
+        "comment": "FType configured with no Feature Elements (Bill of Materials)  FTYPE_ID[{0}] FTYPE_CODE[{1}]"
+    },
+    "2037": {
+        "code": "SENZ2037",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FUNC_CALL_HAS_NO_BOM",
+        "comment": "Function call ({3}) configured with no Bill of Materials  {4}[{0}] FTYPE_ID[{1}] FTYPE_CODE[{2}]"
+    },
+    "2038": {
+        "code": "SENZ2038",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DISTINCT_FEATURE_HAS_NO_BOM",
+        "comment": "Distinct feature call configured with no Bill of Materials  DFCALL_ID[{0}]"
+    },
+    "2041": {
+        "code": "SENZ2041",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EFCALL_HAS_NO_BOM",
+        "comment": "EFeature creation call configured with no Bill of Materials  EFCALL_ID[{0}]"
+    },
+    "2045": {
+        "code": "SENZ2045",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CFRTN_REFERS_BAD_CFUNC_ID",
+        "comment": "CFG_CFRTN references CFUNC_ID[{0}] which is not configured"
+    },
+    "2047": {
+        "code": "SENZ2047",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_MISSING_DSRC_CODE",
+        "comment": "Observation is missing DSRC_CODE tag which is required"
+    },
+    "2048": {
+        "code": "SENZ2048",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FEAT_FREQ_INVALID",
+        "comment": "FEATURE CODE[{0}] FEATURE FREQUENCY[{1}] is an invalid frequency"
+    },
+    "2049": {
+        "code": "SENZ2049",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FUNC_INVALID",
+        "comment": "{2} [{0}] is invalid for {3}[{1}]"
+    },
+    "2050": {
+        "code": "SENZ2050",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_QUAL_FRAG_NOT_FOUND",
+        "comment": "Rule[{0}] Qualifier Fragment[{1}]: Fragment not found"
+    },
+    "2051": {
+        "code": "SENZ2051",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DISQUAL_FRAG_NOT_FOUND",
+        "comment": "Rule[{0}] Disqualifier Fragment[{1}]: Fragment not found"
+    },
+    "2057": {
+        "code": "SENZ2057",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_BAD_DSRC_ACTION",
+        "comment": "Observation has DSRC_ACTION[{0}] which is invalid.  Valid values are [A]dd, [C]hange, [D]elete or E[X]tensive Evaluation"
+    },
+    "2061": {
+        "code": "SENZ2061",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DUPLICATE_LOOKUP_IDENTIFIER",
+        "comment": "Duplicate [{0}] with identifier value [{1}].  Only unique values are allowed."
+    },
+    "2062": {
+        "code": "SENZ2062",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_LOOKUP_IDENTIFIER",
+        "comment": "Requested lookup of [{0}] using unknown value [{1}].  Value not found."
+    },
+    "2065": {
+        "code": "SENZ2065",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FTYPE_HAS_MULTIPLE_DEFINITIONS",
+        "comment": "FType configured with multiple definitions. FTYPE_CODE[{0}] used in FTYPE_ID[{1}] and FTYPE_ID[{2}]"
+    },
+    "2066": {
+        "code": "SENZ2066",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FELEM_HAS_MULTIPLE_DEFINITIONS",
+        "comment": "FElem configured with multiple definitions. FELEM_CODE[{0}] used in FELEM_ID[{1}] and FELEM_ID[{2}]"
+    },
+    "2067": {
+        "code": "SENZ2067",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ERFRAG_HAS_MULTIPLE_DEFINITIONS",
+        "comment": "ER Fragment code configured with multiple definitions. ERFRAG_CODE[{0}] used in ERFRAG_ID[{1}] and ERFRAG_ID[{2}]"
+    },
+    "2069": {
+        "code": "SENZ2069",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_BOM_CONFIG_INVALID_FOR_SIMPLE_PLUGIN",
+        "comment": "Configured plugin for CFCALL_ID[{0}] requires exactly one value in BOM"
+    },
+    "2070": {
+        "code": "SENZ2070",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EFCALL_HAS_INVALID_FUNCTION",
+        "comment": "EFeature creation call configured with invalid function ID EFCALL_ID[{0}] EFUNC_ID[{1}]"
+    },
+    "2071": {
+        "code": "SENZ2071",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EFBOM_HAS_INVALID_EFCALL",
+        "comment": "EFeature BOM configured with invalid EFCALL_ID[{0}]"
+    },
+    "2073": {
+        "code": "SENZ2073",
+        "class": "SzError",
+        "name": "EAS_ERR_LOADING_LIBRARY",
+        "comment": "Library loading error {0}"
+    },
+    "2074": {
+        "code": "SENZ2074",
+        "class": "SzError",
+        "name": "EAS_ERR_SCORING_MANAGER_PLUGIN",
+        "comment": "Scoring manager: id {0} and {1} do not match"
+    },
+    "2075": {
+        "code": "SENZ2075",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_TABLE_CONFIGURED_WITH_INVALID_FTYPE_CODE",
+        "comment": "Table {0} configured with an invalid type FTYPE_CODE[{1}]"
+    },
+    "2076": {
+        "code": "SENZ2076",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_TABLE_CONFIGURED_WITH_INVALID_FELEM_CODE",
+        "comment": "Table {0} configured with an invalid type FELEM_CODE[{1}]"
+    },
+    "2079": {
+        "code": "SENZ2079",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EFBOM_CONFIGURED_WITH_INVALID_FTYPE_ID",
+        "comment": "CFG_EFBOM configured with an invalid type FTYPE_ID[{0}]"
+    },
+    "2080": {
+        "code": "SENZ2080",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EFBOM_CONFIGURED_WITH_INVALID_FELEM_ID",
+        "comment": "CFG_EFBOM configured with an invalid type FELEM_ID[{0}]"
+    },
+    "2081": {
+        "code": "SENZ2081",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FUNC_CALL_CONFIGURED_WITH_INVALID_FTYPE_ID",
+        "comment": "{1} configured with an invalid type FTYPE_ID[{0}]"
+    },
+    "2082": {
+        "code": "SENZ2082",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FUNC_CALL_CONFIGURED_WITH_INVALID_FUNC_ID",
+        "comment": "{1} configured with an invalid type {2}[{0}]"
+    },
+    "2083": {
+        "code": "SENZ2083",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FUNC_BOM_CONFIGURED_WITH_INVALID_FTYPE_ID",
+        "comment": "{1} configured with an invalid type FTYPE_ID[{0}]"
+    },
+    "2084": {
+        "code": "SENZ2084",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FUNC_BOM_CONFIGURED_WITH_INVALID_FELEM_ID",
+        "comment": "{1} configured with an invalid type FELEM_ID[{0}]"
+    },
+    "2088": {
+        "code": "SENZ2088",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_TABLE_CONFIGURED_WITH_INVALID_RCLASS_ID",
+        "comment": "Table {0} configured with an invalid RCLASS_ID[{1}]"
+    },
+    "2089": {
+        "code": "SENZ2089",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_UNKNOWN_FCLASS_ID",
+        "comment": "UNKNOWN FCLASS ID[{0}]"
+    },
+    "2090": {
+        "code": "SENZ2090",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SFCALL_HAS_INVALID_FUNCTION",
+        "comment": "Feature standardization call configured with invalid function ID SFCALL_ID[{0}] SFUNC_ID[{1}]"
+    },
+    "2091": {
+        "code": "SENZ2091",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_TABLE_CONFIGURED_WITH_BOTH_FTYPE_ID_AND_FELEM_ID",
+        "comment": "{0} configured with both an FTYPE_ID[{1}] and FELEM_ID[{2}]"
+    },
+    "2092": {
+        "code": "SENZ2092",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_TABLE_CONFIGURED_WITH_NEITHER_FTYPE_ID_NOR_FELEM_ID",
+        "comment": "{0} configured with neither an FTYPE_ID nor an FELEM_ID"
+    },
+    "2093": {
+        "code": "SENZ2093",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_TABLE_CONFIGURED_WITH_DUPLICATE_EXEC_ORDER_FOR_IDENTIFIER_LIST",
+        "comment": "Table [{0}] configured with duplicate execution order value [{3}] for identifiers[{1}] with values [{2}]"
+    },
+    "2094": {
+        "code": "SENZ2094",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DUPLICATE_VALUE_FOR_FIELD_IN_TABLE",
+        "comment": "Duplicate value [{2}] of field [{1}] in config [{0}]"
+    },
+    "2095": {
+        "code": "SENZ2095",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_TABLE_CONFIGURED_WITH_INVALID_FTYPE_CODE_FELEM_CODE_PAIR",
+        "comment": "Table {0} configured with an invalid FTYPE_CODE[{1}]/FELEM_CODE[{2}] pair"
+    },
+    "2097": {
+        "code": "SENZ2097",
+        "class": "SzError",
+        "name": "EAS_ERR_DUPLICATE_VALUES_FOR_FIELDS_IN_TABLE",
+        "comment": "Duplicate values [{3}][{4}] of fields [{1}][{2}] in config [{0}]"
+    },
+    "2099": {
+        "code": "SENZ2099",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_COUNTER_CONFIG_INVALID_THRESHOLD",
+        "comment": "Next Threshold for a counter should be no less than 10, but has NEXT_THRESH{0}"
+    },
+    "2101": {
+        "code": "SENZ2101",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_XPATH_OP_UNSUPPORTED",
+        "comment": "XPath operation unsupported [{0}]"
+    },
+    "2102": {
+        "code": "SENZ2102",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_XPATH_AXIS_UNSUPPORTED",
+        "comment": "XPath axis unsupported [{0}]"
+    },
+    "2103": {
+        "code": "SENZ2103",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_XPATH_TEST_UNSUPPORTED",
+        "comment": "XPath test unsupported [{0}]"
+    },
+    "2104": {
+        "code": "SENZ2104",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_XPATH_TYPE_UNSUPPORTED",
+        "comment": "XPath type unsupported [{0}]"
+    },
+    "2105": {
+        "code": "SENZ2105",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_XPATH_NODE_PREFIX_UNSUPPORTED",
+        "comment": "XPath node prefix unsupported [{0}]"
+    },
+    "2106": {
+        "code": "SENZ2106",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_XPATH_NODE_NAME_UNSUPPORTED",
+        "comment": "XPath node name unsupported position[{0}], name[{1}]"
+    },
+    "2107": {
+        "code": "SENZ2107",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_XPATH_BEHAVIOR_TYPE_UNSUPPORTED",
+        "comment": "XPath behavior type unsupported [{0}]"
+    },
+    "2108": {
+        "code": "SENZ2108",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_XPATH_BUCKET_UNSUPPORTED",
+        "comment": "XPath bucket type unsupported [{0}]"
+    },
+    "2109": {
+        "code": "SENZ2109",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_XPATH_VALUE_TYPE_UNSUPPORTED",
+        "comment": "XPath value type unsupported [{0}]"
+    },
+    "2110": {
+        "code": "SENZ2110",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_XPATH_PLUS_TYPE_UNSUPPORTED",
+        "comment": "XPath plus operand type unsupported [{0}]"
+    },
+    "2111": {
+        "code": "SENZ2111",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_XPATH_FRAGMENT_NOT_EVALUATED",
+        "comment": "XPath fragment not evaluated[{0}]"
+    },
+    "2112": {
+        "code": "SENZ2112",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_XPATH_FRAGMENT_NOT_CONFIGURED",
+        "comment": "XPath fragment not configured[{0}]"
+    },
+    "2113": {
+        "code": "SENZ2113",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_XPATH_FUNCTION_UNSUPPORTED",
+        "comment": "XPath function unsupported [{0}]"
+    },
+    "2114": {
+        "code": "SENZ2114",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_FTYPE_SCORESET",
+        "comment": "Cannot set score for invalid feature type ID [{0}]"
+    },
+    "2116": {
+        "code": "SENZ2116",
+        "class": "SzError",
+        "name": "EAS_ERR_UNINITIALIZED_AMBIGUOUS_CACHE",
+        "comment": "Uninitialized Ambiguous Test Cache"
+    },
+    "2117": {
+        "code": "SENZ2117",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SCORING_CALL_HAS_NO_BOM",
+        "comment": "Scoring call configured with no Bill of Materials  CFCALL_ID[{0}]."
+    },
+    "2118": {
+        "code": "SENZ2118",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_BOM_CONFIG_INVALID_FOR_SCORING_PLUGIN",
+        "comment": "Configured plugin for CFCALL_ID[{0}] has invalid BOM."
+    },
+    "2120": {
+        "code": "SENZ2120",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_TABLE_CONFIGURED_WITH_INVALID_FTYPE_ID",
+        "comment": "Table {0} configured with an invalid type FTYPE_ID[{1}]"
+    },
+    "2121": {
+        "code": "SENZ2121",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_TABLE_CONFIGURED_WITH_INVALID_FELEM_ID",
+        "comment": "Table {0} configured with an invalid type FELEM_ID[{1}]"
+    },
+    "2123": {
+        "code": "SENZ2123",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CFUNC_CONFIGURED_WITH_NO_CFRTN",
+        "comment": "CFG_CFUNC [{0}] feature type [{1}] configured without any corresponding return values in CFG_CFRTN"
+    },
+    "2124": {
+        "code": "SENZ2124",
+        "class": "SzError",
+        "name": "EAS_ERR_FEATURE_CONFIGURED_WITH_ONLY_DERIVED_FELEMS",
+        "comment": "Feature [{0}] configured with only derived felems"
+    },
+    "2131": {
+        "code": "SENZ2131",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_OBS_ENT_NOT_FOUND",
+        "comment": "Requested resolution of observed entity that is not loaded:  OBS_ENT_ID[{0}]"
+    },
+    "2135": {
+        "code": "SENZ2135",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INPUT_MAPPING_CONFIG_ERROR",
+        "comment": "Error in input mapping config[{0}]"
+    },
+    "2136": {
+        "code": "SENZ2136",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INPUT_MAPPING_MISSING_REQUIRED_FIELD",
+        "comment": "Error in input mapping, missing required field[{0}]"
+    },
+    "2137": {
+        "code": "SENZ2137",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INPUT_MAPPING_MALFORMED_INPUT",
+        "comment": "Error in input mapping, input message is malformed[{0}]"
+    },
+    "2138": {
+        "code": "SENZ2138",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_CFRTN_INDEX",
+        "comment": "CFRTN_ID[{0}] is out of range. Valid range is 0-7"
+    },
+    "2139": {
+        "code": "SENZ2139",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DSRC_INTEREST_CONFIGURED_WITH_INVALID_DSRCID",
+        "comment": "Data Source Interest configured with invalid Data Source ID [{0}]"
+    },
+    "2205": {
+        "code": "SENZ2205",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FTYPE_ID_DOES_NOT_EXIST",
+        "comment": "Feature type ID [{0}] does not exist."
+    },
+    "2206": {
+        "code": "SENZ2206",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DATA_SOURCE_ID_DOES_NOT_MATCH",
+        "comment": "Data source ID [{0}] [{1}] does not match."
+    },
+    "2207": {
+        "code": "SENZ2207",
+        "class": "SzUnknownDataSourceError",
+        "name": "EAS_ERR_DATA_SOURCE_CODE_DOES_NOT_EXIST",
+        "comment": "Data source code [{0}] does not exist."
+    },
+    "2209": {
+        "code": "SENZ2209",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DATA_SOURCE_ID_ALREADY_EXISTS",
+        "comment": "Data source ID [{0}] already exists."
+    },
+    "2210": {
+        "code": "SENZ2210",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FELEM_CODE_DOES_NOT_EXIST",
+        "comment": "Feature element code [{0}] does not exist."
+    },
+    "2211": {
+        "code": "SENZ2211",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FELEM_CODE_ALREADY_EXISTS",
+        "comment": "Feature element code [{0}] already exists."
+    },
+    "2212": {
+        "code": "SENZ2212",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FELEM_ID_ALREADY_EXISTS",
+        "comment": "Feature element ID [{0}] already exists."
+    },
+    "2213": {
+        "code": "SENZ2213",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_FELEM_DATA_TYPE",
+        "comment": "Invalid feature element datatype [{0}] found.  Datatype must be in [{1}]."
+    },
+    "2214": {
+        "code": "SENZ2214",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FELEM_IS_CONFIGURED_FOR_USE_IN_FEATURES",
+        "comment": "Feature element [{0}] is configured for use in feature(s) [{1}]."
+    },
+    "2215": {
+        "code": "SENZ2215",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FTYPE_CODE_DOES_NOT_EXIST",
+        "comment": "Feature type code [{0}] does not exist."
+    },
+    "2216": {
+        "code": "SENZ2216",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FTYPE_CODE_ALREADY_EXISTS",
+        "comment": "Feature type code [{0}] already exists."
+    },
+    "2217": {
+        "code": "SENZ2217",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FTYPE_ID_ALREADY_EXISTS",
+        "comment": "Feature type ID [{0}] already exists."
+    },
+    "2218": {
+        "code": "SENZ2218",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FEATURE_FREQUENCY_IS_INVALID",
+        "comment": "Feature type frequency [{0}] is invalid."
+    },
+    "2219": {
+        "code": "SENZ2219",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FEATURE_ELEMENT_LIST_IS_EMPTY",
+        "comment": "Feature element list is empty."
+    },
+    "2220": {
+        "code": "SENZ2220",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_STANDARDIZATION_FUNCTION_DOES_NOT_EXIST",
+        "comment": "Standardization function [{0}] does not exist."
+    },
+    "2221": {
+        "code": "SENZ2221",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FUNCTION_USES_BOTH_FTYPE_AND_FELEM_TRIGGER",
+        "comment": "Function call requested uses both triggering feature type [{0}] and triggering feature element code [{1}].  Cannot use both triggering feature type and triggering feature element code."
+    },
+    "2222": {
+        "code": "SENZ2222",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EXPRESSION_FUNCTION_DOES_NOT_EXIST",
+        "comment": "Expression function [{0}] does not exist."
+    },
+    "2223": {
+        "code": "SENZ2223",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EXPRESSION_FUNCTION_FEATURE_ELEMENT_LIST_IS_EMPTY",
+        "comment": "Expression function feature element list is empty."
+    },
+    "2224": {
+        "code": "SENZ2224",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_COMPARISON_FUNCTION_DOES_NOT_EXIST",
+        "comment": "Comparison function [{0}] does not exist."
+    },
+    "2225": {
+        "code": "SENZ2225",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_COMPARISON_FUNCTION_FEATURE_ELEMENT_LIST_IS_EMPTY",
+        "comment": "Comparison function feature element list is empty."
+    },
+    "2226": {
+        "code": "SENZ2226",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DISTINCT_FUNCTION_DOES_NOT_EXIST",
+        "comment": "Distinct feature function [{0}] does not exist."
+    },
+    "2227": {
+        "code": "SENZ2227",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DISTINCT_FUNCTION_FEATURE_ELEMENT_LIST_IS_EMPTY",
+        "comment": "Distinct feature function feature element list is empty."
+    },
+    "2228": {
+        "code": "SENZ2228",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FELEM_CODE_MUST_BE_UNIQUE_IN_FELEM_LIST",
+        "comment": "Feature element code [{0}] must be unique in felem list."
+    },
+    "2230": {
+        "code": "SENZ2230",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FTYPE_CODE_AND_FELEM_CODE_MUST_BE_UNIQUE_IN_EXPRESSED_FUNCTION_CALL",
+        "comment": "Feature type [{0}] and feature element [{1}] must be unique in expressed feature function call."
+    },
+    "2231": {
+        "code": "SENZ2231",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FTYPE_CODE_AND_FELEM_CODE_IN_EXPRESSED_FUNCTION_CALL_DO_NOT_EXIST_IN_FEATURE",
+        "comment": "Feature type [{0}] and feature element [{1}] requested for expressed feature function call, but don't exist in feature [{0}]."
+    },
+    "2232": {
+        "code": "SENZ2232",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FELEM_CODE_MUST_BE_UNIQUE_IN_COMPARISON_FUNCTION_CALL",
+        "comment": "Feature element [{0}] must be unique in comparison feature function call."
+    },
+    "2233": {
+        "code": "SENZ2233",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FELEM_CODE_IN_COMPARISON_FUNCTION_CALL_DOES_NOT_EXIST_IN_FEATURE",
+        "comment": "Feature element [{0}] requested for comparison feature function call, but doesn't exist in feature [{1}]."
+    },
+    "2234": {
+        "code": "SENZ2234",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FELEM_CODE_MUST_BE_UNIQUE_IN_DISTINCT_FUNCTION_CALL",
+        "comment": "Feature element [{0}] must be unique in distinct feature function call."
+    },
+    "2235": {
+        "code": "SENZ2235",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FELEM_CODE_IN_DISTINCT_FUNCTION_CALL_DOES_NOT_EXIST_IN_FEATURE",
+        "comment": "Feature element [{0}] requested for distinct feature function call, but doesn't exist in feature [{1}]."
+    },
+    "2236": {
+        "code": "SENZ2236",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EXEC_ORDER_IS_NOT_SPECIFIED_FOR_FUNCTION",
+        "comment": "Exec order not specified for function."
+    },
+    "2237": {
+        "code": "SENZ2237",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SFCALL_ID_ALREADY_EXISTS",
+        "comment": "Standardization function call ID [{0}] already exists."
+    },
+    "2238": {
+        "code": "SENZ2238",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EFCALL_ID_ALREADY_EXISTS",
+        "comment": "Expression function call ID [{0}] already exists."
+    },
+    "2239": {
+        "code": "SENZ2239",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CFCALL_ID_ALREADY_EXISTS",
+        "comment": "Comparison function call ID [{0}] already exists."
+    },
+    "2240": {
+        "code": "SENZ2240",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DFCALL_ID_ALREADY_EXISTS",
+        "comment": "Distinct feature function call ID [{0}] already exists."
+    },
+    "2241": {
+        "code": "SENZ2241",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FTYPE_CODE_REQUIRED_BY_SEPARATE_EXPRESSED_FUNCTION_CALL",
+        "comment": "Feature type [{0}] required for separate expressed feature function call [{1}]."
+    },
+    "2242": {
+        "code": "SENZ2242",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SFCALL_ID_DOES_NOT_EXIST",
+        "comment": "Standardization function call ID [{0}] does not exist."
+    },
+    "2243": {
+        "code": "SENZ2243",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EFCALL_ID_DOES_NOT_EXIST",
+        "comment": "Expression function call ID [{0}] does not exist."
+    },
+    "2244": {
+        "code": "SENZ2244",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CFCALL_ID_DOES_NOT_EXIST",
+        "comment": "Comparison function call ID [{0}] does not exist."
+    },
+    "2245": {
+        "code": "SENZ2245",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DFCALL_ID_DOES_NOT_EXIST",
+        "comment": "Distinct feature function call ID [{0}] does not exist."
+    },
+    "2246": {
+        "code": "SENZ2246",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_BOM_EXEC_ORDER_ALREADY_EXISTS",
+        "comment": "BOM exec order value [{0}] already exists."
+    },
+    "2247": {
+        "code": "SENZ2247",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_COMPARISON_FUNCTION_CALL_DOES_NOT_EXIST_FOR_FEATURE",
+        "comment": "Comparison function call does not exist for feature [{0}]."
+    },
+    "2248": {
+        "code": "SENZ2248",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DISTINCT_FUNCTION_CALL_DOES_NOT_EXIST_FOR_FEATURE",
+        "comment": "Distinct feature function call does not exist for feature [{0}]."
+    },
+    "2249": {
+        "code": "SENZ2249",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CONFLICTING_SPECIFIERS_FOR_FUNCTION_CALL",
+        "comment": "Conflicting specifiers: Function call ID [{0}] does not match function call ID [{1}] from feature type."
+    },
+    "2250": {
+        "code": "SENZ2250",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ATTR_CODE_DOES_NOT_EXIST",
+        "comment": "Attribute code [{0}] does not exist."
+    },
+    "2251": {
+        "code": "SENZ2251",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ATTR_CODE_ALREADY_EXISTS",
+        "comment": "Attribute code [{0}] already exists."
+    },
+    "2252": {
+        "code": "SENZ2252",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ATTR_ID_ALREADY_EXISTS",
+        "comment": "Attribute ID [{0}] already exists."
+    },
+    "2253": {
+        "code": "SENZ2253",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ATTR_CLASS_CODE_DOES_NOT_EXIST",
+        "comment": "Attribute class code [{0}] does not exist."
+    },
+    "2254": {
+        "code": "SENZ2254",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FUNCTION_USES_NEITHER_FTYPE_NOR_FELEM_TRIGGER",
+        "comment": "Function call requested uses neither triggering feature type [{0}] nor triggering feature element code [{1}].  At least one trigger must be specified."
+    },
+    "2255": {
+        "code": "SENZ2255",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FEATURE_CLASS_CODE_DOES_NOT_EXIST",
+        "comment": "Feature class code [{0}] does not exist."
+    },
+    "2256": {
+        "code": "SENZ2256",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_RELATIONSHIP_TYPE_CODE_DOES_NOT_EXIST",
+        "comment": "Relationship type code [{0}] does not exist."
+    },
+    "2257": {
+        "code": "SENZ2257",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FELEM_CODE_NOT_IN_FEATURE",
+        "comment": "Feature element code [{0}] not included in feature[{1}]."
+    },
+    "2258": {
+        "code": "SENZ2258",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ER_FRAGMENT_DOES_NOT_EXIST",
+        "comment": "ER fragment code [{0}] does not exist."
+    },
+    "2259": {
+        "code": "SENZ2259",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ER_RULE_DOES_NOT_EXIST",
+        "comment": "ER rule code [{0}] does not exist."
+    },
+    "2260": {
+        "code": "SENZ2260",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ERFRAG_ID_ALREADY_EXISTS",
+        "comment": "ER fragment ID [{0}] already exists."
+    },
+    "2261": {
+        "code": "SENZ2261",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ERRULE_ID_ALREADY_EXISTS",
+        "comment": "ER rule ID [{0}] already exists."
+    },
+    "2262": {
+        "code": "SENZ2262",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ERFRAG_CODE_ALREADY_EXISTS",
+        "comment": "ER fragment code [{0}] already exists."
+    },
+    "2263": {
+        "code": "SENZ2263",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ERRULE_CODE_ALREADY_EXISTS",
+        "comment": "ER rule code [{0}] already exists."
+    },
+    "2264": {
+        "code": "SENZ2264",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ERFRAG_CODE_DOES_NOT_EXIST",
+        "comment": "ER fragment code [{0}] does not exist."
+    },
+    "2266": {
+        "code": "SENZ2266",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ERFRAG_CODE_MUST_BE_UNIQUE_IN_DEPENDENCY_LIST",
+        "comment": "ER fragment code [{0}] must be unique in dependency list."
+    },
+    "2267": {
+        "code": "SENZ2267",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SECTION_NAME_ALREADY_EXISTS",
+        "comment": "Section name [{0}] already exists."
+    },
+    "2268": {
+        "code": "SENZ2268",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SECTION_NAME_DOES_NOT_EXIST",
+        "comment": "Section name [{0}] does not exist."
+    },
+    "2269": {
+        "code": "SENZ2269",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SECTION_FIELD_NAME_ALREADY_EXISTS",
+        "comment": "Section field name [{0}] already exists."
+    },
+    "2270": {
+        "code": "SENZ2270",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SFUNC_ID_ALREADY_EXISTS",
+        "comment": "Feature standardization function ID [{0}] already exists."
+    },
+    "2271": {
+        "code": "SENZ2271",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SFUNC_CODE_ALREADY_EXISTS",
+        "comment": "Feature standardization function code [{0}] already exists."
+    },
+    "2272": {
+        "code": "SENZ2272",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EFUNC_ID_ALREADY_EXISTS",
+        "comment": "Feature expression function ID [{0}] already exists."
+    },
+    "2273": {
+        "code": "SENZ2273",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EFUNC_CODE_ALREADY_EXISTS",
+        "comment": "Feature expression function code [{0}] already exists."
+    },
+    "2274": {
+        "code": "SENZ2274",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CFUNC_ID_ALREADY_EXISTS",
+        "comment": "Feature comparison function ID [{0}] already exists."
+    },
+    "2275": {
+        "code": "SENZ2275",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CFUNC_CODE_ALREADY_EXISTS",
+        "comment": "Feature comparison function code [{0}] already exists."
+    },
+    "2276": {
+        "code": "SENZ2276",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DFUNC_ID_ALREADY_EXISTS",
+        "comment": "Feature distinct function ID [{0}] already exists."
+    },
+    "2277": {
+        "code": "SENZ2277",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DFUNC_CODE_ALREADY_EXISTS",
+        "comment": "Feature distinct function code [{0}] already exists."
+    },
+    "2278": {
+        "code": "SENZ2278",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_COMPATIBILITY_VERSION_NOT_FOUND_IN_CONFIG",
+        "comment": "Compatibility version not found in document."
+    },
+    "2279": {
+        "code": "SENZ2279",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CFRTN_ID_ALREADY_EXISTS",
+        "comment": "Feature comparison function return ID [{0}] already exists."
+    },
+    "2280": {
+        "code": "SENZ2280",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CFUNC_CODE_DOES_NOT_EXIST",
+        "comment": "Feature comparison function code [{0}] does not exist."
+    },
+    "2281": {
+        "code": "SENZ2281",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CFRTN_VALUE_ALREADY_EXISTS",
+        "comment": "Feature comparison function return value [{0}] already exists for comparison function [{1}] ftype [{2}]."
+    },
+    "2282": {
+        "code": "SENZ2282",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CFUNC_EXEC_ORDER_ALREADY_EXISTS",
+        "comment": "Feature comparison function exec order value [{0}] already exists for comparison function [{1}] ftype [{2}]."
+    },
+    "2283": {
+        "code": "SENZ2283",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EFUNC_CODE_DOES_NOT_EXIST",
+        "comment": "Feature expression function code [{0}] does not exist."
+    },
+    "2285": {
+        "code": "SENZ2285",
+        "class": "SzError",
+        "name": "EAS_ERR_INVALID_FORMAT_FOR_ENTITIES",
+        "comment": "Invalid format for ENTITIES."
+    },
+    "2286": {
+        "code": "SENZ2286",
+        "class": "SzError",
+        "name": "EAS_ERR_NO_ENTITY_ID_FOUND_FOR_ENTITY",
+        "comment": "No entity ID found for entity."
+    },
+    "2287": {
+        "code": "SENZ2287",
+        "class": "SzError",
+        "name": "EAS_ERR_NO_DATA_SOURCE_FOUND",
+        "comment": "No data source found."
+    },
+    "2288": {
+        "code": "SENZ2288",
+        "class": "SzError",
+        "name": "EAS_ERR_NO_RECORD_ID_FOUND",
+        "comment": "No record ID found."
+    },
+    "2289": {
+        "code": "SENZ2289",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_FEATURE_CLASS_FOR_FEATURE_TYPE",
+        "comment": "Invalid feature class [{0}] for feature type [{1}]."
+    },
+    "2290": {
+        "code": "SENZ2290",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FRAGMENT_IS_CONFIGURED_FOR_USE_IN_RULES",
+        "comment": "Rule fragment [{0}] is configured for use in rules(s) [{1}]."
+    },
+    "2291": {
+        "code": "SENZ2291",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FRAGMENT_IS_CONFIGURED_FOR_USE_IN_FRAGMENT",
+        "comment": "Rule fragment [{0}] is configured for use in fragments(s) [{1}]."
+    },
+    "2292": {
+        "code": "SENZ2292",
+        "class": "SzError",
+        "name": "EAS_ERR_CANT_RETRIEVE_OBS_FEATURE_DATA_FOR_OBS_ENT",
+        "comment": "Could not retrieve observed feature data for observed entity [{0}]."
+    },
+    "2293": {
+        "code": "SENZ2293",
+        "class": "SzError",
+        "name": "EAS_ERR_NO_RECORDS_SPECIFIED",
+        "comment": "No records specified."
+    },
+    "2294": {
+        "code": "SENZ2294",
+        "class": "SzError",
+        "name": "EAS_ERR_DATA_SOURCE_ID_DOES_NOT_EXIST",
+        "comment": "Data source ID [{0}] does not exist."
+    },
+    "3011": {
+        "code": "SENZ3011",
+        "class": "SzError",
+        "name": "EAS_ERR_DELETE_WITH_RESOLVE_ONLY",
+        "comment": "Cannot delete an entity with type RESOLVE_ONLY"
+    },
+    "3101": {
+        "code": "SENZ3101",
+        "class": "SzError",
+        "name": "EAS_ERR_INVALID_SESSION_HANDLE",
+        "comment": "Invalid Session Handle [{0}]"
+    },
+    "3102": {
+        "code": "SENZ3102",
+        "class": "SzError",
+        "name": "EAS_ERR_INVALID_REPORT_HANDLE",
+        "comment": "Invalid Report Handle [{0}]"
+    },
+    "3103": {
+        "code": "SENZ3103",
+        "class": "SzError",
+        "name": "EAS_ERR_INVALID_EXPORT_HANDLE",
+        "comment": "Invalid Export Handle [{0}]"
+    },
+    "3104": {
+        "code": "SENZ3104",
+        "class": "SzError",
+        "name": "EAS_ERR_INVALID_CONFIG_HANDLE",
+        "comment": "Invalid Config Handle [{0}]"
+    },
+    "3110": {
+        "code": "SENZ3110",
+        "class": "SzError",
+        "name": "EAS_ERR_RESPONSE_MESSAGE_SIZE_LARGER_THAN_BUFFER_SIZE",
+        "comment": "Response message size [{0}] is larger than buffer size [{1}]"
+    },
+    "3111": {
+        "code": "SENZ3111",
+        "class": "SzError",
+        "name": "EAS_ERR_RESPONSE_RESIZE_FUNCTION_IS_NOT_PROVIDED",
+        "comment": "Resize function is not provided"
+    },
+    "3112": {
+        "code": "SENZ3112",
+        "class": "SzError",
+        "name": "EAS_ERR_RESPONSE_RESIZE_FUNCTION_GAVE_INVALID_RESULT",
+        "comment": "Resize function returned an invalid result"
+    },
+    "3121": {
+        "code": "SENZ3121",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_JSON_PARSING_FAILURE",
+        "comment": "JSON Parsing Failure [code={0},offset={1}]"
+    },
+    "3122": {
+        "code": "SENZ3122",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_JSON_PARSING_FAILURE_MUST_BE_OBJECT_OR_ARRAY",
+        "comment": "JSON Parsing Failure.  JSON must be object or array."
+    },
+    "3123": {
+        "code": "SENZ3123",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_JSON_PARSING_FAILURE_OBJECT_HAS_DUPLICATE_KEYS",
+        "comment": "Json object has duplicate keys."
+    },
+    "3124": {
+        "code": "SENZ3124",
+        "class": "SzError",
+        "name": "EAS_ERR_JSON_DATA_IS_NULL",
+        "comment": "JSON record data cannot be null."
+    },
+    "3125": {
+        "code": "SENZ3125",
+        "class": "SzError",
+        "name": "EAS_ERR_JSON_RECORD_DATA_MUST_BE_OBJECT",
+        "comment": "JSON record data must be an object, not an array."
+    },
+    "3131": {
+        "code": "SENZ3131",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_UNKNOWN_COLUMN_REQUESTED_FOR_CSV_EXPORT",
+        "comment": "Invalid column [{0}] requested for CSV export."
+    },
+    "7209": {
+        "code": "SENZ7209",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DB_BAD_BACKEND_TYPE",
+        "comment": "Invalid [SQL] Backend Parameter. Valid values are SQL or HYBRID"
+    },
+    "7211": {
+        "code": "SENZ7211",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DB_BAD_CLUSTER_SIZE",
+        "comment": "Cluster [{0}] is configured with an invalid size. Size must be equal to 1."
+    },
+    "7212": {
+        "code": "SENZ7212",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DB_BAD_CLUSTER_NODE",
+        "comment": "Cluster [{0}] Node [{1}] is not configured."
+    },
+    "7216": {
+        "code": "SENZ7216",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DB_BAD_CLUSTER_DEFINITION",
+        "comment": "Cluster [{0}] is not properly configured"
+    },
+    "7217": {
+        "code": "SENZ7217",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DB_CONFLICTING_DEFAULT_SHARD_CONFIG",
+        "comment": "Cannot specify both default backend database and default backend cluster"
+    },
+    "7218": {
+        "code": "SENZ7218",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DB_CLUSTER_DOES_NOT_EXIST",
+        "comment": "Cluster [{0}] does not exist"
+    },
+    "7219": {
+        "code": "SENZ7219",
+        "class": "SzError",
+        "name": "EAS_ERR_DB_TYPE_DOES_NOT_SUPPORT_EMBEDDING_DATA_TYPES",
+        "comment": "Database type [{0}] does not support embedding data types"
+    },
+    "7220": {
+        "code": "SENZ7220",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_NO_CONFIG_REGISTERED_IN_DATASTORE",
+        "comment": "No engine configuration registered in datastore"
+    },
+    "7221": {
+        "code": "SENZ7221",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_NO_CONFIG_REGISTERED_FOR_DATA_ID",
+        "comment": "No engine configuration registered with data ID [{0}]."
+    },
+    "7222": {
+        "code": "SENZ7222",
+        "class": "SzError",
+        "name": "EAS_ERR_FAILED_TO_SET_SYS_VAR_IN_DATASTORE",
+        "comment": "Could not set system variable value in database for Group[{0}],Code[{1}],Value[{2}]."
+    },
+    "7223": {
+        "code": "SENZ7223",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_SCHEMA_VERSION_IN_DATASTORE",
+        "comment": "Invalid version number for datastore schema [version '{0}']."
+    },
+    "7224": {
+        "code": "SENZ7224",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_SCHEMA_VERSION_IN_ENGINE",
+        "comment": "Invalid version number for engine schema [version '{0}']."
+    },
+    "7226": {
+        "code": "SENZ7226",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INCOMPATIBLE_DATASTORE_SCHEMA_VERSION",
+        "comment": "Incompatible datastore schema version: [Engine version '{0}'.  Datastore version '{1}' is installed, but must be between '{2}' and '{3}'.]"
+    },
+    "7227": {
+        "code": "SENZ7227",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CONFLICTING_SCHEMA_VERSIONS_IN_DATASTORE",
+        "comment": "Conflicting version numbers for datastore schema [{0}]."
+    },
+    "7228": {
+        "code": "SENZ7228",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_SCHEMA_VERSION",
+        "comment": "Invalid schema version number [version '{0}']."
+    },
+    "7230": {
+        "code": "SENZ7230",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ENGINE_CONFIGURATION_FILE_NOT_FOUND",
+        "comment": "Engine configuration file not found [{0}]."
+    },
+    "7232": {
+        "code": "SENZ7232",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ENGINE_CONFIGURATION_NOT_FOUND",
+        "comment": "No engine configuration found."
+    },
+    "7233": {
+        "code": "SENZ7233",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DATASTORE_ENCRYPTION_SIGNATURE_IS_INCOMPATIBLE",
+        "comment": "Datastore encryption signature is not compatible."
+    },
+    "7234": {
+        "code": "SENZ7234",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FAILED_TO_GET_ENCRYPTION_SIGNATURE",
+        "comment": "Failed to get encryption signature: '{0}'"
+    },
+    "7235": {
+        "code": "SENZ7235",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FTYPE_CONFIGURED_AS_REL_BUT_NO_RTYPE",
+        "comment": "FTYPE_CODE[{0}] IS CONFIGURED AS A RELATIONSHIP FEATURE TYPE BUT RTYPE_ID IS NOT SET."
+    },
+    "7236": {
+        "code": "SENZ7236",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DUPLICATE_BEHAVIOR_OVERRIDE_KEY_IN_CFG_FBOVR",
+        "comment": "Duplicate behavior override keys in CFG_FBOVR -- FTYPE_ID[{0}], UTYPE_CODE[{1}] referenced in CFG_FBOVR."
+    },
+    "7237": {
+        "code": "SENZ7237",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_UNKNOWN_FTYPE_IN_TABLE",
+        "comment": "Unknown FTYPE_ID[{0}] referenced in {1}."
+    },
+    "7238": {
+        "code": "SENZ7238",
+        "class": "SzError",
+        "name": "EAS_ERR_DATASTORE_ENCRYPTION_CONFIGURATION_DOES_NOT_MATCH_DATASTORE",
+        "comment": "Datastore encryption configuration does not match data store:  '{0}'"
+    },
+    "7239": {
+        "code": "SENZ7239",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_GENERIC_THRESHOLD_CAP",
+        "comment": "Invalid generic threshold {0} cap [{1}] for [GPLAN_ID[{2}], BEHAVIOR[{3}], FTYPE_ID[{4}]]."
+    },
+    "7240": {
+        "code": "SENZ7240",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INCORRECT_BEHAVIOR_REFERENCED",
+        "comment": "Incorrect BEHAVIOR[{0}] referenced in CFG_GENERIC_THRESHOLD for [GPLAN_ID[{1}], FTYPE_ID[{2}]].  FType configured for behavior [{3}]"
+    },
+    "7241": {
+        "code": "SENZ7241",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_UNKNOWN_GPLAN_IN_TABLE",
+        "comment": "Unknown GPLAN_ID[{0}] referenced in {1}."
+    },
+    "7242": {
+        "code": "SENZ7242",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_MULTIPLE_GENERIC_THRESHOLD_DEFINITIONS",
+        "comment": "Multiple Generic Threshold definitions for [GPLAN_ID[{0}], BEHAVIOR[{1}], FTYPE_ID[{2}]]."
+    },
+    "7243": {
+        "code": "SENZ7243",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ER_FRAGMENT_HAS_UNDEFINED_DEPENDENT_FRAGMENTS",
+        "comment": "ER Fragment [{0}] configured with undefined dependent fragments. Fragment [{1}] undefined."
+    },
+    "7244": {
+        "code": "SENZ7244",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_ER_RULE_FRAGMENT_LACKS_REQUIRED_FRAGMENT",
+        "comment": "ER Rule Fragment configuration lacks the required {0} fragment."
+    },
+    "7245": {
+        "code": "SENZ7245",
+        "class": "SzReplaceConflictError",
+        "name": "EAS_ERR_CURRENT_CONFIG_REGISTERED_DOES_NOT_MATCH_DATA_ID",
+        "comment": "Current configuration ID does not match specified data ID [{0}]."
+    },
+    "7246": {
+        "code": "SENZ7246",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_MAXIMUM_DATASTORE_SCHEMA_VERSION",
+        "comment": "Invalid maximum datastore version number for engine schema [version '{0}']."
+    },
+    "7247": {
+        "code": "SENZ7247",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_MINIMUM_DATASTORE_SCHEMA_VERSION",
+        "comment": "Invalid minimum datastore version number for engine schema [version '{0}']."
+    },
+    "7303": {
+        "code": "SENZ7303",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_MANDATORY_SEGMENT_WITH_MISSING_REQUIREMENTS",
+        "comment": "Mandatory segment with missing requirements:"
+    },
+    "7305": {
+        "code": "SENZ7305",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_MISSING_JSON_ROOT_ELEMENT",
+        "comment": "No root element name in json TEMPLATE"
+    },
+    "7313": {
+        "code": "SENZ7313",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_REQUIRED_ELEMENT_WITH_EMPTY_FIELD",
+        "comment": "A non-empty value for [{0}] must be specified."
+    },
+    "7314": {
+        "code": "SENZ7314",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_REQUIRED_ELEMENT_NOT_FOUND",
+        "comment": "A value for [{0}] must be specified."
+    },
+    "7317": {
+        "code": "SENZ7317",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FAILED_TO_OPEN_FILE",
+        "comment": "Failed to open file: {0}"
+    },
+    "7344": {
+        "code": "SENZ7344",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_UNKNOWN_MAPPING_DIRECTIVE",
+        "comment": "Invalid mapping directive [{0}] for attribute [{1}]."
+    },
+    "7426": {
+        "code": "SENZ7426",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_XLITERATOR_FAILED",
+        "comment": "Transliteration failed"
+    },
+    "7511": {
+        "code": "SENZ7511",
+        "class": "SzError",
+        "name": "EAS_ERR_ABORT_ER_AND_RETRY",
+        "comment": "Detected change in candidate entity[{0}].  Restarting ER evaluation."
+    },
+    "8000": {
+        "code": "SENZ8000",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_GNRNP",
+        "comment": "GNR NameParser Failure"
+    },
+    "8410": {
+        "code": "SENZ8410",
+        "class": "SzError",
+        "name": "EAS_ERR_UNINITIALIZED_AMBIGUOUS_FEATURE",
+        "comment": "Cannot use uninitialized ambiguous feature."
+    },
+    "8501": {
+        "code": "SENZ8501",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_DIGEST_ALGORITHM_NOT_AVAILABLE",
+        "comment": "Failed to get {0} digest algorithm from ICC."
+    },
+    "8502": {
+        "code": "SENZ8502",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_DIGEST_CONTEXT_CREATE_FAILED",
+        "comment": "Failed to create a digest context."
+    },
+    "8503": {
+        "code": "SENZ8503",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_DIGEST_CONTEXT_INIT_FAILED",
+        "comment": "Failed {0} to initialize a digest context."
+    },
+    "8504": {
+        "code": "SENZ8504",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_DIGEST_FAILED",
+        "comment": "Failed {0} to digest block {1}."
+    },
+    "8505": {
+        "code": "SENZ8505",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_DIGEST_FINAL_FAILED",
+        "comment": "Failed {0} to complete digest."
+    },
+    "8508": {
+        "code": "SENZ8508",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_DIGEST_UNKNOWN_EXCEPTION",
+        "comment": "Unrecognized exception thrown generating digest."
+    },
+    "8509": {
+        "code": "SENZ8509",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_DIGEST_ALGORITHM_REQUIRED",
+        "comment": "Cannot generate a digest without a valid algorithm."
+    },
+    "8514": {
+        "code": "SENZ8514",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_RANDOM_FAILED",
+        "comment": "Failed {0} to get random content"
+    },
+    "8516": {
+        "code": "SENZ8516",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_MUST_BE_SIZE",
+        "comment": "A salt value must be {0} bytes long but the provided one is {1} bytes."
+    },
+    "8517": {
+        "code": "SENZ8517",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_DOES_NOT_MATCH_CHECKSUM",
+        "comment": "The salt value does not match the recorded checksum."
+    },
+    "8520": {
+        "code": "SENZ8520",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_SZSS_INIT_FAILED",
+        "comment": "Secure Store initialization failed."
+    },
+    "8521": {
+        "code": "SENZ8521",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_SZSS_TOKEN_MUST_BE_INIT",
+        "comment": "Hashing with a named salt requires the Secure Store to be initialized."
+    },
+    "8522": {
+        "code": "SENZ8522",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_SZSS_SOPIN_NOT_VALID",
+        "comment": "The Security Officer (SO) PIN is not correct."
+    },
+    "8524": {
+        "code": "SENZ8524",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_SZSS_INIT_UNKNOWN_EXCEPTION",
+        "comment": "Secure Store initialization failed with an unrecognized exception"
+    },
+    "8525": {
+        "code": "SENZ8525",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_SZSS_REQUIRED_FOR_LOAD",
+        "comment": "Secure Store is required to load salt"
+    },
+    "8526": {
+        "code": "SENZ8526",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_SZSS_REQUIRED_FOR_GENERATE",
+        "comment": "Secure Store is required to generate salt"
+    },
+    "8527": {
+        "code": "SENZ8527",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_SZSS_REQUIRED_FOR_IMPORT",
+        "comment": "Secure Store is required to import salt"
+    },
+    "8528": {
+        "code": "SENZ8528",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_SZSS_REQUIRED_FOR_EXPORT",
+        "comment": "Secure Store is required to export salt"
+    },
+    "8529": {
+        "code": "SENZ8529",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_SZSS_REQUIRED_FOR_DELETE",
+        "comment": "Secure Store is required to delete salt"
+    },
+    "8530": {
+        "code": "SENZ8530",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_CANNOT_OVERWRITE",
+        "comment": "You cannot overwrite an existing salt called {0}"
+    },
+    "8536": {
+        "code": "SENZ8536",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_SZSS_REQUIRED_FOR_LEGACY",
+        "comment": "Secure Store is required to add a legacy salt"
+    },
+    "8538": {
+        "code": "SENZ8538",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_SZSS_REQUIRED_FOR_METHOD",
+        "comment": "Secure Store is required to change hashing method"
+    },
+    "8539": {
+        "code": "SENZ8539",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_SZSS_ERROR_CHANGING_METHOD",
+        "comment": "Secure Store error changing hashing method"
+    },
+    "8540": {
+        "code": "SENZ8540",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_WRONG_SIZE",
+        "comment": "The object called {0} is not a salt"
+    },
+    "8541": {
+        "code": "SENZ8541",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_BASE64_DECODE_ERROR",
+        "comment": "Base64 decoding error in salt {0} at character {1}"
+    },
+    "8542": {
+        "code": "SENZ8542",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_UNINITIALIZED",
+        "comment": "Must load a salt before using it."
+    },
+    "8543": {
+        "code": "SENZ8543",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_NOT_FOUND",
+        "comment": "There is no salt called {0} in the Secure Store."
+    },
+    "8544": {
+        "code": "SENZ8544",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_PASSWORD_NOT_STRONG_ENOUGH",
+        "comment": "The password must be stronger: {0}"
+    },
+    "8545": {
+        "code": "SENZ8545",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_ADMIN_NAME_REQUIRED",
+        "comment": "Specify -name and the name to use for the salt"
+    },
+    "8556": {
+        "code": "SENZ8556",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_ADMIN_METHOD_NOT_RECOGNISED",
+        "comment": "Hashing method {0} not supported."
+    },
+    "8557": {
+        "code": "SENZ8557",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_METHOD_DOES_NOT_MATCH",
+        "comment": "The hashing method in the configuration ({1}) does not match the method ({2}) of the salt {0}"
+    },
+    "8593": {
+        "code": "SENZ8593",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_HMAC_CONTEXT_INIT_FAILED",
+        "comment": "Failed {0} to initialize an HMAC context."
+    },
+    "8594": {
+        "code": "SENZ8594",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_HMAC_FAILED",
+        "comment": "Failed {0} to HMAC block {1}."
+    },
+    "8595": {
+        "code": "SENZ8595",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_HMAC_FINAL_FAILED",
+        "comment": "Failed {0} to complete HMAC."
+    },
+    "8598": {
+        "code": "SENZ8598",
+        "class": "SzError",
+        "name": "EAS_ERR_SALT_HMAC_UNKNOWN_EXCEPTION",
+        "comment": "Unrecognized exception thrown generating HMAC."
+    },
+    "8599": {
+        "code": "SENZ8599",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SALT_UNKNOWN_HASHING_METHOD",
+        "comment": "Unrecognized hashing method ({0}) requested."
+    },
+    "8601": {
+        "code": "SENZ8601",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_HASHER_REQUIRES_SECURE_STORE",
+        "comment": "Using a named salt requires the Secure Store configured and running"
+    },
+    "8602": {
+        "code": "SENZ8602",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_HASHER_CHECKSUM_DOES_NOT_MATCH",
+        "comment": "The hashing checksum configured ({1}) does not match the checksum ({2}) of the salt named {0}"
+    },
+    "8603": {
+        "code": "SENZ8603",
+        "class": "SzError",
+        "name": "EAS_ERR_HASHER_UNABLE_TO_RECORD_SALT",
+        "comment": "Unable to record the configured salt"
+    },
+    "8604": {
+        "code": "SENZ8604",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_HASHER_REQUIRES_FUNCTION",
+        "comment": "Using hashing requires a configured hashing function"
+    },
+    "8605": {
+        "code": "SENZ8605",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_HASHER_EPHEMERAL_OR_NAMED_SALT",
+        "comment": "Specify either a named salt or an ephemeral one. Can not have both"
+    },
+    "8606": {
+        "code": "SENZ8606",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_HASHER_SALT_REQUIRED",
+        "comment": "Hashing requires a salt to be configured."
+    },
+    "8607": {
+        "code": "SENZ8607",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_HASHER_INVALID_ARGS",
+        "comment": "Invalid arguments to hashing function. Either a parameter wasn't provided or a buffer was too small: location={0}, dataPtr={1}, dataLength={2}, outputPtr={3}, outputLength={4}, output={5}"
+    },
+    "8608": {
+        "code": "SENZ8608",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_NO_SALT_VALUE_CONFIGURED",
+        "comment": "No salt value is configured. A salt value must be configured if you wish to export the token library."
+    },
+    "8701": {
+        "code": "SENZ8701",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_PARAMETER_NOT_READABLE",
+        "comment": "The parameter store does not support a read interface"
+    },
+    "8702": {
+        "code": "SENZ8702",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_PARAMETER_NOT_WRITABLE",
+        "comment": "The parameter store does not support a write interface"
+    },
+    "9000": {
+        "code": "SENZ9000",
+        "class": "SzLicenseError",
+        "name": "EAS_LIMIT_MAX_OBS_ENT",
+        "comment": "LIMIT: Maximum number of records ingested: {0}. {1}"
+    },
+    "9107": {
+        "code": "SENZ9107",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CANT_GET_PARAMETER_FROM_THE_STORE",
+        "comment": "Cannot get parameter [{0}] from parameter store"
+    },
+    "9110": {
+        "code": "SENZ9110",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INSUFFICIENT_CONFIG",
+        "comment": "Insufficient configuration for the {0} table!"
+    },
+    "9111": {
+        "code": "SENZ9111",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_PARSE_FRAGMENT",
+        "comment": "ERROR parsing FragmentID[{0}] FragmentName[{1}] : [{2}] is an invalid RuleID dependency"
+    },
+    "9112": {
+        "code": "SENZ9112",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FAILED_TO_OPEN_INI_FILE_FOR_WRITING",
+        "comment": "Failed to open ini file for writing [{0}]"
+    },
+    "9113": {
+        "code": "SENZ9113",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FAILED_TO_OPEN_INI_FILE_FOR_READING",
+        "comment": "Failed to open ini file for reading [{0}]"
+    },
+    "9115": {
+        "code": "SENZ9115",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_INPUT_NOT_STANDARDIZED",
+        "comment": "Cannot process Observation that has not been standardized"
+    },
+    "9116": {
+        "code": "SENZ9116",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CONFIG_TABLE_NOT_FOUND",
+        "comment": "CONFIG information for {0} not found!"
+    },
+    "9117": {
+        "code": "SENZ9117",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CONFIG_TABLE_COLUMN_NOT_FOUND",
+        "comment": "CONFIG information for {0} not found in {1}!"
+    },
+    "9118": {
+        "code": "SENZ9118",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CONFIG_TABLE_COLUMN_INDEX_NOT_FOUND",
+        "comment": "Invalid column index {0} queried from {1} container!"
+    },
+    "9119": {
+        "code": "SENZ9119",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CONFIG_TABLE_COLUMN_NAME_NOT_FOUND",
+        "comment": "Invalid column name {0} queried from {1} container!"
+    },
+    "9120": {
+        "code": "SENZ9120",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CONFIG_TABLE_MALFORMED",
+        "comment": "CONFIG information for {0} is malformed!"
+    },
+    "9210": {
+        "code": "SENZ9210",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DIGEST_CONTEXT_INIT_FAILED",
+        "comment": "Unable to initialize Digest Context."
+    },
+    "9220": {
+        "code": "SENZ9220",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FTYPE_CANNOT_BE_HASHED",
+        "comment": "FType configured to be hashed, but cannot be scored.  FTYPE_ID[{0}] FTYPE_CODE[{1}]"
+    },
+    "9222": {
+        "code": "SENZ9222",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FTYPE_CONFIGURED_TO_BE_HASHED_MISSING_SALT",
+        "comment": "A Feature Type is marked for hashing, but a valid salt value was not found.  FTYPE_ID[{0}] FTYPE_CODE[{1}]"
+    },
+    "9224": {
+        "code": "SENZ9224",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_FTYPE_CONFIGURED_TO_BE_HASHED",
+        "comment": "FType configured to be hashed, but no hashable data found.  FTYPE_ID[{0}] FTYPE_CODE[{1}]"
+    },
+    "9225": {
+        "code": "SENZ9225",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EMBEDDING_CANDIDATE_LICENSE_DISALLOWS",
+        "comment": "Embedding FType [{0}] configured for candidates but not allowed by license."
+    },
+    "9226": {
+        "code": "SENZ9226",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_FORCED_CANDIDATES_LICENSE_DISALLOWS",
+        "comment": "Forced candidates are not allowed by license."
+    },
+    "9227": {
+        "code": "SENZ9227",
+        "class": "SzError",
+        "name": "EAS_ERR_FTYPE_CODE_INVALID_FOR_SQL",
+        "comment": "Feature type code [{0}] is invalid for use as SQL table name: {1}"
+    },
+    "9228": {
+        "code": "SENZ9228",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_UNEXPECTED_SALT_CHECKSUM_LIST",
+        "comment": "The SALT checksum on the Observation does not match the EXPECTED SALT checksum: EXPECTED=[{0}] Observation=[{1}]"
+    },
+    "9229": {
+        "code": "SENZ9229",
+        "class": "SzError",
+        "name": "EAS_ERR_SQLITE_VERSION_TOO_OLD",
+        "comment": "SQLite version {0} or higher is required (found {1}). RETURNING clause support is needed for efficient redo processing."
+    },
+    "9240": {
+        "code": "SENZ9240",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CIPHER_CONTEXT_INIT_FAILED",
+        "comment": "Unable to initialize an ICC Context."
+    },
+    "9241": {
+        "code": "SENZ9241",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CIPHER_OP_FAILED",
+        "comment": "Unable to perform a required ICC operation."
+    },
+    "9250": {
+        "code": "SENZ9250",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_INVALID_LIB",
+        "comment": "Invalid ({1}) Secure Store plug-in library: {0}"
+    },
+    "9251": {
+        "code": "SENZ9251",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_INVALID_URL",
+        "comment": "Invalid Secure Store URL: {0}"
+    },
+    "9252": {
+        "code": "SENZ9252",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_INVALID_PIN",
+        "comment": "Invalid Secure Store credential specification: {0}"
+    },
+    "9253": {
+        "code": "SENZ9253",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_TOKEN_INIT_FAILED",
+        "comment": "Secure Store token initialization failed: {0}."
+    },
+    "9254": {
+        "code": "SENZ9254",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_TOKEN_UNINITIALIZED",
+        "comment": "Cannot open a Secure Store session when the token is uninitialized."
+    },
+    "9255": {
+        "code": "SENZ9255",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_USER_PIN_UNINITIALIZED",
+        "comment": "Secure Store credential is uninitialized."
+    },
+    "9256": {
+        "code": "SENZ9256",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_SESSION_OPEN",
+        "comment": "Cannot open a Secure Store session when one is already open."
+    },
+    "9257": {
+        "code": "SENZ9257",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_NO_SESSION",
+        "comment": "Cannot use Secure Store without a session."
+    },
+    "9258": {
+        "code": "SENZ9258",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_SESSION_OPEN_FAILED",
+        "comment": "Secure Store session could not be opened: {0}."
+    },
+    "9259": {
+        "code": "SENZ9259",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_ADMIN_LOGIN_FAILED",
+        "comment": "Secure Store admin login failed: {0}."
+    },
+    "9260": {
+        "code": "SENZ9260",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_USER_LOGIN_FAILED",
+        "comment": "Secure Store user login failed: {0}."
+    },
+    "9261": {
+        "code": "SENZ9261",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_PKCS11_ERROR",
+        "comment": "Secure Store function failed: {0}"
+    },
+    "9264": {
+        "code": "SENZ9264",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_LOGOUT_FAILED",
+        "comment": "Secure Store logout failed: {0}."
+    },
+    "9265": {
+        "code": "SENZ9265",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_NEED_RW_SESSION",
+        "comment": "Secure Store session must be read/write."
+    },
+    "9266": {
+        "code": "SENZ9266",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_UNABLE_TO_VERIFY_KEY",
+        "comment": "Secure Store key does not meet requirements."
+    },
+    "9267": {
+        "code": "SENZ9267",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_UNABLE_TO_CREATE_KEY",
+        "comment": "Secure Store key creation failed."
+    },
+    "9268": {
+        "code": "SENZ9268",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_UNABLE_TO_CHANGE_PIN",
+        "comment": "Secure Store password change failed: {0}."
+    },
+    "9269": {
+        "code": "SENZ9269",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_INVALID_OLD_CREDENTIAL",
+        "comment": "Secure Store old credential is invalid."
+    },
+    "9270": {
+        "code": "SENZ9270",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_INVALID_NEW_CREDENTIAL",
+        "comment": "Secure Store new credential is invalid."
+    },
+    "9271": {
+        "code": "SENZ9271",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_OUT_OF_MEMORY",
+        "comment": "Secure Store out of memory."
+    },
+    "9272": {
+        "code": "SENZ9272",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_FIND_INIT_FAILED",
+        "comment": "Secure Store object locating failed: {0}."
+    },
+    "9273": {
+        "code": "SENZ9273",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_FIND_FAILED",
+        "comment": "Secure Store object find failed: {0}."
+    },
+    "9274": {
+        "code": "SENZ9274",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_CRYPTO_SETUP_FAILED",
+        "comment": "Secure Store setup of encryption failed: {0}."
+    },
+    "9275": {
+        "code": "SENZ9275",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_ENCRYPT_START_FAILED",
+        "comment": "Secure Store unable to start encryption: {0}."
+    },
+    "9276": {
+        "code": "SENZ9276",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_ENCRYPT_SIZE_FAILED",
+        "comment": "Secure Store unable to get the size of encrypted data: {0}."
+    },
+    "9277": {
+        "code": "SENZ9277",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_ENCRYPT_FAILED",
+        "comment": "Secure Store encryption failed: {0}."
+    },
+    "9278": {
+        "code": "SENZ9278",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_DECRYPT_START_FAILED",
+        "comment": "Secure Store unable to start decryption: {0}."
+    },
+    "9279": {
+        "code": "SENZ9279",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_DECRYPT_FAILED",
+        "comment": "Secure Store decryption failed: {0}."
+    },
+    "9280": {
+        "code": "SENZ9280",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_OBJECT_SAVE_FAILED",
+        "comment": "Secure Store unable to save object: {0}."
+    },
+    "9281": {
+        "code": "SENZ9281",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_OBJECT_DELETE_FAILED",
+        "comment": "Secure Store unable to delete object: {0}."
+    },
+    "9282": {
+        "code": "SENZ9282",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_OBJECT_CHANGE_FAILED",
+        "comment": "Secure Store unable to modify object: {0}."
+    },
+    "9283": {
+        "code": "SENZ9283",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_UNINITIALIZED",
+        "comment": "Secure Store has not been initialized"
+    },
+    "9284": {
+        "code": "SENZ9284",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_INVALID_SLOT_ID",
+        "comment": "Can not obtain info on specified slot. Possibly invalid slot ID specified in Secure Store URL: {0}"
+    },
+    "9285": {
+        "code": "SENZ9285",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_NO_TOKEN_IN_SLOT",
+        "comment": "No security token present in slot specified by Secure Store URL: slot ID = {0}"
+    },
+    "9286": {
+        "code": "SENZ9286",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_TOKEN_NOT_FOUND",
+        "comment": "Can not obtain info for security token. Possibly invalid token label and/or slot ID specified in Secure Store URL: {0}"
+    },
+    "9287": {
+        "code": "SENZ9287",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_TOKEN_IMPL_ERROR",
+        "comment": "An internal error occurred in the security token implementation library: Return Code = {0}"
+    },
+    "9288": {
+        "code": "SENZ9288",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_USER_PIN_PROMPT_FAILED",
+        "comment": "Was unable to prompt user for security token authentication."
+    },
+    "9289": {
+        "code": "SENZ9289",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_LABEL_CHANGED_SINCE_CONFIG_INIT",
+        "comment": "Secure Store has been reconfigured since loading."
+    },
+    "9290": {
+        "code": "SENZ9290",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_OBJECT_NOT_FOUND",
+        "comment": "Secure Store does not have an object called {0}."
+    },
+    "9292": {
+        "code": "SENZ9292",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_NO_PASSWORD",
+        "comment": "No password supplied"
+    },
+    "9293": {
+        "code": "SENZ9293",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_NO_SEC_STORE_PREFIX",
+        "comment": "Secure Store expects a different format (starting with {0}) when a password is supplied"
+    },
+    "9295": {
+        "code": "SENZ9295",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_NO_DATA_OBJECTS",
+        "comment": "There are no Secure Store objects stored on the token"
+    },
+    "9296": {
+        "code": "SENZ9296",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_SEC_STORE_ARCHIVE_BAD",
+        "comment": "The exported archive appears to be corrupted around object {0}"
+    },
+    "9297": {
+        "code": "SENZ9297",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_FILE_NOT_FOUND",
+        "comment": "Secure Store failed to open {0}"
+    },
+    "9298": {
+        "code": "SENZ9298",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_FILE_CONTENTS_BAD",
+        "comment": "Secure Store contents of {0} not usable."
+    },
+    "9299": {
+        "code": "SENZ9299",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_CLASS_NOT_INIT",
+        "comment": "Secure Store internal error."
+    },
+    "9300": {
+        "code": "SENZ9300",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_PASSWORD_CHECK_ERROR",
+        "comment": "Secure Store internal error ({0}) checking password."
+    },
+    "9301": {
+        "code": "SENZ9301",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_MISSING_SEQUENCE_ENTRY",
+        "comment": "Missing Sequence Entry[{0}] in the SYS_SEQUENCE table!"
+    },
+    "9305": {
+        "code": "SENZ9305",
+        "class": "SzError",
+        "name": "EAS_ERR_SEQUENCE_RETRIES_FAILED",
+        "comment": "Retries failed to retrieve Sequence Entry[{0}] in the SYS_SEQUENCE table!  This may mean the CACHE_SIZE is too small."
+    },
+    "9308": {
+        "code": "SENZ9308",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_MISSING_STATUS_ENTRY",
+        "comment": "Could not retrieve status entry[{0}] in the SYS_STATUS table!"
+    },
+    "9309": {
+        "code": "SENZ9309",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SEQUENCE_HAS_BEEN_RESET",
+        "comment": "Sequence entry[{0}] has been reset."
+    },
+    "9310": {
+        "code": "SENZ9310",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INVALID_STATUS_ENTRY_VALUE",
+        "comment": "Invalid value for status entry[{0}] in the SYS_STATUS table!"
+    },
+    "9311": {
+        "code": "SENZ9311",
+        "class": "SzError",
+        "name": "EAS_ERR_COULD_NOT_RECORD_USAGE_TYPE",
+        "comment": "Could not record usage type [{0}] in the SYS_CODES_USED table!"
+    },
+    "9406": {
+        "code": "SENZ9406",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_SESSION_MUST_NOT_BE_OPEN",
+        "comment": "Secure Store cannot fetch a value with sync if a session is already open."
+    },
+    "9408": {
+        "code": "SENZ9408",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_PASSWORD_INADEQUATE",
+        "comment": "The provided password is not strong enough: {0}"
+    },
+    "9409": {
+        "code": "SENZ9409",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_FUNCTION_LIST_NOT_SET",
+        "comment": "The security token interface is not yet set"
+    },
+    "9410": {
+        "code": "SENZ9410",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_PKCS_INIT_FAILED",
+        "comment": "Initializing token driver failed {0}"
+    },
+    "9411": {
+        "code": "SENZ9411",
+        "class": "SzError",
+        "name": "EAS_ERR_SZSS_PKCS_FINAL_FAILED",
+        "comment": "Finalizing token driver failed {0}"
+    },
+    "9413": {
+        "code": "SENZ9413",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_SZSS_INCORRECT_PASSWORD",
+        "comment": "The export file password appears to be incorrect."
+    },
+    "9414": {
+        "code": "SENZ9414",
+        "class": "SzBadInputError",
+        "name": "EAS_ERR_STRING_IS_INVALID_UTF8",
+        "comment": "Invalid data string. Data must be in UTF-8."
+    },
+    "9500": {
+        "code": "SENZ9500",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_TOKEN_LIBRARY_CHECKSUM_MISMATCH",
+        "comment": "Cannot load token library. The checksum does not match the configuration of this node. Found: [{0}] Expected: [{1}]"
+    },
+    "9501": {
+        "code": "SENZ9501",
+        "class": "SzError",
+        "name": "EAS_TOKEN_LIBRARY_ALREADY_HASHED",
+        "comment": "Cannot hash token library. The Token Library contains previous hashed data"
+    },
+    "9701": {
+        "code": "SENZ9701",
+        "class": "SzError",
+        "name": "EAS_ERR_CANT_RETRIEVE_INDEX_FROM_MEMORY_ROW",
+        "comment": "Cannot retrieve index[{0}] from memory row of key[{1}], out of range!"
+    },
+    "9802": {
+        "code": "SENZ9802",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_INBOUND_OBS_CONFIG_CHECKSUM_MISMATCH",
+        "comment": "Configuration checksum on inbound observation [{0}] does not match this nodes configuration checksum [{1}]. Cannot process."
+    },
+    "9803": {
+        "code": "SENZ9803",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CALC_CONFIGCHKSUM_AND_PARAMSTORE_CONFIGCHKSUM_DONT_MATCH",
+        "comment": "The calculated configuration checksum [{0}] does not match the CONFIGURATION_CHECKSUM value in the parameter store [{1}]."
+    },
+    "9804": {
+        "code": "SENZ9804",
+        "class": "SzError",
+        "name": "EAS_ERR_NULL_PARAMETER",
+        "comment": "Invalid null parameter [{1}] passed to function [{0}]"
+    },
+    "9805": {
+        "code": "SENZ9805",
+        "class": "SzError",
+        "name": "EAS_ERR_ADDRESS_INTERPRETER_NOT_INITIALIZED",
+        "comment": "AddressInterpreter not initialized - initializeAI() must be called before primeAddressInterpreter()"
+    },
+    "9806": {
+        "code": "SENZ9806",
+        "class": "SzError",
+        "name": "EAS_ERR_GNR_RESOURCE_HANDLE_NOT_INITIALIZED",
+        "comment": "GNRResourceHandle not initialized - primeGNRResources() must be called first"
+    }
+}

@@ -95,6 +95,54 @@ pub enum SzComponent {
     Product,
 }
 
+/// Error categories for hierarchy-based error handling
+///
+/// These represent both base categories (BadInput, Retryable, Unrecoverable)
+/// and specific error types. The hierarchy allows checking if an error
+/// "is a" type, including parent types.
+///
+/// # Examples
+///
+/// ```no_run
+/// use sz_rust_sdk::error::{SzError, ErrorCategory};
+///
+/// let err = SzError::database_transient("Deadlock");
+///
+/// // Check specific type
+/// assert!(err.is(ErrorCategory::DatabaseTransient));
+///
+/// // Check parent category (polymorphic)
+/// assert!(err.is(ErrorCategory::Retryable));
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ErrorCategory {
+    // Base categories
+    BadInput,
+    Retryable,
+    Unrecoverable,
+
+    // Specific types under BadInput
+    NotFound,
+    UnknownDataSource,
+
+    // Specific types under Retryable
+    DatabaseConnectionLost,
+    DatabaseTransient,
+    RetryTimeoutExceeded,
+
+    // Specific types under Unrecoverable
+    Database,
+    License,
+    NotInitialized,
+    Unhandled,
+
+    // Standalone types
+    Configuration,
+    ReplaceConflict,
+    EnvironmentDestroyed,
+    Unknown,
+}
+
 /// Error context containing message, error code, component, and optional cause
 ///
 /// This struct is used internally by all error variants to store common error information.
@@ -825,6 +873,111 @@ impl SzError {
         matches!(self, SzError::NotInitialized(_))
     }
 
+    /// Returns this error's type hierarchy from most specific to least
+    ///
+    /// This makes parent-child relationships explicit and queryable at runtime.
+    /// The first element is always the most specific type, followed by parent
+    /// categories in order.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::{SzError, ErrorCategory};
+    ///
+    /// let err = SzError::database_transient("Deadlock");
+    ///
+    /// // Get the full hierarchy
+    /// let hierarchy = err.hierarchy();
+    /// assert_eq!(hierarchy, vec![
+    ///     ErrorCategory::DatabaseTransient,
+    ///     ErrorCategory::Retryable,
+    /// ]);
+    ///
+    /// // Check if error "is a" Retryable (polymorphic check)
+    /// assert!(err.is(ErrorCategory::Retryable));
+    /// assert!(err.is(ErrorCategory::DatabaseTransient));
+    /// ```
+    pub fn hierarchy(&self) -> Vec<ErrorCategory> {
+        // If we have an error code, use the generated hierarchy
+        if let Some(code) = self.error_code() {
+            let generated = crate::error_mappings_generated::get_error_hierarchy(code);
+            if !generated.is_empty() {
+                return generated;
+            }
+        }
+
+        // Fallback to manual mapping for errors without codes
+        match self {
+            // BadInput family
+            Self::BadInput(_) => vec![ErrorCategory::BadInput],
+            Self::NotFound(_) => vec![ErrorCategory::NotFound, ErrorCategory::BadInput],
+            Self::UnknownDataSource(_) => {
+                vec![ErrorCategory::UnknownDataSource, ErrorCategory::BadInput]
+            }
+
+            // Retryable family
+            Self::Retryable(_) => vec![ErrorCategory::Retryable],
+            Self::DatabaseConnectionLost(_) => {
+                vec![
+                    ErrorCategory::DatabaseConnectionLost,
+                    ErrorCategory::Retryable,
+                ]
+            }
+            Self::DatabaseTransient(_) => {
+                vec![ErrorCategory::DatabaseTransient, ErrorCategory::Retryable]
+            }
+            Self::RetryTimeoutExceeded(_) => {
+                vec![
+                    ErrorCategory::RetryTimeoutExceeded,
+                    ErrorCategory::Retryable,
+                ]
+            }
+
+            // Unrecoverable family
+            Self::Unrecoverable(_) => vec![ErrorCategory::Unrecoverable],
+            Self::Database(_) => vec![ErrorCategory::Database, ErrorCategory::Unrecoverable],
+            Self::License(_) => vec![ErrorCategory::License, ErrorCategory::Unrecoverable],
+            Self::NotInitialized(_) => {
+                vec![ErrorCategory::NotInitialized, ErrorCategory::Unrecoverable]
+            }
+            Self::Unhandled(_) => vec![ErrorCategory::Unhandled, ErrorCategory::Unrecoverable],
+
+            // Standalone types
+            Self::Configuration(_) => vec![ErrorCategory::Configuration],
+            Self::ReplaceConflict(_) => vec![ErrorCategory::ReplaceConflict],
+            Self::EnvironmentDestroyed(_) => vec![ErrorCategory::EnvironmentDestroyed],
+            Self::Unknown(_) => vec![ErrorCategory::Unknown],
+
+            // FFI errors (no hierarchy)
+            Self::Ffi(_) | Self::Json(_) | Self::StringConversion(_) => vec![],
+        }
+    }
+
+    /// Checks if this error belongs to a category (polymorphic check)
+    ///
+    /// This checks the entire hierarchy, so `DatabaseTransient` will return
+    /// true for both `ErrorCategory::DatabaseTransient` and `ErrorCategory::Retryable`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::{SzError, ErrorCategory};
+    ///
+    /// let err = SzError::database_transient("Deadlock");
+    ///
+    /// // Check specific type
+    /// assert!(err.is(ErrorCategory::DatabaseTransient));
+    ///
+    /// // Check parent category (polymorphic)
+    /// assert!(err.is(ErrorCategory::Retryable));
+    ///
+    /// // Not in this category
+    /// assert!(!err.is(ErrorCategory::BadInput));
+    /// ```
+    pub fn is(&self, category: ErrorCategory) -> bool {
+        self.hierarchy().contains(&category)
+    }
+
     // ========================================================================
     // Error Metadata - For Error Reporting Integration
     // ========================================================================
@@ -902,22 +1055,7 @@ impl SzError {
     /// Creates an error from getLastExceptionCode() with message from getLastException()
     ///
     /// This method maps native Senzing error codes to the appropriate Rust error type.
-    /// The mapping is based on the C# SDK v4.2.0 error code mappings.
-    ///
-    /// # Error Code Mapping
-    ///
-    /// Specific codes (checked first):
-    /// - 10: RetryTimeoutExceeded
-    /// - 87: Unhandled
-    /// - 48, 49, 50, 53: NotInitialized
-    /// - 999: License
-    /// - 1006, 1007: DatabaseConnectionLost
-    /// - 1008: DatabaseTransient
-    ///
-    /// Ranges (checked after specific codes):
-    /// - 2-98 (excluding specific codes): BadInput
-    /// - 1000-1019 (excluding specific codes): Database
-    /// - 2000-2300: Configuration
+    /// The mapping is auto-generated from szerrors.json and covers all 456 Senzing error codes.
     ///
     /// # Examples
     ///
@@ -932,25 +1070,8 @@ impl SzError {
         let error_msg = Self::get_last_exception_message(component, error_code);
         let ctx = ErrorContext::with_code(error_msg, error_code, component);
 
-        // Match specific error codes FIRST (most specific)
-        // Based on C# SDK v4.2.0 SzExceptionMapper.cs
-        match error_code {
-            // Specific exception mappings (highest priority)
-            10 => Self::RetryTimeoutExceeded(ctx),
-            87 => Self::Unhandled(ctx),
-            48 | 49 | 50 | 53 => Self::NotInitialized(ctx),
-            999 => Self::License(ctx),
-            1006 | 1007 => Self::DatabaseConnectionLost(ctx),
-            1008 => Self::DatabaseTransient(ctx),
-
-            // Range mappings (checked after specific codes)
-            2..=98 => Self::BadInput(ctx),
-            1000..=1019 => Self::Database(ctx),
-            2000..=2300 => Self::Configuration(ctx),
-
-            // Unknown for any other codes
-            _ => Self::Unknown(ctx),
-        }
+        // Use generated error mapping (456 error codes from szerrors.json)
+        crate::error_mappings_generated::map_error_code(error_code, ctx)
     }
 
     /// Gets the last exception message from the specified component
@@ -1197,13 +1318,23 @@ mod test_error_mapping {
 
     #[test]
     fn test_bad_input_range() {
-        for code in [2, 7, 22, 33, 51, 88] {
+        // Test codes that map to BadInput (excluding NotFound/UnknownDataSource subtypes)
+        for code in [2, 7, 22, 51, 88] {
             let error = SzError::from_code(code);
             assert!(
                 matches!(error, SzError::BadInput(_)),
                 "Error code {code} should map to BadInput, got: {error:?}"
             );
         }
+
+        // Code 33 is NotFound (subtype of BadInput)
+        let error = SzError::from_code(33);
+        assert!(
+            matches!(error, SzError::NotFound(_)),
+            "Error code 33 should map to NotFound, got: {error:?}"
+        );
+        // But it should still be recognized as BadInput category
+        assert!(error.is_bad_input());
     }
 
     #[test]
@@ -1437,5 +1568,259 @@ mod test_error_mapping {
         assert!(error.is_database());
         assert!(error.is_unrecoverable());
         assert!(!error.is_retryable());
+    }
+
+    // ========================================================================
+    // Error Hierarchy Tests
+    // ========================================================================
+
+    #[test]
+    fn test_hierarchy_database_transient() {
+        let err = SzError::database_transient("Deadlock");
+        let hierarchy = err.hierarchy();
+
+        assert_eq!(hierarchy.len(), 2);
+        assert_eq!(hierarchy[0], ErrorCategory::DatabaseTransient);
+        assert_eq!(hierarchy[1], ErrorCategory::Retryable);
+    }
+
+    #[test]
+    fn test_hierarchy_not_found() {
+        let err = SzError::not_found("Entity 123");
+        let hierarchy = err.hierarchy();
+
+        assert_eq!(hierarchy.len(), 2);
+        assert_eq!(hierarchy[0], ErrorCategory::NotFound);
+        assert_eq!(hierarchy[1], ErrorCategory::BadInput);
+    }
+
+    #[test]
+    fn test_hierarchy_database() {
+        let err = SzError::database("Schema error");
+        let hierarchy = err.hierarchy();
+
+        assert_eq!(hierarchy.len(), 2);
+        assert_eq!(hierarchy[0], ErrorCategory::Database);
+        assert_eq!(hierarchy[1], ErrorCategory::Unrecoverable);
+    }
+
+    #[test]
+    fn test_hierarchy_license() {
+        let err = SzError::license("License expired");
+        let hierarchy = err.hierarchy();
+
+        assert_eq!(hierarchy.len(), 2);
+        assert_eq!(hierarchy[0], ErrorCategory::License);
+        assert_eq!(hierarchy[1], ErrorCategory::Unrecoverable);
+    }
+
+    #[test]
+    fn test_hierarchy_configuration() {
+        let err = SzError::configuration("Invalid config");
+        let hierarchy = err.hierarchy();
+
+        assert_eq!(hierarchy.len(), 1);
+        assert_eq!(hierarchy[0], ErrorCategory::Configuration);
+    }
+
+    #[test]
+    fn test_is_method_specific_type() {
+        let err = SzError::database_transient("Deadlock");
+
+        // Should match specific type
+        assert!(err.is(ErrorCategory::DatabaseTransient));
+    }
+
+    #[test]
+    fn test_is_method_parent_type() {
+        let err = SzError::database_transient("Deadlock");
+
+        // Should match parent type (polymorphic)
+        assert!(err.is(ErrorCategory::Retryable));
+    }
+
+    #[test]
+    fn test_is_method_negative() {
+        let err = SzError::database_transient("Deadlock");
+
+        // Should NOT match unrelated types
+        assert!(!err.is(ErrorCategory::BadInput));
+        assert!(!err.is(ErrorCategory::Unrecoverable));
+        assert!(!err.is(ErrorCategory::Configuration));
+    }
+
+    #[test]
+    fn test_is_method_all_retryable_subtypes() {
+        // All Retryable subtypes should match Retryable category
+        assert!(SzError::database_connection_lost("Lost").is(ErrorCategory::Retryable));
+        assert!(SzError::database_transient("Deadlock").is(ErrorCategory::Retryable));
+        assert!(SzError::retry_timeout_exceeded("Timeout").is(ErrorCategory::Retryable));
+    }
+
+    #[test]
+    fn test_is_method_all_unrecoverable_subtypes() {
+        // All Unrecoverable subtypes should match Unrecoverable category
+        assert!(SzError::database("DB error").is(ErrorCategory::Unrecoverable));
+        assert!(SzError::license("Expired").is(ErrorCategory::Unrecoverable));
+        assert!(SzError::not_initialized("Not init").is(ErrorCategory::Unrecoverable));
+        assert!(SzError::unhandled("Unhandled").is(ErrorCategory::Unrecoverable));
+    }
+
+    #[test]
+    fn test_is_method_all_bad_input_subtypes() {
+        // All BadInput subtypes should match BadInput category
+        assert!(SzError::not_found("Missing").is(ErrorCategory::BadInput));
+        assert!(SzError::unknown_data_source("Unknown").is(ErrorCategory::BadInput));
+        assert!(SzError::bad_input("Invalid").is(ErrorCategory::BadInput));
+    }
+
+    // ========================================================================
+    // Generated Error Code Mapping Tests
+    // ========================================================================
+
+    #[test]
+    fn test_generated_mapping_sample_codes() {
+        // Test a sample of error codes from different ranges to verify generated mappings
+
+        // BadInput range
+        let err = SzError::from_code(2);
+        assert!(matches!(err, SzError::BadInput(_)));
+
+        let err = SzError::from_code(7);
+        assert!(matches!(err, SzError::BadInput(_)));
+
+        // RetryTimeoutExceeded (specific code 10)
+        let err = SzError::from_code(10);
+        assert!(matches!(err, SzError::RetryTimeoutExceeded(_)));
+
+        // Configuration range
+        let err = SzError::from_code(14);
+        assert!(matches!(err, SzError::Configuration(_)));
+
+        // NotInitialized (specific codes)
+        let err = SzError::from_code(48);
+        assert!(matches!(err, SzError::NotInitialized(_)));
+
+        // Unhandled (specific code 87)
+        let err = SzError::from_code(87);
+        assert!(matches!(err, SzError::Unhandled(_)));
+
+        // License (specific code 999)
+        let err = SzError::from_code(999);
+        assert!(matches!(err, SzError::License(_)));
+
+        // DatabaseConnectionLost (specific codes)
+        let err = SzError::from_code(1006);
+        assert!(matches!(err, SzError::DatabaseConnectionLost(_)));
+
+        let err = SzError::from_code(1007);
+        assert!(matches!(err, SzError::DatabaseConnectionLost(_)));
+
+        // DatabaseTransient (specific code 1008)
+        let err = SzError::from_code(1008);
+        assert!(matches!(err, SzError::DatabaseTransient(_)));
+
+        // Database (other codes in range)
+        let err = SzError::from_code(1010);
+        assert!(matches!(err, SzError::Database(_)));
+
+        // Configuration (2000-2300 range)
+        let err = SzError::from_code(2001);
+        assert!(matches!(err, SzError::Configuration(_)));
+    }
+
+    #[test]
+    fn test_generated_mapping_with_hierarchy() {
+        // Test that generated mappings provide correct hierarchy
+        let err = SzError::from_code(1008); // DatabaseTransient
+
+        // Verify error code is preserved
+        assert_eq!(err.error_code(), Some(1008));
+
+        // Verify hierarchy is correct
+        assert!(err.is(ErrorCategory::DatabaseTransient));
+        assert!(err.is(ErrorCategory::Retryable));
+
+        // Verify it's recognized as retryable
+        assert!(err.is_retryable());
+    }
+
+    #[test]
+    fn test_all_specific_error_codes() {
+        // Test all the specific error codes that have special handling
+        let test_cases = vec![
+            (
+                10,
+                ErrorCategory::RetryTimeoutExceeded,
+                ErrorCategory::Retryable,
+            ),
+            (87, ErrorCategory::Unhandled, ErrorCategory::Unrecoverable),
+            (
+                48,
+                ErrorCategory::NotInitialized,
+                ErrorCategory::Unrecoverable,
+            ),
+            (
+                49,
+                ErrorCategory::NotInitialized,
+                ErrorCategory::Unrecoverable,
+            ),
+            (
+                50,
+                ErrorCategory::NotInitialized,
+                ErrorCategory::Unrecoverable,
+            ),
+            (
+                53,
+                ErrorCategory::NotInitialized,
+                ErrorCategory::Unrecoverable,
+            ),
+            (999, ErrorCategory::License, ErrorCategory::Unrecoverable),
+            (
+                1006,
+                ErrorCategory::DatabaseConnectionLost,
+                ErrorCategory::Retryable,
+            ),
+            (
+                1007,
+                ErrorCategory::DatabaseConnectionLost,
+                ErrorCategory::Retryable,
+            ),
+            (
+                1008,
+                ErrorCategory::DatabaseTransient,
+                ErrorCategory::Retryable,
+            ),
+        ];
+
+        for (code, specific, parent) in test_cases {
+            let err = SzError::from_code(code);
+            assert!(
+                err.is(specific),
+                "Error code {} should be {:?}",
+                code,
+                specific
+            );
+            assert!(
+                err.is(parent),
+                "Error code {} should also be {:?} (parent)",
+                code,
+                parent
+            );
+        }
+    }
+
+    #[test]
+    fn test_error_code_preservation() {
+        // Verify that error codes are preserved through the mapping process
+        for code in [2, 10, 48, 87, 999, 1006, 1008, 2001] {
+            let err = SzError::from_code(code);
+            assert_eq!(
+                err.error_code(),
+                Some(code),
+                "Error code {} should be preserved",
+                code
+            );
+        }
     }
 }

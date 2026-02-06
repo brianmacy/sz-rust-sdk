@@ -5,7 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.11.0] - 2026-02-06
+
+### Added
+
+- `ErrorCategory` enum for explicit error hierarchy tracking
+- `hierarchy()` method on `SzError` to return error category chain
+- `is(ErrorCategory)` method for polymorphic error category checking
+- Code generation script for error mappings (`scripts/generate_error_mappings.rs`)
+- Generated error code mapping file (`src/error_mappings_generated.rs`) with 456 Senzing error codes
+- `CODEGEN.md` documentation explaining code generation workflow
+- `szerrors.json` copied from Senzing SDK distribution for error code generation
+- Comprehensive error hierarchy tests (18 new tests)
+- Error code mapping validation tests covering all 456 error codes
+
+### Fixed
+
+- `ExampleEnvironment::get_configuration()` now validates `SENZING_ENGINE_CONFIGURATION_JSON` contains `SQL.CONNECTION` before using it, preventing "Unrecognized database type" errors from incomplete config
+
+### Changed
+
+- `from_code_with_message()` now uses generated mappings from `szerrors.json` (more accurate than range-based mappings)
+- Error code mappings are now generated from `szerrors.json` instead of hardcoded
+- Build script (`build.rs`) no longer performs code generation - only handles library linking
+- Code generation follows same pattern as FFI bindings (checked into version control, manually regenerated)
+- Error code 33 now correctly maps to `NotFound` instead of generic `BadInput`
 
 ## [0.10.0] - 2026-02-05
 
@@ -250,7 +274,8 @@ engine.find_interesting_entities(EntityRef::Record { data_source: "TEST", record
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 
-[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.9.1...HEAD
+[0.11.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.10.0...v0.11.0
+[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.11.0...HEAD
 [0.9.1]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.7.0...v0.8.0
