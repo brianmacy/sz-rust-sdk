@@ -215,6 +215,15 @@ fn main() {
     writeln!(file, "    }}").unwrap();
     writeln!(file, "}}").unwrap();
 
+    // Run rustfmt on the generated file
+    let status = std::process::Command::new("rustfmt")
+        .arg(&out_path)
+        .status()
+        .expect("Failed to run rustfmt - is it installed?");
+    if !status.success() {
+        eprintln!("Warning: rustfmt exited with {status}");
+    }
+
     println!("\n✅ Successfully generated error mappings!");
     println!("   Output: {}", out_path.display());
     println!("   Mapped {} error codes", code_map.len());
