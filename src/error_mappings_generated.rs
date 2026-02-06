@@ -484,7 +484,10 @@ pub(super) fn get_error_hierarchy(error_code: i64) -> Vec<ErrorCategory> {
         2 => vec![ErrorCategory::BadInput],
         5 => vec![],
         7 => vec![ErrorCategory::BadInput],
-        10 => vec![ErrorCategory::RetryTimeoutExceeded, ErrorCategory::Retryable],
+        10 => vec![
+            ErrorCategory::RetryTimeoutExceeded,
+            ErrorCategory::Retryable,
+        ],
         14 => vec![ErrorCategory::Configuration],
         18 => vec![],
         19 => vec![ErrorCategory::Configuration],
@@ -565,8 +568,14 @@ pub(super) fn get_error_hierarchy(error_code: i64) -> Vec<ErrorCategory> {
         1003 => vec![ErrorCategory::Database, ErrorCategory::Unrecoverable],
         1004 => vec![ErrorCategory::Database, ErrorCategory::Unrecoverable],
         1005 => vec![ErrorCategory::Database, ErrorCategory::Unrecoverable],
-        1006 => vec![ErrorCategory::DatabaseConnectionLost, ErrorCategory::Retryable],
-        1007 => vec![ErrorCategory::DatabaseConnectionLost, ErrorCategory::Retryable],
+        1006 => vec![
+            ErrorCategory::DatabaseConnectionLost,
+            ErrorCategory::Retryable,
+        ],
+        1007 => vec![
+            ErrorCategory::DatabaseConnectionLost,
+            ErrorCategory::Retryable,
+        ],
         1008 => vec![ErrorCategory::DatabaseTransient, ErrorCategory::Retryable],
         1009 => vec![ErrorCategory::Database, ErrorCategory::Unrecoverable],
         1010 => vec![ErrorCategory::Database, ErrorCategory::Unrecoverable],
