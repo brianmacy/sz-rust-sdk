@@ -11,8 +11,8 @@ use serde_json::{json, Value};
 use std::fs::File;
 use std::io::Write;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 // Constants for processing
 const RETRY_PREFIX: &str = "retry-";
@@ -153,10 +153,7 @@ fn process_record(engine: &Box<dyn SzEngine>, json_line: &str, line_number: usiz
         .get(RECORD_ID_KEY)
         .and_then(|v| v.as_str())
         .ok_or_else(|| {
-            SzError::bad_input(format!(
-                "Missing {} on line {}",
-                RECORD_ID_KEY, line_number
-            ))
+            SzError::bad_input(format!("Missing {} on line {}", RECORD_ID_KEY, line_number))
         })?;
 
     // Add the record to the repository with default flags

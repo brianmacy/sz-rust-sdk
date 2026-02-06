@@ -6,8 +6,8 @@
 //! Rust equivalent of: initialization/PurgeRepository/Program.cs
 
 use std::io::{self, Write};
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 const PURGE_MESSAGE: &str = r#"
 

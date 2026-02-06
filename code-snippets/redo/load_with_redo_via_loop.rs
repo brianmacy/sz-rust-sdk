@@ -11,8 +11,8 @@ use serde_json::Value;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 // Constants for file processing
 const INPUT_FILES: &[&str] = &[
@@ -186,10 +186,7 @@ fn process_record_with_redo(
         .get(RECORD_ID_KEY)
         .and_then(|v| v.as_str())
         .ok_or_else(|| {
-            SzError::bad_input(format!(
-                "Missing {} on line {}",
-                RECORD_ID_KEY, line_number
-            ))
+            SzError::bad_input(format!("Missing {} on line {}", RECORD_ID_KEY, line_number))
         })?;
 
     // Add the record to the repository with no flags

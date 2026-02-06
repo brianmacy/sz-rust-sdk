@@ -10,8 +10,8 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 // Global counters for tracking deletion statistics
 static DELETED_COUNT: AtomicUsize = AtomicUsize::new(0);

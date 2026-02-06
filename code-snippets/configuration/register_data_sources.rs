@@ -11,8 +11,8 @@
 //! - Registering data sources with register_data_source()
 //! - Setting default configuration
 
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
     // Step 1: Get a configured Senzing environment

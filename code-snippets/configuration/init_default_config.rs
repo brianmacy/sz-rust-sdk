@@ -45,7 +45,10 @@ fn main() -> SzResult<()> {
     println!("3. Setting new configuration as default...");
     let config_comment = format!("Default configuration initialized by {}", instance_name);
     let new_default_id = config_manager.set_default_config(&config_json, Some(&config_comment))?;
-    println!("✅ New default configuration set with ID: {}", new_default_id);
+    println!(
+        "✅ New default configuration set with ID: {}",
+        new_default_id
+    );
 
     // Step 4: Verify the default configuration
     println!("4. Verifying default configuration...");

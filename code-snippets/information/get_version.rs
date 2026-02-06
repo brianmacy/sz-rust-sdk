@@ -9,8 +9,8 @@
 //! - Processing JSON version data
 
 use serde_json::Value;
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 fn main() -> SzResult<()> {
     // Step 1: Get a configured Senzing environment

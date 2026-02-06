@@ -13,8 +13,8 @@ use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
-use sz_rust_sdk::prelude::*;
 use sz_rust_sdk::helpers::ExampleEnvironment;
+use sz_rust_sdk::prelude::*;
 
 /// Initialize the Senzing environment for the redo continuous via futures example
 fn get_environment() -> SzResult<std::sync::Arc<SzEnvironmentCore>> {

@@ -28,9 +28,18 @@ fn main() -> SzResult<()> {
 
     // Load a batch of records with retry logic
     let records = vec![
-        ("1001", json!({"NAME_FULL": "Alice Smith", "EMAIL_ADDRESS": "alice@example.com"})),
-        ("1002", json!({"NAME_FULL": "Bob Jones", "PHONE_NUMBER": "555-1234"})),
-        ("1003", json!({"NAME_FULL": "Carol White", "EMAIL_ADDRESS": "carol@example.com"})),
+        (
+            "1001",
+            json!({"NAME_FULL": "Alice Smith", "EMAIL_ADDRESS": "alice@example.com"}),
+        ),
+        (
+            "1002",
+            json!({"NAME_FULL": "Bob Jones", "PHONE_NUMBER": "555-1234"}),
+        ),
+        (
+            "1003",
+            json!({"NAME_FULL": "Carol White", "EMAIL_ADDRESS": "carol@example.com"}),
+        ),
     ];
 
     for (id, record) in &records {

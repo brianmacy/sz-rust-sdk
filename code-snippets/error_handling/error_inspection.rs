@@ -57,22 +57,29 @@ fn main() -> SzResult<()> {
 
     // Demo 3: Extracting the underlying SzError for detailed inspection
     println!("\n3. Detailed error inspection with sz_error()");
-    let err = SzError::database_transient("Simulated deadlock");
-    let boxed: Box<dyn std::error::Error + Send + Sync> = Box::new(err);
-    if let Some(sz) = boxed.sz_error() {
-        println!("   Category: {}", sz.category());
-        println!("   Severity: {}", sz.severity());
-        println!("   Retryable: {}", sz.is_retryable());
-        println!("   Hierarchy: {:?}", sz.hierarchy());
-        if let Some(code) = sz.error_code() {
-            println!("   Native code: {code}");
+    match mixed_operations(&engine) {
+        Err(ref e) => {
+            if let Some(sz) = e.sz_error() {
+                println!("   Category: {}", sz.category());
+                println!("   Severity: {}", sz.severity());
+                println!("   Retryable: {}", sz.is_retryable());
+                println!("   Hierarchy: {:?}", sz.hierarchy());
+                if let Some(code) = sz.error_code() {
+                    println!("   Native code: {code}");
+                }
+            } else {
+                println!("   Non-Senzing error: {e}");
+            }
         }
+        Ok(()) => println!("   (no error to inspect)"),
     }
 
     // Demo 4: Non-Senzing errors return false for all checks
     println!("\n4. Non-Senzing errors");
-    let io_err: Box<dyn std::error::Error + Send + Sync> =
-        Box::new(std::io::Error::new(std::io::ErrorKind::NotFound, "file missing"));
+    let io_err: Box<dyn std::error::Error + Send + Sync> = Box::new(std::io::Error::new(
+        std::io::ErrorKind::NotFound,
+        "file missing",
+    ));
     println!("   is_sz_retryable: {}", io_err.is_sz_retryable());
     println!("   is_sz_bad_input: {}", io_err.is_sz_bad_input());
     println!("   sz_error present: {}", io_err.sz_error().is_some());
