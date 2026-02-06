@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.1] - 2026-02-06
+
+### Added
+
+- `SzErrorInspect` trait for cross-error-type inspection of Senzing errors in wrapped chains (`Box<dyn Error>`, custom enums, etc.)
+- `SzError::find_in_chain()` static method to locate an `SzError` in any error's `source()` chain
+- `SzErrorInspect::sz_error()`, `is_sz_retryable()`, `is_sz_unrecoverable()`, `is_sz_bad_input()`, `is_sz(ErrorCategory)` methods
+- Error handling code-snippets: `error_inspection` and `retry_with_backoff`
+- Comprehensive documentation and examples for error chain inspection
+- 11 new unit tests for `SzErrorInspect` trait
+
 ## [0.11.0] - 2026-02-06
 
 ### Added
@@ -274,8 +285,9 @@ engine.find_interesting_entities(EntityRef::Record { data_source: "TEST", record
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 
+[0.11.1]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.10.0...v0.11.0
-[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.11.1...HEAD
 [0.9.1]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.7.0...v0.8.0

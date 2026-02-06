@@ -82,6 +82,54 @@
 //!     Ok(json_err)
 //! }
 //! ```
+//!
+//! # Inspecting Senzing Errors in Mixed Error Chains
+//!
+//! Real applications mix Senzing calls with file I/O, JSON parsing, HTTP, etc.
+//! Rust's `?` operator requires a single error type for the return, so these
+//! functions typically return `Result<T, Box<dyn Error>>` or a custom enum.
+//! The [`SzErrorInspect`] trait (automatically implemented for all error types)
+//! lets you check Senzing error categories directly on any wrapper type:
+//!
+//! ```no_run
+//! use sz_rust_sdk::prelude::*;
+//! use std::fs;
+//!
+//! fn ingest(engine: &dyn SzEngine, path: &str)
+//!     -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+//! {
+//!     let data = fs::read_to_string(path)?;                       // io::Error
+//!     engine.add_record("TEST", "1", &data, None)?;               // SzError
+//!     Ok(())
+//! }
+//!
+//! # fn main() {
+//! # let engine: Box<dyn SzEngine> = todo!();
+//! match ingest(&*engine, "data.json") {
+//!     Ok(()) => {}
+//!     Err(ref e) if e.is_sz_retryable() => eprintln!("Retry: {e}"),
+//!     Err(ref e) if e.is_sz_bad_input() => eprintln!("Bad input: {e}"),
+//!     Err(ref e) if e.is_sz_unrecoverable() => eprintln!("Fatal: {e}"),
+//!     Err(e) => eprintln!("Other: {e}"),
+//! }
+//! # }
+//! ```
+//!
+//! Use [`sz_error()`](SzErrorInspect::sz_error) to extract the underlying
+//! `SzError` for detailed inspection:
+//!
+//! ```no_run
+//! use sz_rust_sdk::prelude::*;
+//!
+//! fn log_error(err: &(dyn std::error::Error + 'static)) {
+//!     if let Some(sz) = err.sz_error() {
+//!         eprintln!("[{}] {}", sz.category(), sz.message());
+//!         if let Some(code) = sz.error_code() {
+//!             eprintln!("  native code: {code}");
+//!         }
+//!     }
+//! }
+//! ```
 
 use std::ffi::{CStr, NulError};
 
@@ -364,6 +412,384 @@ impl<T> SzResultExt<T> for SzResult<T> {
     }
 }
 
+/// Inspect any error chain for an embedded [`SzError`].
+///
+/// Automatically implemented for every type that implements
+/// `std::error::Error + 'static`, including `Box<dyn Error>`,
+/// `anyhow::Error`, and custom error enums. The methods walk the
+/// [`source()`](std::error::Error::source) chain, find the first
+/// `SzError` (if any), and expose its classification — no manual
+/// downcasting required.
+///
+/// # Examples
+///
+/// ## Senzing-only functions
+///
+/// When every call returns `SzResult`, you can use the native methods
+/// directly. `SzErrorInspect` also works here (it finds the `SzError`
+/// immediately since there is no wrapping), but the native methods
+/// are equivalent:
+///
+/// ```no_run
+/// use sz_rust_sdk::prelude::*;
+/// use std::thread;
+/// use std::time::Duration;
+///
+/// fn add_with_retry(
+///     engine: &dyn SzEngine,
+///     record_json: &str,
+///     max_retries: u32,
+/// ) -> SzResult<String> {
+///     let mut attempt = 0;
+///     loop {
+///         match engine.add_record("CUSTOMERS", "1", record_json, None) {
+///             Ok(info) => return Ok(info),
+///             Err(ref e) if e.is_retryable() && attempt < max_retries => {
+///                 attempt += 1;
+///                 let delay = Duration::from_millis(100 * 2u64.pow(attempt));
+///                 eprintln!("Retryable (attempt {attempt}/{max_retries}): {e}");
+///                 thread::sleep(delay);
+///             }
+///             Err(e) => return Err(e),
+///         }
+///     }
+/// }
+/// ```
+///
+/// ## Functions that mix Senzing with other error types
+///
+/// When a function calls both Senzing and non-Senzing operations, Rust's
+/// `?` operator needs a single error type for the return. The standard
+/// approach is `Result<T, Box<dyn Error>>` (or `anyhow::Result<T>`, or a
+/// custom enum — whatever the application already uses). `SzErrorInspect`
+/// works on all of them:
+///
+/// ```no_run
+/// use sz_rust_sdk::prelude::*;
+/// use std::fs;
+///
+/// /// Load records from a JSON file into the Senzing repository.
+/// fn load_from_file(
+///     engine: &dyn SzEngine,
+///     path: &str,
+/// ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+///     let data = fs::read_to_string(path)?;         // io::Error on failure
+///     let records: Vec<serde_json::Value> =
+///         serde_json::from_str(&data)?;              // serde::Error on failure
+///
+///     for record in &records {
+///         let id = record["RECORD_ID"].as_str().unwrap_or("unknown");
+///         let json = serde_json::to_string(record)?; // serde::Error
+///         engine.add_record("CUSTOMERS", id, &json, None)?; // SzError
+///     }
+///     Ok(())
+/// }
+///
+/// # fn main() {
+/// # let engine: Box<dyn SzEngine> = todo!();
+/// // At the call site, SzErrorInspect methods work on any error in the chain.
+/// // They return false for io::Error, serde::Error, or anything that isn't
+/// // a Senzing error.
+/// match load_from_file(&*engine, "records.json") {
+///     Ok(()) => println!("All records loaded"),
+///     Err(ref e) if e.is_sz_retryable() => {
+///         eprintln!("Transient Senzing error, retry: {e}");
+///     }
+///     Err(ref e) if e.is_sz(ErrorCategory::NotFound) => {
+///         eprintln!("Entity not found: {e}");
+///     }
+///     Err(ref e) if e.is_sz_unrecoverable() => {
+///         eprintln!("Unrecoverable Senzing error: {e}");
+///     }
+///     Err(e) => eprintln!("Error: {e}"),
+/// }
+/// # }
+/// ```
+///
+/// ## Extracting the `SzError` for detailed inspection
+///
+/// Use [`sz_error()`](SzErrorInspect::sz_error) to get the underlying
+/// `SzError` reference, then inspect its error code, message, severity,
+/// or full category hierarchy:
+///
+/// ```no_run
+/// use sz_rust_sdk::prelude::*;
+///
+/// fn handle_error(err: &(dyn std::error::Error + 'static)) {
+///     match err.sz_error() {
+///         Some(sz) => {
+///             eprintln!("Senzing error [{}]: {}", sz.category(), sz.message());
+///             eprintln!("  Severity: {}", sz.severity());
+///             if let Some(code) = sz.error_code() {
+///                 eprintln!("  Native code: {code}");
+///             }
+///         }
+///         None => eprintln!("Non-Senzing error: {err}"),
+///     }
+/// }
+/// ```
+///
+/// ## Granular classification with `is_sz(ErrorCategory)`
+///
+/// [`is_sz()`](SzErrorInspect::is_sz) checks the full hierarchy — a
+/// `DatabaseTransient` error matches both `ErrorCategory::DatabaseTransient`
+/// and its parent `ErrorCategory::Retryable`. Check specific types first,
+/// then broader categories:
+///
+/// ```no_run
+/// use sz_rust_sdk::prelude::*;
+///
+/// fn classify(err: &(dyn std::error::Error + 'static)) -> &'static str {
+///     if err.is_sz(ErrorCategory::DatabaseConnectionLost) {
+///         "database connection lost — check connectivity"
+///     } else if err.is_sz(ErrorCategory::DatabaseTransient) {
+///         "transient database issue — retry immediately"
+///     } else if err.is_sz(ErrorCategory::Retryable) {
+///         "retryable — retry with backoff"
+///     } else if err.is_sz(ErrorCategory::NotFound) {
+///         "entity not found — check record ID"
+///     } else if err.is_sz(ErrorCategory::BadInput) {
+///         "invalid input — fix request data"
+///     } else if err.is_sz(ErrorCategory::License) {
+///         "license error — check Senzing license"
+///     } else if err.is_sz(ErrorCategory::Unrecoverable) {
+///         "unrecoverable — reinitialize the SDK"
+///     } else {
+///         "non-Senzing error"
+///     }
+/// }
+/// ```
+///
+/// ## Custom error enum
+///
+/// Any error type that implements `std::error::Error` and returns the
+/// inner `SzError` from `source()` works automatically:
+///
+/// ```no_run
+/// use sz_rust_sdk::prelude::*;
+///
+/// #[derive(Debug)]
+/// enum AppError {
+///     Senzing(SzError),
+///     Io(std::io::Error),
+/// }
+///
+/// impl std::fmt::Display for AppError {
+///     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+///         match self {
+///             Self::Senzing(e) => write!(f, "senzing: {e}"),
+///             Self::Io(e) => write!(f, "io: {e}"),
+///         }
+///     }
+/// }
+///
+/// impl std::error::Error for AppError {
+///     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+///         match self {
+///             Self::Senzing(e) => Some(e),
+///             Self::Io(e) => Some(e),
+///         }
+///     }
+/// }
+///
+/// let err = AppError::Senzing(SzError::database_transient("Deadlock"));
+/// assert!(err.is_sz_retryable());
+/// assert!(err.is_sz(ErrorCategory::DatabaseTransient));
+///
+/// let err = AppError::Io(std::io::Error::new(
+///     std::io::ErrorKind::NotFound, "file missing"
+/// ));
+/// assert!(!err.is_sz_retryable());
+/// assert!(err.sz_error().is_none());
+/// ```
+pub trait SzErrorInspect {
+    /// Returns a reference to the first [`SzError`] found in the error chain,
+    /// or `None` if no `SzError` is present.
+    ///
+    /// This is the foundation method that all other `SzErrorInspect` methods
+    /// build upon. Use it when you need direct access to the `SzError` for
+    /// detailed inspection (error code, message, component, hierarchy).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let err = SzError::license("License expired");
+    /// let boxed: Box<dyn std::error::Error + Send + Sync> = Box::new(err);
+    ///
+    /// // Extract the SzError from the Box
+    /// let sz = boxed.sz_error().expect("should contain an SzError");
+    /// assert!(sz.is_license());
+    /// assert_eq!(sz.severity(), "critical");
+    /// ```
+    fn sz_error(&self) -> Option<&SzError>;
+
+    /// Returns `true` if the chain contains a retryable [`SzError`].
+    ///
+    /// Retryable errors are temporary failures where the same operation may
+    /// succeed if attempted again. This includes:
+    /// - [`SzError::Retryable`] — generic retryable error
+    /// - [`SzError::DatabaseConnectionLost`] — database connection dropped
+    /// - [`SzError::DatabaseTransient`] — deadlocks, lock timeouts, etc.
+    /// - [`SzError::RetryTimeoutExceeded`] — retry budget exhausted
+    ///
+    /// Returns `false` if no `SzError` exists in the chain, or if the
+    /// `SzError` is not retryable.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// // Retryable Senzing error
+    /// let err = SzError::database_transient("Deadlock");
+    /// assert!(err.is_sz_retryable());
+    ///
+    /// // Non-retryable Senzing error
+    /// let err = SzError::not_found("Entity 42");
+    /// assert!(!err.is_sz_retryable());
+    ///
+    /// // Non-Senzing error
+    /// let err = std::io::Error::new(std::io::ErrorKind::BrokenPipe, "pipe broke");
+    /// assert!(!err.is_sz_retryable());
+    /// ```
+    fn is_sz_retryable(&self) -> bool {
+        self.sz_error().is_some_and(|e| e.is_retryable())
+    }
+
+    /// Returns `true` if the chain contains an unrecoverable [`SzError`].
+    ///
+    /// Unrecoverable errors indicate the SDK is in a broken state and
+    /// typically requires reinitialization. This includes:
+    /// - [`SzError::Unrecoverable`] — generic unrecoverable error
+    /// - [`SzError::Database`] — permanent database failure (schema errors, corruption)
+    /// - [`SzError::License`] — license expired or invalid
+    /// - [`SzError::NotInitialized`] — SDK not initialized
+    /// - [`SzError::Unhandled`] — unexpected internal error
+    ///
+    /// Returns `false` if no `SzError` exists in the chain, or if the
+    /// `SzError` is not unrecoverable.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let err = SzError::license("License expired");
+    /// assert!(err.is_sz_unrecoverable());
+    ///
+    /// let err = SzError::database_transient("Deadlock");
+    /// assert!(!err.is_sz_unrecoverable());  // retryable, not unrecoverable
+    /// ```
+    fn is_sz_unrecoverable(&self) -> bool {
+        self.sz_error().is_some_and(|e| e.is_unrecoverable())
+    }
+
+    /// Returns `true` if the chain contains a bad-input [`SzError`].
+    ///
+    /// Bad input errors indicate the caller provided invalid data. This
+    /// includes:
+    /// - [`SzError::BadInput`] — generic invalid input
+    /// - [`SzError::NotFound`] — entity or record not found
+    /// - [`SzError::UnknownDataSource`] — unregistered data source name
+    ///
+    /// Returns `false` if no `SzError` exists in the chain, or if the
+    /// `SzError` is not a bad-input error.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let err = SzError::unknown_data_source("FAKE_SOURCE");
+    /// assert!(err.is_sz_bad_input());
+    ///
+    /// let err = SzError::configuration("Bad config");
+    /// assert!(!err.is_sz_bad_input());  // configuration, not bad input
+    /// ```
+    fn is_sz_bad_input(&self) -> bool {
+        self.sz_error().is_some_and(|e| e.is_bad_input())
+    }
+
+    /// Returns `true` if the chain contains an [`SzError`] matching the
+    /// given [`ErrorCategory`].
+    ///
+    /// This is the most flexible inspection method. It delegates to
+    /// [`SzError::is()`], which checks the full error hierarchy. A
+    /// `DatabaseTransient` error matches both `ErrorCategory::DatabaseTransient`
+    /// (its specific type) and `ErrorCategory::Retryable` (its parent category).
+    ///
+    /// Returns `false` if no `SzError` exists in the chain, or if the
+    /// `SzError` does not match the category.
+    ///
+    /// # Available categories
+    ///
+    /// | Category | Parent | Matches |
+    /// |---|---|---|
+    /// | `BadInput` | — | `BadInput`, `NotFound`, `UnknownDataSource` |
+    /// | `NotFound` | `BadInput` | `NotFound` only |
+    /// | `UnknownDataSource` | `BadInput` | `UnknownDataSource` only |
+    /// | `Retryable` | — | `Retryable`, `DatabaseConnectionLost`, `DatabaseTransient`, `RetryTimeoutExceeded` |
+    /// | `DatabaseConnectionLost` | `Retryable` | `DatabaseConnectionLost` only |
+    /// | `DatabaseTransient` | `Retryable` | `DatabaseTransient` only |
+    /// | `RetryTimeoutExceeded` | `Retryable` | `RetryTimeoutExceeded` only |
+    /// | `Unrecoverable` | — | `Unrecoverable`, `Database`, `License`, `NotInitialized`, `Unhandled` |
+    /// | `Database` | `Unrecoverable` | `Database` only |
+    /// | `License` | `Unrecoverable` | `License` only |
+    /// | `NotInitialized` | `Unrecoverable` | `NotInitialized` only |
+    /// | `Unhandled` | `Unrecoverable` | `Unhandled` only |
+    /// | `Configuration` | — | `Configuration` only |
+    /// | `ReplaceConflict` | — | `ReplaceConflict` only |
+    /// | `EnvironmentDestroyed` | — | `EnvironmentDestroyed` only |
+    /// | `Unknown` | — | `Unknown` only |
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let err = SzError::database_transient("Deadlock");
+    ///
+    /// // Exact match
+    /// assert!(err.is_sz(ErrorCategory::DatabaseTransient));
+    ///
+    /// // Parent category match
+    /// assert!(err.is_sz(ErrorCategory::Retryable));
+    ///
+    /// // Not in this hierarchy
+    /// assert!(!err.is_sz(ErrorCategory::BadInput));
+    /// assert!(!err.is_sz(ErrorCategory::Unrecoverable));
+    /// ```
+    fn is_sz(&self, category: ErrorCategory) -> bool {
+        self.sz_error().is_some_and(|e| e.is(category))
+    }
+}
+
+impl<E: std::error::Error + 'static> SzErrorInspect for E {
+    fn sz_error(&self) -> Option<&SzError> {
+        SzError::find_in_chain(self)
+    }
+}
+
+impl SzErrorInspect for dyn std::error::Error + 'static {
+    fn sz_error(&self) -> Option<&SzError> {
+        SzError::find_in_chain(self)
+    }
+}
+
+impl SzErrorInspect for dyn std::error::Error + Send + 'static {
+    fn sz_error(&self) -> Option<&SzError> {
+        SzError::find_in_chain(self)
+    }
+}
+
+impl SzErrorInspect for dyn std::error::Error + Send + Sync + 'static {
+    fn sz_error(&self) -> Option<&SzError> {
+        SzError::find_in_chain(self)
+    }
+}
+
 /// Base error type for all Senzing SDK operations
 ///
 /// This enum represents all possible errors that can occur when using the
@@ -612,6 +1038,57 @@ impl SzError {
     /// Creates a new EnvironmentDestroyed error
     pub fn environment_destroyed<S: Into<String>>(message: S) -> Self {
         Self::EnvironmentDestroyed(ErrorContext::new(message))
+    }
+
+    // ========================================================================
+    // Error Chain Inspection - Static Methods
+    // ========================================================================
+
+    /// Finds the first [`SzError`] in an error's [`source()`](std::error::Error::source) chain.
+    ///
+    /// Checks the error itself first via `downcast_ref`,
+    /// then iteratively walks the `source()` chain. Returns `None` if no
+    /// `SzError` is found anywhere in the chain.
+    ///
+    /// # When to use this vs `SzErrorInspect`
+    ///
+    /// In most cases, prefer the [`SzErrorInspect`] trait methods
+    /// (`is_sz_retryable()`, `sz_error()`, etc.) — they call this internally
+    /// and provide a cleaner API. Use `find_in_chain` directly when you have
+    /// a bare `&dyn Error` reference and the trait is not in scope, or in
+    /// generic contexts where the trait bound is awkward.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::error::SzError;
+    ///
+    /// // No SzError in an io::Error
+    /// let io_err: Box<dyn std::error::Error> =
+    ///     Box::new(std::io::Error::new(std::io::ErrorKind::NotFound, "missing"));
+    /// assert!(SzError::find_in_chain(io_err.as_ref()).is_none());
+    ///
+    /// // SzError found directly
+    /// let sz_err: Box<dyn std::error::Error> =
+    ///     Box::new(SzError::database_transient("Deadlock"));
+    /// let found = SzError::find_in_chain(sz_err.as_ref()).unwrap();
+    /// assert!(found.is_retryable());
+    /// assert_eq!(found.category(), "database_transient");
+    /// ```
+    pub fn find_in_chain<'a>(err: &'a (dyn std::error::Error + 'static)) -> Option<&'a SzError> {
+        // Check the error itself
+        if let Some(sz) = err.downcast_ref::<SzError>() {
+            return Some(sz);
+        }
+        // Walk the source chain
+        let mut source = err.source();
+        while let Some(err) = source {
+            if let Some(sz) = err.downcast_ref::<SzError>() {
+                return Some(sz);
+            }
+            source = err.source();
+        }
+        None
     }
 
     // ========================================================================
@@ -1820,6 +2297,183 @@ mod test_error_mapping {
                 Some(code),
                 "Error code {} should be preserved",
                 code
+            );
+        }
+    }
+}
+
+#[cfg(test)]
+mod test_sz_error_inspect {
+    use super::*;
+
+    // A custom wrapper error to test chain walking
+    #[derive(Debug)]
+    struct AppError {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    }
+
+    impl std::fmt::Display for AppError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "app error")
+        }
+    }
+
+    impl std::error::Error for AppError {
+        fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+            Some(&*self.source)
+        }
+    }
+
+    #[test]
+    fn test_find_in_chain_direct_sz_error() {
+        let err = SzError::database_transient("Deadlock");
+        let found = SzError::find_in_chain(&err);
+        assert!(found.is_some());
+        assert!(found.unwrap().is_retryable());
+    }
+
+    #[test]
+    fn test_find_in_chain_no_sz_error() {
+        let err = std::io::Error::new(std::io::ErrorKind::NotFound, "missing");
+        assert!(SzError::find_in_chain(&err).is_none());
+    }
+
+    #[test]
+    fn test_find_in_chain_wrapped_sz_error() {
+        let sz = SzError::license("Expired");
+        let wrapper = AppError {
+            source: Box::new(sz),
+        };
+        let found = SzError::find_in_chain(&wrapper);
+        assert!(found.is_some());
+        assert!(found.unwrap().is_license());
+    }
+
+    #[test]
+    fn test_find_in_chain_double_wrapped() {
+        let sz = SzError::not_found("Entity 42");
+        let inner = AppError {
+            source: Box::new(sz),
+        };
+        let outer = AppError {
+            source: Box::new(inner),
+        };
+        let found = SzError::find_in_chain(&outer);
+        assert!(found.is_some());
+        assert!(found.unwrap().is_bad_input());
+    }
+
+    #[test]
+    fn test_inspect_trait_on_sz_error() {
+        let err = SzError::database_connection_lost("Connection reset");
+        assert!(err.is_sz_retryable());
+        assert!(!err.is_sz_unrecoverable());
+        assert!(!err.is_sz_bad_input());
+        assert!(err.is_sz(ErrorCategory::Retryable));
+        assert!(err.is_sz(ErrorCategory::DatabaseConnectionLost));
+        assert!(!err.is_sz(ErrorCategory::BadInput));
+    }
+
+    #[test]
+    fn test_inspect_trait_on_non_sz_error() {
+        let err = std::io::Error::new(std::io::ErrorKind::BrokenPipe, "pipe broke");
+        assert!(!err.is_sz_retryable());
+        assert!(!err.is_sz_unrecoverable());
+        assert!(!err.is_sz_bad_input());
+        assert!(!err.is_sz(ErrorCategory::Retryable));
+        assert!(err.sz_error().is_none());
+    }
+
+    #[test]
+    fn test_inspect_trait_on_wrapped_error() {
+        let sz = SzError::database_transient("Deadlock");
+        let wrapper = AppError {
+            source: Box::new(sz),
+        };
+        assert!(wrapper.is_sz_retryable());
+        assert!(!wrapper.is_sz_unrecoverable());
+        assert!(wrapper.is_sz(ErrorCategory::DatabaseTransient));
+        assert!(wrapper.is_sz(ErrorCategory::Retryable));
+    }
+
+    #[test]
+    fn test_inspect_trait_on_box_dyn_error() {
+        let sz = SzError::not_initialized("SDK not initialized");
+        let boxed: Box<dyn std::error::Error> = Box::new(sz);
+        assert!(boxed.is_sz_unrecoverable());
+        assert!(!boxed.is_sz_retryable());
+        assert!(boxed.is_sz(ErrorCategory::NotInitialized));
+        assert!(boxed.is_sz(ErrorCategory::Unrecoverable));
+    }
+
+    #[test]
+    fn test_inspect_trait_on_box_dyn_error_send_sync() {
+        let sz = SzError::unknown_data_source("FAKE_SOURCE");
+        let boxed: Box<dyn std::error::Error + Send + Sync> = Box::new(sz);
+        assert!(boxed.is_sz_bad_input());
+        assert!(boxed.is_sz(ErrorCategory::UnknownDataSource));
+        assert!(boxed.is_sz(ErrorCategory::BadInput));
+    }
+
+    #[test]
+    fn test_inspect_sz_error_returns_reference() {
+        let sz = SzError::configuration("Bad config");
+        let wrapper = AppError {
+            source: Box::new(sz),
+        };
+        let found = wrapper.sz_error().unwrap();
+        assert!(found.is_configuration());
+        assert_eq!(found.message(), "Bad config");
+    }
+
+    #[test]
+    fn test_inspect_all_categories() {
+        // Verify every category is reachable through the trait
+        let cases: Vec<(SzError, ErrorCategory)> = vec![
+            (SzError::bad_input("x"), ErrorCategory::BadInput),
+            (SzError::not_found("x"), ErrorCategory::NotFound),
+            (
+                SzError::unknown_data_source("x"),
+                ErrorCategory::UnknownDataSource,
+            ),
+            (SzError::retryable("x"), ErrorCategory::Retryable),
+            (
+                SzError::database_connection_lost("x"),
+                ErrorCategory::DatabaseConnectionLost,
+            ),
+            (
+                SzError::database_transient("x"),
+                ErrorCategory::DatabaseTransient,
+            ),
+            (
+                SzError::retry_timeout_exceeded("x"),
+                ErrorCategory::RetryTimeoutExceeded,
+            ),
+            (SzError::unrecoverable("x"), ErrorCategory::Unrecoverable),
+            (SzError::database("x"), ErrorCategory::Database),
+            (SzError::license("x"), ErrorCategory::License),
+            (SzError::not_initialized("x"), ErrorCategory::NotInitialized),
+            (SzError::unhandled("x"), ErrorCategory::Unhandled),
+            (SzError::configuration("x"), ErrorCategory::Configuration),
+            (
+                SzError::replace_conflict("x"),
+                ErrorCategory::ReplaceConflict,
+            ),
+            (
+                SzError::environment_destroyed("x"),
+                ErrorCategory::EnvironmentDestroyed,
+            ),
+            (SzError::unknown("x"), ErrorCategory::Unknown),
+        ];
+
+        for (err, expected_cat) in cases {
+            let wrapper = AppError {
+                source: Box::new(err),
+            };
+            assert!(
+                wrapper.is_sz(expected_cat),
+                "Wrapped error should match {:?}",
+                expected_cat
             );
         }
     }

@@ -10,6 +10,7 @@ The snippets are organized by category for easy discovery:
 snippets/
 ├── configuration/      # Configuration management examples
 ├── deleting/          # Record deletion examples
+├── error_handling/    # Error inspection and retry examples
 ├── information/       # System information examples
 ├── initialization/    # Environment setup examples
 ├── loading/          # Record loading examples
@@ -118,11 +119,16 @@ fn get_environment() -> SzResult<std::sync::Arc<SzEnvironmentCore>> {
 - `search_threadpool.rs` - Multi-threaded search
 - `why_search.rs` - Search with explanations
 
+### Error Handling (2 snippets)
+
+- `error_inspection.rs` - Inspect Senzing errors in mixed error chains with `SzErrorInspect`
+- `retry_with_backoff.rs` - Retry retryable Senzing errors with exponential backoff
+
 ### Stewardship (2 snippets)
 
 - `force_resolve.rs` - Force entity resolution
 - `force_unresolve.rs` - Force entity separation
 
-## Total: 22 Code Snippets
+## Total: 24 Code Snippets
 
 All snippets demonstrate minimal, focused examples of Senzing SDK usage with clear documentation and simple execution.

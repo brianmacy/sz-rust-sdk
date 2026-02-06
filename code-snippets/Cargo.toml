@@ -95,3 +95,11 @@ path = "stewardship/force_resolve.rs"
 [[bin]]
 name = "force_unresolve"
 path = "stewardship/force_unresolve.rs"
+
+[[bin]]
+name = "error_inspection"
+path = "error_handling/error_inspection.rs"
+
+[[bin]]
+name = "retry_with_backoff"
+path = "error_handling/retry_with_backoff.rs"
