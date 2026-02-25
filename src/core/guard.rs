@@ -57,6 +57,17 @@ use std::sync::Arc;
 /// | Multiple references | Must be sole owner | Returns error if refs exist |
 /// | Idiomatic Rust | ✅ RAII pattern | ❌ Explicit lifecycle |
 ///
+/// # Why Use This Instead of a Custom `Drop`
+///
+/// The [`SzEnvironmentCore::destroy()`](super::SzEnvironmentCore::destroy)
+/// method takes `Arc<Self>` by value, which makes it tricky to call from a
+/// `Drop` implementation (since `Drop` only gives `&mut self`).
+/// `SenzingGuard` solves this by storing the Arc in an `Option` and using
+/// `.take()` to safely move it out before calling `destroy()`. If you write
+/// your own wrapper, follow the same pattern — see the safety notes on
+/// [`SzEnvironmentCore::destroy()`](super::SzEnvironmentCore::destroy)
+/// for details.
+///
 /// # Panic Behavior
 ///
 /// The guard will panic if cleanup fails during `Drop`. This is intentional

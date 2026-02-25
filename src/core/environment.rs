@@ -325,6 +325,49 @@ impl SzEnvironmentCore {
     /// let env2 = SzEnvironmentCore::get_instance("my_app", &new_settings, false)?;
     /// ```
     ///
+    /// # Calling `destroy()` from a `Drop` Implementation
+    ///
+    /// Because `destroy()` takes `Arc<Self>` by value, calling it from a `Drop`
+    /// impl requires moving the Arc out of your struct. **Use `Option<Arc<...>>`
+    /// with `.take()`** — this is exactly what [`SenzingGuard`](super::SenzingGuard) does internally.
+    ///
+    /// ```ignore
+    /// // ✅ CORRECT: Use Option<Arc<...>> + take()
+    /// struct MyWrapper {
+    ///     env: Option<Arc<SzEnvironmentCore>>,
+    /// }
+    ///
+    /// impl Drop for MyWrapper {
+    ///     fn drop(&mut self) {
+    ///         if let Some(env) = self.env.take() {
+    ///             let _ = env.destroy();
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// ```ignore
+    /// // ❌ WRONG: ptr::read causes double-free / heap corruption
+    /// struct MyWrapper {
+    ///     env: Arc<SzEnvironmentCore>,  // Not wrapped in Option!
+    /// }
+    ///
+    /// impl Drop for MyWrapper {
+    ///     fn drop(&mut self) {
+    ///         // BUG: ptr::read creates a second Arc without incrementing the
+    ///         // reference count. After destroy() frees the inner data, the
+    ///         // compiler also drops self.env → double-free → heap corruption.
+    ///         let env = unsafe { std::ptr::read(&self.env) };
+    ///         env.destroy();
+    ///         // ← compiler drops self.env here (use-after-free!)
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// **Note:** Using `ManuallyDrop` instead of `ptr::read` avoids the
+    /// double-free but is unnecessarily complex. Prefer `Option::take()` or
+    /// use [`SenzingGuard`](super::SenzingGuard) directly — it handles all of this correctly.
+    ///
     /// # Errors
     ///
     /// Returns `SzError::Unrecoverable` if:
@@ -660,23 +703,27 @@ impl SzEnvironment for SzEnvironmentCore {
 ///
 /// ## Proper Cleanup Pattern
 ///
-/// Use the explicit `destroy()` method or the RAII `SenzingGuard` wrapper:
+/// **Recommended:** Use [`SenzingGuard`](super::SenzingGuard) for automatic RAII cleanup:
 ///
 /// ```ignore
 /// use sz_rust_sdk::prelude::*;
 ///
-/// // Option 1: Explicit destroy (ownership-based)
-/// let env = SzEnvironmentCore::get_instance("app", &settings, false)?;
-/// // ... use env ...
-/// env.destroy()?;  // Explicitly release native resources
-///
-/// // Option 2: RAII guard (automatic cleanup)
+/// // Option 1: RAII guard (recommended - automatic cleanup)
 /// {
 ///     let guard = SenzingGuard::new("app", &settings, false)?;
 ///     let engine = guard.get_engine()?;
 ///     // ... use engine ...
 /// } // Native resources released automatically when guard drops
+///
+/// // Option 2: Explicit destroy (ownership-based)
+/// let env = SzEnvironmentCore::get_instance("app", &settings, false)?;
+/// // ... use env ...
+/// env.destroy()?;  // Explicitly release native resources
 /// ```
+///
+/// If you need to call `destroy()` from your own `Drop` implementation,
+/// see the safety notes on [`destroy()`](Self::destroy) — you **must** store
+/// the Arc in an `Option` and use `.take()` to avoid double-free bugs.
 ///
 /// ## What This Implementation Does
 ///
