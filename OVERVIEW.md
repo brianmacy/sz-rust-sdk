@@ -116,7 +116,7 @@ let env = ExampleEnvironment::initialize("my-app")?;
 let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
 
 // Custom initialization with specific settings
-let settings = r#"{% raw %}{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing",...}}{% endraw %}"#;
+let settings = r#"{% raw %}{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"},"SQL":{"CONNECTION":"..."}}{% endraw %}"#;
 let env = SzEnvironmentCore::new("my-app", &settings, true)?;
 ```
 

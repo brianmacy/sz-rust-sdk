@@ -18,7 +18,7 @@ use std::collections::HashSet;
 /// use sz_rust_sdk::prelude::*;
 ///
 /// // Initialize the environment
-/// let settings = r#"{"PIPELINE": {"CONFIGPATH": "/etc/senzing", ...}}"#;
+/// let settings = r#"{"PIPELINE": {"CONFIGPATH": "/etc/opt/senzing", ...}}"#;
 /// let env = SzEnvironmentCore::get_instance("my_app", settings, false)?;
 ///
 /// // Get component interfaces

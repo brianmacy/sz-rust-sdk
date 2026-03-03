@@ -9,7 +9,7 @@ fn main() -> SzResult<()> {
     // Build settings JSON - adjust paths for your platform
     let settings = r#"{
         "PIPELINE": {
-            "CONFIGPATH": "/opt/homebrew/opt/senzing/runtime/er/etc",
+            "CONFIGPATH": "/opt/homebrew/opt/senzing/runtime/er/resources/templates",
             "RESOURCEPATH": "/opt/homebrew/opt/senzing/runtime/er/resources",
             "SUPPORTPATH": "/opt/homebrew/opt/senzing/runtime/data"
         },

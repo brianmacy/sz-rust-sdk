@@ -14,29 +14,57 @@ use crate::prelude::*;
 use std::cell::RefCell;
 use std::path::Path;
 
-/// Get the Senzing CONFIGPATH from environment variable or default
-fn get_config_path() -> String {
-    std::env::var("SENZING_CONFIGPATH")
-        .unwrap_or_else(|_| "/opt/senzing/er/resources/templates".to_string())
+/// Detected Senzing installation paths for building the engine init JSON.
+///
+/// These correspond to the `PIPELINE` section of the Senzing engine configuration:
+/// <https://www.senzing.com/docs/tutorials/senzing_engine_config/>
+struct SenzingPaths {
+    config_path: String,
+    resource_path: String,
+    support_path: String,
 }
 
-/// Get the Senzing RESOURCEPATH from environment variable or default
-fn get_resource_path() -> String {
-    std::env::var("SENZING_RESOURCEPATH")
-        .unwrap_or_else(|_| "/opt/senzing/er/resources".to_string())
-}
+/// Auto-detect Senzing installation paths based on platform.
+///
+/// Checks standard installation locations in priority order:
+/// 1. macOS Homebrew (Apple Silicon): `/opt/homebrew/opt/senzing/runtime`
+/// 2. macOS Homebrew (Intel): `/usr/local/opt/senzing/runtime`
+/// 3. Linux standard: `/opt/senzing` with `/etc/opt/senzing` for config
+///
+/// This matches the detection logic used by `build.rs` for library linking.
+fn detect_senzing_paths() -> SenzingPaths {
+    // Check macOS Homebrew locations (Apple Silicon, then Intel)
+    for homebrew_base in [
+        "/opt/homebrew/opt/senzing/runtime",
+        "/usr/local/opt/senzing/runtime",
+    ] {
+        if Path::new(&format!("{homebrew_base}/er/resources")).exists() {
+            return SenzingPaths {
+                config_path: format!("{homebrew_base}/er/resources/templates"),
+                resource_path: format!("{homebrew_base}/er/resources"),
+                support_path: format!("{homebrew_base}/data"),
+            };
+        }
+    }
 
-/// Get the Senzing SUPPORTPATH from environment variable or default
-fn get_support_path() -> String {
-    std::env::var("SENZING_SUPPORTPATH").unwrap_or_else(|_| "/opt/senzing/data".to_string())
+    // Linux: use /etc/opt/senzing for config if it exists, otherwise resources/templates
+    let config_path = if Path::new("/etc/opt/senzing").exists() {
+        "/etc/opt/senzing".to_string()
+    } else {
+        "/opt/senzing/er/resources/templates".to_string()
+    };
+
+    SenzingPaths {
+        config_path,
+        resource_path: "/opt/senzing/er/resources".to_string(),
+        support_path: "/opt/senzing/data".to_string(),
+    }
 }
 
 /// Get the path to the SQLite schema creation SQL file
 fn get_schema_sql_path() -> String {
-    format!(
-        "{}/schema/szcore-schema-sqlite-create.sql",
-        get_resource_path()
-    )
+    let paths = detect_senzing_paths();
+    format!("{}/schema/szcore-schema-sqlite-create.sql", paths.resource_path)
 }
 
 // Thread-local storage for test database cleanup
@@ -161,7 +189,7 @@ impl ExampleEnvironment {
         // Check if schema SQL exists
         if !Path::new(&schema_path).exists() {
             return Err(SzError::configuration(format!(
-                "SQLite schema SQL not found at {schema_path}. Set SENZING_RESOURCEPATH environment variable."
+                "SQLite schema SQL not found at {schema_path}. Verify Senzing SDK is installed correctly."
             )));
         }
 
@@ -199,11 +227,12 @@ impl ExampleEnvironment {
     /// Set up initial configuration in a fresh database
     /// Uses a temporary environment to access config components through traits
     fn setup_initial_configuration(db_path: &str) -> SzResult<()> {
+        let paths = detect_senzing_paths();
         let settings = format!(
             r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,
-            get_config_path(),
-            get_resource_path(),
-            get_support_path(),
+            paths.config_path,
+            paths.resource_path,
+            paths.support_path,
             db_path
         );
 
@@ -340,11 +369,12 @@ impl ExampleEnvironment {
             path
         });
 
+        let paths = detect_senzing_paths();
         let config = format!(
             r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}","DEBUGLEVEL":"2"}}}}"#,
-            get_config_path(),
-            get_resource_path(),
-            get_support_path(),
+            paths.config_path,
+            paths.resource_path,
+            paths.support_path,
             db_path
         );
 
@@ -372,11 +402,12 @@ impl ExampleEnvironment {
             path
         });
 
+        let paths = detect_senzing_paths();
         let config = format!(
             r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,
-            get_config_path(),
-            get_resource_path(),
-            get_support_path(),
+            paths.config_path,
+            paths.resource_path,
+            paths.support_path,
             db_path
         );
 

@@ -45,27 +45,25 @@ brew install senzing/tap/senzing
 
 Senzing installs to `/opt/homebrew/opt/senzing/runtime/er/` (Apple Silicon) or `/usr/local/opt/senzing/runtime/er/` (Intel).
 
-**Required environment variables:**
+**Required environment variable (for library loading):**
 
 ```bash
 export DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib
-export SENZING_CONFIGPATH=/opt/homebrew/opt/senzing/runtime/er/etc
-export SENZING_RESOURCEPATH=/opt/homebrew/opt/senzing/runtime/er/resources
-export SENZING_SUPPORTPATH=/opt/homebrew/opt/senzing/runtime/data
 ```
+
+Senzing engine configuration is passed programmatically as a JSON string — see [Quick Start](#quick-start) and the [Senzing engine configuration tutorial](https://www.senzing.com/docs/tutorials/senzing_engine_config/).
 
 #### Linux
 
 Install Senzing following the [official instructions](https://senzing.com/). Senzing typically installs to `/opt/senzing/er/`.
 
-**Required environment variables:**
+**Required environment variable (for library loading):**
 
 ```bash
 export LD_LIBRARY_PATH=/opt/senzing/er/lib
-export SENZING_CONFIGPATH=/opt/senzing/er/etc
-export SENZING_RESOURCEPATH=/opt/senzing/er/resources
-export SENZING_SUPPORTPATH=/opt/senzing/er/data
 ```
+
+Senzing engine configuration is passed programmatically as a JSON string — see [Quick Start](#quick-start) and the [Senzing engine configuration tutorial](https://www.senzing.com/docs/tutorials/senzing_engine_config/).
 
 ### Build Configuration
 
@@ -101,7 +99,7 @@ fn main() -> SzResult<()> {
     // Build settings JSON (paths vary by platform - see Prerequisites above)
     let settings = r#"{
         "PIPELINE": {
-            "CONFIGPATH": "/opt/homebrew/opt/senzing/runtime/er/etc",
+            "CONFIGPATH": "/opt/homebrew/opt/senzing/runtime/er/resources/templates",
             "RESOURCEPATH": "/opt/homebrew/opt/senzing/runtime/er/resources",
             "SUPPORTPATH": "/opt/homebrew/opt/senzing/runtime/data"
         },
@@ -405,37 +403,37 @@ The SDK automatically provides database isolation for testing:
 
 ## Configuration
 
-Senzing configuration can be provided through:
+Senzing engine configuration is a JSON string passed to the initialization function. See the [Senzing engine configuration tutorial](https://www.senzing.com/docs/tutorials/senzing_engine_config/) for full details.
 
-1. **Environment Variables** (recommended for development):
+The JSON contains `PIPELINE` paths and a `SQL` connection:
 
-   **macOS (Homebrew):**
+**macOS (Homebrew):**
 
-   ```bash
-   export SENZING_ENGINE_CONFIGURATION_JSON='{
-     "PIPELINE": {
-       "CONFIGPATH": "/opt/homebrew/opt/senzing/runtime/er/etc",
-       "RESOURCEPATH": "/opt/homebrew/opt/senzing/runtime/er/resources",
-       "SUPPORTPATH": "/opt/homebrew/opt/senzing/runtime/data"
-     },
-     "SQL": {"CONNECTION": "sqlite3://na:na@/tmp/senzing.db"}
-   }'
-   ```
+```json
+{
+  "PIPELINE": {
+    "CONFIGPATH": "/opt/homebrew/opt/senzing/runtime/er/resources/templates",
+    "RESOURCEPATH": "/opt/homebrew/opt/senzing/runtime/er/resources",
+    "SUPPORTPATH": "/opt/homebrew/opt/senzing/runtime/data"
+  },
+  "SQL": {"CONNECTION": "sqlite3://na:na@/tmp/senzing.db"}
+}
+```
 
-   **Linux:**
+**Linux:**
 
-   ```bash
-   export SENZING_ENGINE_CONFIGURATION_JSON='{
-     "PIPELINE": {
-       "CONFIGPATH": "/opt/senzing/er/etc",
-       "RESOURCEPATH": "/opt/senzing/er/resources",
-       "SUPPORTPATH": "/opt/senzing/er/data"
-     },
-     "SQL": {"CONNECTION": "sqlite3://na:na@/tmp/senzing.db"}
-   }'
-   ```
+```json
+{
+  "PIPELINE": {
+    "CONFIGPATH": "/etc/opt/senzing",
+    "RESOURCEPATH": "/opt/senzing/er/resources",
+    "SUPPORTPATH": "/opt/senzing/data"
+  },
+  "SQL": {"CONNECTION": "sqlite3://na:na@/tmp/senzing.db"}
+}
+```
 
-2. **Automatic Setup**: The SDK's `ExampleEnvironment` helper automatically configures appropriate settings for development and testing, detecting the platform and paths.
+You can also set the `SENZING_ENGINE_CONFIGURATION_JSON` environment variable with this JSON string. The SDK's `ExampleEnvironment` helper automatically builds appropriate settings for development and testing.
 
 ## Contributing
 

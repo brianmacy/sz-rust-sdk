@@ -141,14 +141,16 @@ Resources:  /opt/homebrew/opt/senzing/runtime/er/resources
 Support:    /opt/homebrew/opt/senzing/runtime/data
 ```
 
-Environment variables for macOS:
+Required environment variable for macOS (library loading only):
 
 ```bash
 export DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib
-export SENZING_CONFIGPATH=/opt/homebrew/opt/senzing/runtime/er/resources/templates
-export SENZING_RESOURCEPATH=/opt/homebrew/opt/senzing/runtime/er/resources
-export SENZING_SUPPORTPATH=/opt/homebrew/opt/senzing/runtime/data
 ```
+
+The SDK's `ExampleEnvironment` helper auto-detects Senzing installation paths by checking
+standard platform locations (Homebrew on macOS, `/opt/senzing` on Linux). Engine configuration
+is passed as a JSON string — see https://www.senzing.com/docs/tutorials/senzing_engine_config/
+You can also set `SENZING_ENGINE_CONFIGURATION_JSON` to provide the full config directly.
 
 #### Linux (Standard Installation)
 
@@ -160,13 +162,10 @@ Resources:  /opt/senzing/er/resources
 Support:    /opt/senzing/data
 ```
 
-Environment variables for Linux:
+Required environment variable for Linux (library loading only):
 
 ```bash
 export LD_LIBRARY_PATH=/opt/senzing/er/lib
-export SENZING_CONFIGPATH=/opt/senzing/er/resources/templates
-export SENZING_RESOURCEPATH=/opt/senzing/er/resources
-export SENZING_SUPPORTPATH=/opt/senzing/data
 ```
 
 - Look to the C# code for guidance on which native functions to use for FFI.
