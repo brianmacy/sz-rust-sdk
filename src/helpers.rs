@@ -64,7 +64,10 @@ fn detect_senzing_paths() -> SenzingPaths {
 /// Get the path to the SQLite schema creation SQL file
 fn get_schema_sql_path() -> String {
     let paths = detect_senzing_paths();
-    format!("{}/schema/szcore-schema-sqlite-create.sql", paths.resource_path)
+    format!(
+        "{}/schema/szcore-schema-sqlite-create.sql",
+        paths.resource_path
+    )
 }
 
 // Thread-local storage for test database cleanup
@@ -230,10 +233,7 @@ impl ExampleEnvironment {
         let paths = detect_senzing_paths();
         let settings = format!(
             r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,
-            paths.config_path,
-            paths.resource_path,
-            paths.support_path,
-            db_path
+            paths.config_path, paths.resource_path, paths.support_path, db_path
         );
 
         println!("Setting up initial configuration in database...");
@@ -372,10 +372,7 @@ impl ExampleEnvironment {
         let paths = detect_senzing_paths();
         let config = format!(
             r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}","DEBUGLEVEL":"2"}}}}"#,
-            paths.config_path,
-            paths.resource_path,
-            paths.support_path,
-            db_path
+            paths.config_path, paths.resource_path, paths.support_path, db_path
         );
 
         Ok(config)
@@ -405,10 +402,7 @@ impl ExampleEnvironment {
         let paths = detect_senzing_paths();
         let config = format!(
             r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,
-            paths.config_path,
-            paths.resource_path,
-            paths.support_path,
-            db_path
+            paths.config_path, paths.resource_path, paths.support_path, db_path
         );
 
         Ok(config)
