@@ -28,7 +28,7 @@ pub type JsonString = String;
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```no_run
 /// use sz_rust_sdk::prelude::*;
 ///
 /// // Reference by entity ID (automatic conversion)

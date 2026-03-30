@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "sz-rust-sdk-faq": {
+      "command": "uv",
+      "args": ["run", "--script", ".claude/faq_server.py"]
+    }
+  }
+}

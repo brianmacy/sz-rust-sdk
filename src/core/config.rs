@@ -99,7 +99,8 @@ impl SzConfig for SzConfigCore {
     }
 
     fn unregister_data_source(&self, data_source_code: &str) -> SzResult<()> {
-        let data_source_c = crate::ffi::helpers::str_to_c_string(data_source_code)?;
+        let json_input = format!(r#"{{"DSRC_CODE": "{data_source_code}"}}"#);
+        let data_source_c = crate::ffi::helpers::str_to_c_string(&json_input)?;
 
         ffi_call_config!(crate::ffi::SzConfig_unregisterDataSource_helper(
             self.handle,

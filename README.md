@@ -416,7 +416,7 @@ The JSON contains `PIPELINE` paths and a `SQL` connection:
     "RESOURCEPATH": "/opt/homebrew/opt/senzing/runtime/er/resources",
     "SUPPORTPATH": "/opt/homebrew/opt/senzing/runtime/data"
   },
-  "SQL": {"CONNECTION": "sqlite3://na:na@/tmp/senzing.db"}
+  "SQL": { "CONNECTION": "sqlite3://na:na@/tmp/senzing.db" }
 }
 ```
 
@@ -429,7 +429,7 @@ The JSON contains `PIPELINE` paths and a `SQL` connection:
     "RESOURCEPATH": "/opt/senzing/er/resources",
     "SUPPORTPATH": "/opt/senzing/data"
   },
-  "SQL": {"CONNECTION": "sqlite3://na:na@/tmp/senzing.db"}
+  "SQL": { "CONNECTION": "sqlite3://na:na@/tmp/senzing.db" }
 }
 ```
 

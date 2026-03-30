@@ -9,9 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Runnable doc examples on all public trait methods (121 doc tests) - converted from `ignore` to runnable or `no_run`
 - Safety documentation on `destroy()` warning against `ptr::read` in `Drop` impls (causes double-free / heap corruption) and recommending `Option<Arc<...>>` + `.take()` or `SenzingGuard`
 - "Why Use This Instead of a Custom Drop" section on `SenzingGuard` docs
 - Cross-references between `destroy()`, `Drop`, and `SenzingGuard` documentation
+- FAQ MCP server with 9 articles covering architecture, build, SDK usage, testing, and troubleshooting
+
+### Fixed
+
+- `unregister_data_source` JSON wrapping bug in config.rs - data source name now correctly wrapped in JSON object
+
+### Changed
+
+- Updated .gitignore for project-specific patterns
 
 ## [0.11.1] - 2026-02-06
 

@@ -20,78 +20,30 @@ use std::sync::{Arc, Mutex, Once, OnceLock};
 ///
 /// This example shows the full lifecycle: creation, usage, and cleanup.
 ///
-/// ```ignore
+/// ```no_run
+/// # use sz_rust_sdk::helpers::ExampleEnvironment;
 /// use sz_rust_sdk::prelude::*;
 /// use std::sync::Arc;
 ///
-/// fn main() -> SzResult<()> {
-///     // ═══════════════════════════════════════════════════════════
-///     // STEP 1: CONFIGURATION
-///     // ═══════════════════════════════════════════════════════════
-///     let settings = r#"{
-///         "PIPELINE": {
-///             "CONFIGPATH": "/opt/senzing/er/resources/templates",
-///             "RESOURCEPATH": "/opt/senzing/er/resources",
-///             "SUPPORTPATH": "/opt/senzing/data"
-///         },
-///         "SQL": {
-///             "CONNECTION": "sqlite3://na:na@/tmp/senzing.db"
-///         }
-///     }"#;
+/// # let env = ExampleEnvironment::initialize("doctest_lifecycle")?;
+/// // Get SDK components
+/// let engine = env.get_engine()?;
+/// let product = env.get_product()?;
 ///
-///     // ═══════════════════════════════════════════════════════════
-///     // STEP 2: INITIALIZATION (choose one approach)
-///     // ═══════════════════════════════════════════════════════════
+/// // Use the SDK
+/// let version = product.get_version()?;
+/// println!("Senzing version: {}", version);
 ///
-///     // OPTION A: RAII Guard (recommended - automatic cleanup)
-///     {
-///         let guard = SenzingGuard::new("my-app", settings, false)?;
+/// engine.add_record("TEST", "LIFECYCLE_1",
+///     r#"{"NAME_FULL": "John Smith"}"#, None)?;
 ///
-///         // Get SDK components
-///         let engine = guard.get_engine()?;
-///         let product = guard.get_product()?;
+/// // Drop components first (they borrow the environment)
+/// drop(engine);
+/// drop(product);
 ///
-///         // Use the SDK
-///         let version = product.get_version()?;
-///         println!("Senzing version: {}", version);
-///
-///         engine.add_record("CUSTOMERS", "1",
-///             r#"{"NAME_FULL": "John Smith"}"#, None)?;
-///
-///     } // <- Resources automatically released here
-///
-///     // OPTION B: Manual management (when you need more control)
-///     {
-///         // Create environment (returns Arc with strong_count >= 2)
-///         let env = SzEnvironmentCore::get_instance("my-app", settings, false)?;
-///
-///         // Get SDK components
-///         let engine = env.get_engine()?;
-///
-///         // Use the SDK
-///         engine.add_record("CUSTOMERS", "2",
-///             r#"{"NAME_FULL": "Jane Doe"}"#, None)?;
-///
-///         // ═══════════════════════════════════════════════════════
-///         // STEP 3: CLEANUP (required for Option B)
-///         // ═══════════════════════════════════════════════════════
-///
-///         // Drop components first (they borrow the environment)
-///         drop(engine);
-///
-///         // Destroy releases native resources
-///         // Only succeeds if this is the last Arc reference
-///         env.destroy()?;
-///     }
-///
-///     // After destroy(), you can create a new environment with
-///     // different settings if needed
-///     let env2 = SzEnvironmentCore::get_instance("my-app-v2", settings, true)?;
-///     // ...
-///     env2.destroy()?;
-///
-///     Ok(())
-/// }
+/// // Destroy releases native resources
+/// env.destroy()?;
+/// # Ok::<(), SzError>(())
 /// ```
 ///
 /// # Singleton Pattern
@@ -111,18 +63,23 @@ use std::sync::{Arc, Mutex, Once, OnceLock};
 /// can be cloned and shared across threads. Each call to `get_engine()`, etc.,
 /// returns an independent component instance that can be used in its own thread.
 ///
-/// ```ignore
-/// let env = SzEnvironmentCore::get_instance("app", &settings, false)?;
+/// ```
+/// # use sz_rust_sdk::helpers::ExampleEnvironment;
+/// use sz_rust_sdk::prelude::*;
 ///
+/// # let env = ExampleEnvironment::initialize("doctest_thread_safety")?;
 /// let handles: Vec<_> = (0..4).map(|i| {
 ///     let env = env.clone();
 ///     std::thread::spawn(move || {
 ///         let engine = env.get_engine().unwrap();
-///         engine.add_record("DS", &format!("REC{}", i), "{}", None)
+///         engine.add_record("TEST", &format!("THREAD_{}", i),
+///             r#"{"NAME_FULL": "Test User"}"#, None)
 ///     })
 /// }).collect();
 ///
 /// for h in handles { h.join().unwrap()?; }
+/// # drop(env);
+/// # Ok::<(), SzError>(())
 /// ```
 pub struct SzEnvironmentCore {
     is_destroyed: Arc<AtomicBool>,
@@ -199,13 +156,20 @@ impl SzEnvironmentCore {
     /// This is by design and is NOT a memory leak. The singleton reference ensures
     /// that subsequent calls to `get_instance()` return the same instance.
     ///
-    /// ```ignore
-    /// let env = SzEnvironmentCore::get_instance("app", &settings, false)?;
+    /// ```
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// use sz_rust_sdk::prelude::*;
+    /// use std::sync::Arc;
+    ///
+    /// # let env = ExampleEnvironment::initialize("doctest_get_instance_arc")?;
     /// assert!(Arc::strong_count(&env) >= 2); // Expected: singleton + caller
     ///
-    /// let env2 = SzEnvironmentCore::get_instance("app", &settings, false)?;
+    /// let env2 = SzEnvironmentCore::get_existing_instance()?;
     /// assert!(Arc::ptr_eq(&env, &env2)); // Same instance
     /// assert!(Arc::strong_count(&env) >= 3); // singleton + 2 callers
+    /// # drop(env2);
+    /// # drop(env);
+    /// # Ok::<(), SzError>(())
     /// ```
     ///
     /// # Cleanup
@@ -213,11 +177,17 @@ impl SzEnvironmentCore {
     /// To properly release resources, use `destroy()` which removes the singleton
     /// reference and calls native cleanup when you hold the last reference:
     ///
-    /// ```ignore
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// # let env = ExampleEnvironment::initialize("doctest_get_instance_cleanup")?;
+    /// let env2 = SzEnvironmentCore::get_existing_instance()?;
     /// // Drop all other references first
     /// drop(env2);
     /// // Then destroy - this removes singleton ref and cleans up native resources
     /// env.destroy()?;
+    /// # Ok::<(), SzError>(())
     /// ```
     pub fn get_instance(
         module_name: &str,
@@ -312,17 +282,16 @@ impl SzEnvironmentCore {
     ///
     /// # Example
     ///
-    /// ```ignore
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
     /// use sz_rust_sdk::prelude::*;
     ///
-    /// let env = SzEnvironmentCore::get_instance("my_app", &settings, false)?;
+    /// # let env = ExampleEnvironment::initialize("doctest_destroy_basic")?;
     /// // ... use env ...
     ///
     /// // When done, destroy (only works if this is the only reference)
     /// env.destroy()?;
-    ///
-    /// // Can now create a new environment with different settings
-    /// let env2 = SzEnvironmentCore::get_instance("my_app", &new_settings, false)?;
+    /// # Ok::<(), SzError>(())
     /// ```
     ///
     /// # Calling `destroy()` from a `Drop` Implementation
@@ -331,8 +300,11 @@ impl SzEnvironmentCore {
     /// impl requires moving the Arc out of your struct. **Use `Option<Arc<...>>`
     /// with `.take()`** — this is exactly what [`SenzingGuard`](super::SenzingGuard) does internally.
     ///
-    /// ```ignore
-    /// // ✅ CORRECT: Use Option<Arc<...>> + take()
+    /// ```no_run
+    /// use sz_rust_sdk::prelude::*;
+    /// use std::sync::Arc;
+    ///
+    /// // CORRECT: Use Option<Arc<...>> + take()
     /// struct MyWrapper {
     ///     env: Option<Arc<SzEnvironmentCore>>,
     /// }
@@ -344,10 +316,19 @@ impl SzEnvironmentCore {
     ///         }
     ///     }
     /// }
+    ///
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_destroy_drop_correct")?;
+    /// let wrapper = MyWrapper { env: Some(env) };
+    /// drop(wrapper); // Cleanup happens via Drop
+    /// # Ok::<(), SzError>(())
     /// ```
     ///
-    /// ```ignore
-    /// // ❌ WRONG: ptr::read causes double-free / heap corruption
+    /// ```no_run
+    /// use sz_rust_sdk::prelude::*;
+    /// use std::sync::Arc;
+    ///
+    /// // WRONG: ptr::read causes double-free / heap corruption
     /// struct MyWrapper {
     ///     env: Arc<SzEnvironmentCore>,  // Not wrapped in Option!
     /// }
@@ -356,10 +337,10 @@ impl SzEnvironmentCore {
     ///     fn drop(&mut self) {
     ///         // BUG: ptr::read creates a second Arc without incrementing the
     ///         // reference count. After destroy() frees the inner data, the
-    ///         // compiler also drops self.env → double-free → heap corruption.
+    ///         // compiler also drops self.env -> double-free -> heap corruption.
     ///         let env = unsafe { std::ptr::read(&self.env) };
-    ///         env.destroy();
-    ///         // ← compiler drops self.env here (use-after-free!)
+    ///         let _ = env.destroy();
+    ///         // <- compiler drops self.env here (use-after-free!)
     ///     }
     /// }
     /// ```
@@ -705,20 +686,17 @@ impl SzEnvironment for SzEnvironmentCore {
 ///
 /// **Recommended:** Use [`SenzingGuard`](super::SenzingGuard) for automatic RAII cleanup:
 ///
-/// ```ignore
+/// ```no_run
+/// # use sz_rust_sdk::helpers::ExampleEnvironment;
 /// use sz_rust_sdk::prelude::*;
 ///
-/// // Option 1: RAII guard (recommended - automatic cleanup)
-/// {
-///     let guard = SenzingGuard::new("app", &settings, false)?;
-///     let engine = guard.get_engine()?;
-///     // ... use engine ...
-/// } // Native resources released automatically when guard drops
-///
-/// // Option 2: Explicit destroy (ownership-based)
-/// let env = SzEnvironmentCore::get_instance("app", &settings, false)?;
-/// // ... use env ...
+/// // Explicit destroy (ownership-based)
+/// # let env = ExampleEnvironment::initialize("doctest_drop_cleanup")?;
+/// let engine = env.get_engine()?;
+/// // ... use engine ...
+/// drop(engine);
 /// env.destroy()?;  // Explicitly release native resources
+/// # Ok::<(), SzError>(())
 /// ```
 ///
 /// If you need to call `destroy()` from your own `Drop` implementation,

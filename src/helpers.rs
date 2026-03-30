@@ -269,10 +269,13 @@ impl ExampleEnvironment {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// let env = ExampleEnvironment::initialize("app")?;
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # use sz_rust_sdk::prelude::*;
+    /// let env = ExampleEnvironment::initialize("doctest_cleanup")?;
     /// // ... use env ...
     /// ExampleEnvironment::cleanup(env)?;  // Consumes env
+    /// # Ok::<(), SzError>(())
     /// ```
     pub fn cleanup(env: std::sync::Arc<SzEnvironmentCore>) -> SzResult<()> {
         println!("Cleaning up environment...");

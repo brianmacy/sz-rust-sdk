@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## FAQ MCP Server
+
+Check the `sz-rust-sdk-faq` MCP tools BEFORE making design assumptions about error handling, FFI bindings, flags, initialization patterns, or test architecture.
+Key design rules and operational knowledge are documented there.
+When you encounter difficulty, search the FAQs FIRST.
+After resolving any issue, ask the user if they want you to add it as a FAQ entry.
+
 ## Project Setup
 
 This is a Rust SDK project that is currently in its initial state. To initialize the project:

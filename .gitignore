@@ -36,3 +36,6 @@ quick_test*
 # Temporary analysis files
 *analysis*.md
 *enumeration*.md
+
+# Claude Code local settings (user-specific)
+.claude/settings.local.json

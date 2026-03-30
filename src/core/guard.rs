@@ -23,23 +23,23 @@ use std::sync::Arc;
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```no_run
+/// # use sz_rust_sdk::helpers::ExampleEnvironment;
 /// use sz_rust_sdk::prelude::*;
 ///
-/// fn main() -> SzResult<()> {
-///     // Guard automatically manages the lifecycle
-///     let guard = SenzingGuard::new("my-app", &settings, false)?;
+/// # let env = ExampleEnvironment::initialize("doctest_guard_struct")?;
+/// // Guard automatically manages the lifecycle
+/// let guard = SenzingGuard::from_env(env);
 ///
-///     // Access environment and components
-///     let engine = guard.get_engine()?;
-///     let product = guard.get_product()?;
+/// // Access environment and components
+/// let engine = guard.get_engine()?;
+/// let product = guard.get_product()?;
 ///
-///     // Add records
-///     engine.add_record("CUSTOMERS", "1", r#"{"NAME": "John"}"#, None)?;
+/// // Add records
+/// engine.add_record("TEST", "GUARD_1", r#"{"NAME_FULL": "John"}"#, None)?;
 ///
-///     // Resources released automatically when guard drops
-///     Ok(())
-/// } // <- Native resources released here
+/// // Resources released automatically when guard drops
+/// # Ok::<(), SzError>(())
 /// ```
 ///
 /// # Thread Safety
@@ -92,9 +92,16 @@ impl SenzingGuard {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// let settings = r#"{"PIPELINE": {...}, "SQL": {...}}"#;
-    /// let guard = SenzingGuard::new("my-app", settings, false)?;
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// # let env = ExampleEnvironment::initialize("doctest_guard_new")?;
+    /// // SenzingGuard::new(name, settings, verbose) initializes directly.
+    /// // Here we use from_env with a pre-initialized environment:
+    /// let guard = SenzingGuard::from_env(env);
+    /// let product = guard.get_product()?;
+    /// # Ok::<(), SzError>(())
     /// ```
     pub fn new(module_name: &str, ini_params: &str, verbose_logging: bool) -> SzResult<Self> {
         let env = super::SzEnvironmentCore::get_instance(module_name, ini_params, verbose_logging)?;
@@ -108,10 +115,15 @@ impl SenzingGuard {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// let env = SzEnvironmentCore::get_instance("app", &settings, false)?;
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// # let env = ExampleEnvironment::initialize("doctest_guard_from_env")?;
     /// let guard = SenzingGuard::from_env(env);
     /// // guard now owns the Arc and will clean up on drop
+    /// let product = guard.get_product()?;
+    /// # Ok::<(), SzError>(())
     /// ```
     pub fn from_env(env: Arc<super::SzEnvironmentCore>) -> Self {
         Self { env: Some(env) }
@@ -133,11 +145,16 @@ impl SenzingGuard {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// let guard = SenzingGuard::new("app", &settings, false)?;
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// # let env = ExampleEnvironment::initialize("doctest_guard_into_inner")?;
+    /// let guard = SenzingGuard::from_env(env);
     /// let env = guard.into_inner();
-    /// // ... use env ...
-    /// env.destroy()?; // Manual cleanup required
+    /// // Manual cleanup required after into_inner()
+    /// env.destroy()?;
+    /// # Ok::<(), SzError>(())
     /// ```
     pub fn into_inner(mut self) -> Arc<super::SzEnvironmentCore> {
         self.env.take().expect("SenzingGuard already consumed")
@@ -150,12 +167,17 @@ impl SenzingGuard {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// let guard = SenzingGuard::new("app", &settings, false)?;
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// # let env = ExampleEnvironment::initialize("doctest_guard_try_cleanup")?;
+    /// let guard = SenzingGuard::from_env(env);
     /// // ... use guard ...
     /// if let Err(e) = guard.try_cleanup() {
     ///     eprintln!("Cleanup failed: {}", e);
     /// }
+    /// # Ok::<(), SzError>(())
     /// ```
     pub fn try_cleanup(mut self) -> SzResult<()> {
         if let Some(env) = self.env.take() {
