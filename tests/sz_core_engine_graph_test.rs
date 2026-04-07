@@ -211,9 +211,14 @@ fn test_find_path_by_record_id_not_found() -> SzResult<()> {
     let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
 
     let result = engine.find_path_by_record_id(
-        "TEST", "NONEXISTENT_1",
-        "TEST", "NONEXISTENT_2",
-        3, None, None, None,
+        "TEST",
+        "NONEXISTENT_1",
+        "TEST",
+        "NONEXISTENT_2",
+        3,
+        None,
+        None,
+        None,
     );
     assert!(result.is_err());
 
@@ -235,9 +240,14 @@ fn test_find_path_by_record_id_valid() -> SzResult<()> {
     engine.add_record("TEST", "FPBR_1002", r#"{"NAME_FULL": "Jane Doe"}"#, None)?;
 
     let result = engine.find_path_by_record_id(
-        "TEST", "FPBR_1001",
-        "TEST", "FPBR_1002",
-        3, None, None, None,
+        "TEST",
+        "FPBR_1001",
+        "TEST",
+        "FPBR_1002",
+        3,
+        None,
+        None,
+        None,
     );
     // Path may or may not exist depending on data, but the call should succeed or return a valid error
     assert!(result.is_ok() || result.is_err());
@@ -255,13 +265,22 @@ fn test_find_path_by_record_id_with_flags() -> SzResult<()> {
     let env = ExampleEnvironment::initialize("test-find-path-by-record-id-flags")?;
     let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
 
-    engine.add_record("TEST", "FPBRF_1001", r#"{"NAME_FULL": "Alice Brown"}"#, None)?;
+    engine.add_record(
+        "TEST",
+        "FPBRF_1001",
+        r#"{"NAME_FULL": "Alice Brown"}"#,
+        None,
+    )?;
     engine.add_record("TEST", "FPBRF_1002", r#"{"NAME_FULL": "Bob White"}"#, None)?;
 
     let result = engine.find_path_by_record_id(
-        "TEST", "FPBRF_1001",
-        "TEST", "FPBRF_1002",
-        5, None, None,
+        "TEST",
+        "FPBRF_1001",
+        "TEST",
+        "FPBRF_1002",
+        5,
+        None,
+        None,
         Some(SzFlags::FIND_PATH_DEFAULT_FLAGS),
     );
     assert!(result.is_ok() || result.is_err());
@@ -282,7 +301,10 @@ fn test_find_network_by_record_id_not_found() -> SzResult<()> {
 
     let result = engine.find_network_by_record_id(
         &[("TEST", "NONEXISTENT_NET_1"), ("TEST", "NONEXISTENT_NET_2")],
-        3, 1, 100, None,
+        3,
+        1,
+        100,
+        None,
     );
     assert!(result.is_err());
 
@@ -299,12 +321,14 @@ fn test_find_network_by_record_id_valid() -> SzResult<()> {
     let env = ExampleEnvironment::initialize("test-find-network-by-record-id-valid")?;
     let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
 
-    engine.add_record("TEST", "FNBR_1001", r#"{"NAME_FULL": "Charlie Green"}"#, None)?;
+    engine.add_record(
+        "TEST",
+        "FNBR_1001",
+        r#"{"NAME_FULL": "Charlie Green"}"#,
+        None,
+    )?;
 
-    let result = engine.find_network_by_record_id(
-        &[("TEST", "FNBR_1001")],
-        3, 1, 100, None,
-    );
+    let result = engine.find_network_by_record_id(&[("TEST", "FNBR_1001")], 3, 1, 100, None);
     // Should succeed with a single known record
     assert!(result.is_ok());
     let json = result.unwrap();
@@ -327,7 +351,9 @@ fn test_find_network_by_record_id_with_flags() -> SzResult<()> {
 
     let result = engine.find_network_by_record_id(
         &[("TEST", "FNBRF_1001")],
-        3, 1, 100,
+        3,
+        1,
+        100,
         Some(SzFlags::FIND_NETWORK_DEFAULT_FLAGS),
     );
     assert!(result.is_ok());
