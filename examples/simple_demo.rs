@@ -45,7 +45,7 @@ fn demonstrate_components(env: &std::sync::Arc<SzEnvironmentCore>) -> SzResult<(
 
     // Test find path operation
     println!("\n🔗 Testing find path operation...");
-    match engine.find_path(1, 2, 3, None, None, None) {
+    match engine.find_path_by_entity_id(1, 2, 3, None, None, None) {
         Ok(path_result) => {
             println!("✅ Find path completed");
             println!("   Path: {path_result}");

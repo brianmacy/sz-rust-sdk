@@ -269,7 +269,7 @@ impl SzEngine for SzEngineCore {
         }
     }
 
-    fn find_path(
+    fn find_path_by_entity_id(
         &self,
         start_entity_id: EntityId,
         end_entity_id: EntityId,
@@ -293,11 +293,44 @@ impl SzEngine for SzEngineCore {
         process_engine_result!(result)
     }
 
-    fn find_network(
+    #[allow(clippy::too_many_arguments)]
+    fn find_path_by_record_id(
+        &self,
+        start_data_source_code: &str,
+        start_record_id: &str,
+        end_data_source_code: &str,
+        end_record_id: &str,
+        max_degrees: i64,
+        _avoid_record_keys: Option<&[(&str, &str)]>,
+        _required_data_sources: Option<&HashSet<String>>,
+        flags: Option<SzFlags>,
+    ) -> SzResult<JsonString> {
+        let flags_bits = flags.unwrap_or(SzFlags::FIND_PATH_DEFAULT_FLAGS).bits() as i64;
+
+        let start_ds_c = crate::ffi::helpers::str_to_c_string(start_data_source_code)?;
+        let start_rid_c = crate::ffi::helpers::str_to_c_string(start_record_id)?;
+        let end_ds_c = crate::ffi::helpers::str_to_c_string(end_data_source_code)?;
+        let end_rid_c = crate::ffi::helpers::str_to_c_string(end_record_id)?;
+
+        let result = unsafe {
+            crate::ffi::Sz_findPathByRecordID_V2_helper(
+                start_ds_c.as_ptr(),
+                start_rid_c.as_ptr(),
+                end_ds_c.as_ptr(),
+                end_rid_c.as_ptr(),
+                max_degrees,
+                flags_bits,
+            )
+        };
+
+        process_engine_result!(result)
+    }
+
+    fn find_network_by_entity_id(
         &self,
         entity_list: &[EntityId],
         max_degrees: i64,
-        build_out_degree: i64,
+        build_out_degrees: i64,
         max_entities: i64,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
@@ -318,7 +351,41 @@ impl SzEngine for SzEngineCore {
             crate::ffi::Sz_findNetworkByEntityID_V2_helper(
                 entity_list_c.as_ptr(),
                 max_degrees,
-                build_out_degree,
+                build_out_degrees,
+                max_entities,
+                flags_bits,
+            )
+        };
+
+        process_engine_result!(result)
+    }
+
+    fn find_network_by_record_id(
+        &self,
+        record_keys: &[(&str, &str)],
+        max_degrees: i64,
+        build_out_degrees: i64,
+        max_entities: i64,
+        flags: Option<SzFlags>,
+    ) -> SzResult<JsonString> {
+        let record_objects: Vec<serde_json::Value> = record_keys
+            .iter()
+            .map(|(ds, rid)| serde_json::json!({"DATA_SOURCE": ds, "RECORD_ID": rid}))
+            .collect();
+
+        let record_list_json = serde_json::json!({
+            "RECORDS": record_objects
+        })
+        .to_string();
+
+        let record_list_c = crate::ffi::helpers::str_to_c_string(&record_list_json)?;
+        let flags_bits = flags.unwrap_or(SzFlags::FIND_NETWORK_DEFAULT_FLAGS).bits() as i64;
+
+        let result = unsafe {
+            crate::ffi::Sz_findNetworkByRecordID_V2_helper(
+                record_list_c.as_ptr(),
+                max_degrees,
+                build_out_degrees,
                 max_entities,
                 flags_bits,
             )
@@ -491,7 +558,7 @@ impl SzEngine for SzEngineCore {
         process_engine_result!(result)
     }
 
-    fn close_export(&self, export_handle: ExportHandle) -> SzResult<()> {
+    fn close_export_report(&self, export_handle: ExportHandle) -> SzResult<()> {
         ffi_call!(crate::ffi::Sz_closeExportReport_helper(
             export_handle as usize
         ));

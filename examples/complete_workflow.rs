@@ -26,7 +26,7 @@ fn main() -> SzResult<()> {
     // Step 3: Test path finding
     println!("\n3. Testing Path Finding");
     println!("   Testing find path operation...");
-    match engine.find_path(1, 2, 3, None, None, None) {
+    match engine.find_path_by_entity_id(1, 2, 3, None, None, None) {
         Ok(path_result) => {
             println!("   ✓ Find path completed");
             println!("     Path: {path_result}");
@@ -37,7 +37,7 @@ fn main() -> SzResult<()> {
     // Step 4: Test network analysis
     println!("\n4. Testing Network Analysis");
     println!("   Testing network analysis...");
-    match engine.find_network(&[1, 2, 3], 2, 1, 10, None) {
+    match engine.find_network_by_entity_id(&[1, 2, 3], 2, 1, 10, None) {
         Ok(network_result) => {
             println!("   ✓ Network analysis completed");
             println!("     Network: {network_result}");

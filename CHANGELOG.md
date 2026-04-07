@@ -14,14 +14,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "Why Use This Instead of a Custom Drop" section on `SenzingGuard` docs
 - Cross-references between `destroy()`, `Drop`, and `SenzingGuard` documentation
 - FAQ MCP server with 9 articles covering architecture, build, SDK usage, testing, and troubleshooting
+- `find_path_by_record_id` method on `SzEngine` trait for path finding using record keys instead of entity IDs
+- `find_network_by_record_id` method on `SzEngine` trait for network discovery using record keys instead of entity IDs
 
 ### Fixed
 
 - `unregister_data_source` JSON wrapping bug in config.rs - data source name now correctly wrapped in JSON object
+- **BREAKING**: Renamed `close_export` to `close_export_report` to align with C#/Java/Python SDK naming conventions
 
 ### Changed
 
 - Updated .gitignore for project-specific patterns
+- **BREAKING**: Renamed `find_path` to `find_path_by_entity_id` to clarify it operates on entity IDs (matches C#/Java/Python SDKs)
+- **BREAKING**: Renamed `find_network` to `find_network_by_entity_id` to clarify it operates on entity IDs (matches C#/Java/Python SDKs)
+- **BREAKING**: Renamed `build_out_degree` parameter to `build_out_degrees` on network methods (matches C#/Java/Python SDKs)
 
 ## [0.11.1] - 2026-02-06
 

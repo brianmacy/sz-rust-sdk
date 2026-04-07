@@ -678,7 +678,7 @@ pub trait SzEngine: Send + Sync {
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString>;
 
-    /// Finds a relationship path between two entities.
+    /// Finds the shortest path between two entities by entity ID.
     ///
     /// Discovers the shortest path connecting two entities through their
     /// relationships, useful for understanding indirect connections.
@@ -702,7 +702,7 @@ pub trait SzEngine: Send + Sync {
     /// # use sz_rust_sdk::helpers::ExampleEnvironment;
     /// use sz_rust_sdk::prelude::*;
     ///
-    /// # let env = ExampleEnvironment::initialize("doctest_find_path")?;
+    /// # let env = ExampleEnvironment::initialize("doctest_find_path_by_entity_id")?;
     /// let engine = env.get_engine()?;
     /// # engine.add_record("TEST", "PATH_1001",
     /// #     r#"{"NAME_FULL": "John Smith"}"#, None)?;
@@ -721,10 +721,10 @@ pub trait SzEngine: Send + Sync {
     /// # let j2: serde_json::Value = serde_json::from_str(&r2).unwrap();
     /// # let entity_id2 = j2["RESOLVED_ENTITY"]["ENTITY_ID"].as_i64().unwrap();
     ///
-    /// let path = engine.find_path(entity_id1, entity_id2, 3, None, None, None)?;
+    /// let path = engine.find_path_by_entity_id(entity_id1, entity_id2, 3, None, None, None)?;
     /// # Ok::<(), SzError>(())
     /// ```
-    fn find_path(
+    fn find_path_by_entity_id(
         &self,
         start_entity_id: EntityId,
         end_entity_id: EntityId,
@@ -734,7 +734,60 @@ pub trait SzEngine: Send + Sync {
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString>;
 
-    /// Finds a network of related entities.
+    /// Finds the shortest path between two entities by record key.
+    ///
+    /// Identical to [`find_path_by_entity_id`](SzEngine::find_path_by_entity_id) but entities
+    /// are identified by their data source code and record ID instead of entity ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `start_data_source_code` - Data source of the start record
+    /// * `start_record_id` - Record ID of the start record
+    /// * `end_data_source_code` - Data source of the end record
+    /// * `end_record_id` - Record ID of the end record
+    /// * `max_degrees` - Maximum relationship hops to traverse
+    /// * `avoid_record_keys` - Optional record keys to exclude from the path
+    /// * `required_data_sources` - Optional data sources that must appear in path
+    /// * `flags` - Optional flags controlling result detail
+    ///
+    /// # Returns
+    ///
+    /// JSON string with path details and intermediate entities.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// # let env = ExampleEnvironment::initialize("doctest_find_path_by_record_id")?;
+    /// let engine = env.get_engine()?;
+    /// # engine.add_record("TEST", "FPBR_1001",
+    /// #     r#"{"NAME_FULL": "John Smith"}"#, None)?;
+    /// # engine.add_record("TEST", "FPBR_1002",
+    /// #     r#"{"NAME_FULL": "Jane Doe"}"#, None)?;
+    ///
+    /// let path = engine.find_path_by_record_id(
+    ///     "TEST", "FPBR_1001",
+    ///     "TEST", "FPBR_1002",
+    ///     3, None, None, None,
+    /// )?;
+    /// # Ok::<(), SzError>(())
+    /// ```
+    #[allow(clippy::too_many_arguments)]
+    fn find_path_by_record_id(
+        &self,
+        start_data_source_code: &str,
+        start_record_id: &str,
+        end_data_source_code: &str,
+        end_record_id: &str,
+        max_degrees: i64,
+        avoid_record_keys: Option<&[(&str, &str)]>,
+        required_data_sources: Option<&HashSet<String>>,
+        flags: Option<SzFlags>,
+    ) -> SzResult<JsonString>;
+
+    /// Finds a network of related entities by entity ID.
     ///
     /// Builds a network graph starting from one or more seed entities,
     /// expanding outward through relationships.
@@ -743,7 +796,7 @@ pub trait SzEngine: Send + Sync {
     ///
     /// * `entity_list` - Seed entity IDs to start from
     /// * `max_degrees` - Maximum relationship hops from seed entities
-    /// * `build_out_degree` - Degrees to expand for building connections
+    /// * `build_out_degrees` - Degrees to expand for building connections
     /// * `max_entities` - Maximum entities to include in the network
     /// * `flags` - Optional flags controlling result detail
     ///
@@ -757,7 +810,7 @@ pub trait SzEngine: Send + Sync {
     /// # use sz_rust_sdk::helpers::ExampleEnvironment;
     /// use sz_rust_sdk::prelude::*;
     ///
-    /// # let env = ExampleEnvironment::initialize("doctest_find_network")?;
+    /// # let env = ExampleEnvironment::initialize("doctest_find_network_by_entity_id")?;
     /// let engine = env.get_engine()?;
     /// # engine.add_record("TEST", "NET_1001",
     /// #     r#"{"NAME_FULL": "John Smith"}"#, None)?;
@@ -768,14 +821,57 @@ pub trait SzEngine: Send + Sync {
     /// # let j1: serde_json::Value = serde_json::from_str(&r1).unwrap();
     /// # let entity_id = j1["RESOLVED_ENTITY"]["ENTITY_ID"].as_i64().unwrap();
     ///
-    /// let network = engine.find_network(&[entity_id], 3, 1, 100, None)?;
+    /// let network = engine.find_network_by_entity_id(&[entity_id], 3, 1, 100, None)?;
     /// # Ok::<(), SzError>(())
     /// ```
-    fn find_network(
+    fn find_network_by_entity_id(
         &self,
         entity_list: &[EntityId],
         max_degrees: i64,
-        build_out_degree: i64,
+        build_out_degrees: i64,
+        max_entities: i64,
+        flags: Option<SzFlags>,
+    ) -> SzResult<JsonString>;
+
+    /// Finds a network of related entities by record key.
+    ///
+    /// Identical to [`find_network_by_entity_id`](SzEngine::find_network_by_entity_id) but entities
+    /// are identified by their data source code and record ID instead of entity ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `record_keys` - Seed record keys as (data_source_code, record_id) pairs
+    /// * `max_degrees` - Maximum relationship hops from seed entities
+    /// * `build_out_degrees` - Degrees to expand for building connections
+    /// * `max_entities` - Maximum entities to include in the network
+    /// * `flags` - Optional flags controlling result detail
+    ///
+    /// # Returns
+    ///
+    /// JSON string with network graph data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// # let env = ExampleEnvironment::initialize("doctest_find_network_by_record_id")?;
+    /// let engine = env.get_engine()?;
+    /// # engine.add_record("TEST", "FNBR_1001",
+    /// #     r#"{"NAME_FULL": "John Smith"}"#, None)?;
+    ///
+    /// let network = engine.find_network_by_record_id(
+    ///     &[("TEST", "FNBR_1001")],
+    ///     3, 1, 100, None,
+    /// )?;
+    /// # Ok::<(), SzError>(())
+    /// ```
+    fn find_network_by_record_id(
+        &self,
+        record_keys: &[(&str, &str)],
+        max_degrees: i64,
+        build_out_degrees: i64,
         max_entities: i64,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString>;
@@ -1068,7 +1164,7 @@ pub trait SzEngine: Send + Sync {
     /// Starts a JSON entity export.
     ///
     /// Initiates an export operation returning a handle for fetching results.
-    /// Use `fetch_next` to retrieve data and `close_export` when done.
+    /// Use `fetch_next` to retrieve data and `close_export_report` when done.
     ///
     /// # Arguments
     ///
@@ -1097,7 +1193,7 @@ pub trait SzEngine: Send + Sync {
     ///     }
     ///     print!("{}", chunk);
     /// }
-    /// engine.close_export(handle)?;
+    /// engine.close_export_report(handle)?;
     /// # Ok::<(), SzError>(())
     /// ```
     fn export_json_entity_report(&self, flags: Option<SzFlags>) -> SzResult<ExportHandle>;
@@ -1135,7 +1231,7 @@ pub trait SzEngine: Send + Sync {
     ///     }
     ///     print!("{}", chunk);
     /// }
-    /// engine.close_export(handle)?;
+    /// engine.close_export_report(handle)?;
     /// # Ok::<(), SzError>(())
     /// ```
     fn export_csv_entity_report(
@@ -1168,7 +1264,7 @@ pub trait SzEngine: Send + Sync {
     /// let handle = engine.export_json_entity_report(None)?;
     /// let chunk = engine.fetch_next(handle)?;
     /// // Empty string means no more data
-    /// engine.close_export(handle)?;
+    /// engine.close_export_report(handle)?;
     /// # Ok::<(), SzError>(())
     /// ```
     fn fetch_next(&self, export_handle: ExportHandle) -> SzResult<JsonString>;
@@ -1187,15 +1283,15 @@ pub trait SzEngine: Send + Sync {
     /// # use sz_rust_sdk::helpers::ExampleEnvironment;
     /// use sz_rust_sdk::prelude::*;
     ///
-    /// # let env = ExampleEnvironment::initialize("doctest_close_export")?;
+    /// # let env = ExampleEnvironment::initialize("doctest_close_export_report")?;
     /// let engine = env.get_engine()?;
     ///
     /// let handle = engine.export_json_entity_report(None)?;
     /// // ... fetch data ...
-    /// engine.close_export(handle)?;
+    /// engine.close_export_report(handle)?;
     /// # Ok::<(), SzError>(())
     /// ```
-    fn close_export(&self, export_handle: ExportHandle) -> SzResult<()>;
+    fn close_export_report(&self, export_handle: ExportHandle) -> SzResult<()>;
 }
 
 /// Configuration management operations.

@@ -50,7 +50,7 @@ fn main() -> SzResult<()> {
     // 4. Find network relationships
     println!("\n4. Testing network analysis...");
     println!("   Note: Testing with non-existent entity IDs for demonstration");
-    match engine.find_network(&[999999, 999998], 2, 1, 10, None) {
+    match engine.find_network_by_entity_id(&[999999, 999998], 2, 1, 10, None) {
         Ok(network) => println!("   Network found: {network}"),
         Err(e) => println!("   Network analysis error (expected for non-existent IDs): {e}"),
     }

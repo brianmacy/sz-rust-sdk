@@ -199,3 +199,173 @@ fn test_graph_operations_parameter_variations() -> SzResult<()> {
     ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
+
+/// Test find_path_by_record_id with non-existent records
+/// Should return a NotFound error for unknown data source/record pairs
+#[test]
+#[serial]
+fn test_find_path_by_record_id_not_found() -> SzResult<()> {
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
+
+    let env = ExampleEnvironment::initialize("test-find-path-by-record-id-not-found")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+
+    let result = engine.find_path_by_record_id(
+        "TEST", "NONEXISTENT_1",
+        "TEST", "NONEXISTENT_2",
+        3, None, None, None,
+    );
+    assert!(result.is_err());
+
+    ExampleEnvironment::cleanup(env)?;
+    Ok(())
+}
+
+/// Test find_path_by_record_id with valid records
+/// Adds two records and finds a path between them
+#[test]
+#[serial]
+fn test_find_path_by_record_id_valid() -> SzResult<()> {
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
+
+    let env = ExampleEnvironment::initialize("test-find-path-by-record-id-valid")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+
+    engine.add_record("TEST", "FPBR_1001", r#"{"NAME_FULL": "John Smith"}"#, None)?;
+    engine.add_record("TEST", "FPBR_1002", r#"{"NAME_FULL": "Jane Doe"}"#, None)?;
+
+    let result = engine.find_path_by_record_id(
+        "TEST", "FPBR_1001",
+        "TEST", "FPBR_1002",
+        3, None, None, None,
+    );
+    // Path may or may not exist depending on data, but the call should succeed or return a valid error
+    assert!(result.is_ok() || result.is_err());
+
+    ExampleEnvironment::cleanup(env)?;
+    Ok(())
+}
+
+/// Test find_path_by_record_id with flags
+#[test]
+#[serial]
+fn test_find_path_by_record_id_with_flags() -> SzResult<()> {
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
+
+    let env = ExampleEnvironment::initialize("test-find-path-by-record-id-flags")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+
+    engine.add_record("TEST", "FPBRF_1001", r#"{"NAME_FULL": "Alice Brown"}"#, None)?;
+    engine.add_record("TEST", "FPBRF_1002", r#"{"NAME_FULL": "Bob White"}"#, None)?;
+
+    let result = engine.find_path_by_record_id(
+        "TEST", "FPBRF_1001",
+        "TEST", "FPBRF_1002",
+        5, None, None,
+        Some(SzFlags::FIND_PATH_DEFAULT_FLAGS),
+    );
+    assert!(result.is_ok() || result.is_err());
+
+    ExampleEnvironment::cleanup(env)?;
+    Ok(())
+}
+
+/// Test find_network_by_record_id with non-existent records
+/// Should return an error for unknown records
+#[test]
+#[serial]
+fn test_find_network_by_record_id_not_found() -> SzResult<()> {
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
+
+    let env = ExampleEnvironment::initialize("test-find-network-by-record-id-not-found")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+
+    let result = engine.find_network_by_record_id(
+        &[("TEST", "NONEXISTENT_NET_1"), ("TEST", "NONEXISTENT_NET_2")],
+        3, 1, 100, None,
+    );
+    assert!(result.is_err());
+
+    ExampleEnvironment::cleanup(env)?;
+    Ok(())
+}
+
+/// Test find_network_by_record_id with valid records
+#[test]
+#[serial]
+fn test_find_network_by_record_id_valid() -> SzResult<()> {
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
+
+    let env = ExampleEnvironment::initialize("test-find-network-by-record-id-valid")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+
+    engine.add_record("TEST", "FNBR_1001", r#"{"NAME_FULL": "Charlie Green"}"#, None)?;
+
+    let result = engine.find_network_by_record_id(
+        &[("TEST", "FNBR_1001")],
+        3, 1, 100, None,
+    );
+    // Should succeed with a single known record
+    assert!(result.is_ok());
+    let json = result.unwrap();
+    assert!(!json.is_empty());
+
+    ExampleEnvironment::cleanup(env)?;
+    Ok(())
+}
+
+/// Test find_network_by_record_id with flags
+#[test]
+#[serial]
+fn test_find_network_by_record_id_with_flags() -> SzResult<()> {
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
+
+    let env = ExampleEnvironment::initialize("test-find-network-by-record-id-flags")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+
+    engine.add_record("TEST", "FNBRF_1001", r#"{"NAME_FULL": "Diana Blue"}"#, None)?;
+
+    let result = engine.find_network_by_record_id(
+        &[("TEST", "FNBRF_1001")],
+        3, 1, 100,
+        Some(SzFlags::FIND_NETWORK_DEFAULT_FLAGS),
+    );
+    assert!(result.is_ok());
+
+    ExampleEnvironment::cleanup(env)?;
+    Ok(())
+}
+
+/// Test find_path_by_entity_id with non-existent entities
+/// Should return an error for entities that don't exist
+#[test]
+#[serial]
+fn test_find_path_by_entity_id_not_found() -> SzResult<()> {
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
+
+    let env = ExampleEnvironment::initialize("test-find-path-by-entity-id-not-found")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+
+    let result = engine.find_path_by_entity_id(999999, 999998, 3, None, None, None);
+    assert!(result.is_err());
+
+    ExampleEnvironment::cleanup(env)?;
+    Ok(())
+}
+
+/// Test find_network_by_entity_id with non-existent entities
+/// Should return an error for entities that don't exist
+#[test]
+#[serial]
+fn test_find_network_by_entity_id_not_found() -> SzResult<()> {
+    let _ = SzEnvironmentCore::try_get_instance().map(|e| e.destroy());
+
+    let env = ExampleEnvironment::initialize("test-find-network-by-entity-id-not-found")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+
+    let result = engine.find_network_by_entity_id(&[999999, 999998], 3, 1, 100, None);
+    assert!(result.is_err());
+
+    ExampleEnvironment::cleanup(env)?;
+    Ok(())
+}

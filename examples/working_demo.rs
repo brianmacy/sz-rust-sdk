@@ -31,7 +31,7 @@ fn main() -> SzResult<()> {
     }
 
     // Test find path (basic operation)
-    match engine.find_path(1, 2, 3, None, None, None) {
+    match engine.find_path_by_entity_id(1, 2, 3, None, None, None) {
         Ok(result) => println!("✅ Find path successful: {result}"),
         Err(e) => println!("⚠️  Find path failed (expected): {e}"),
     }
