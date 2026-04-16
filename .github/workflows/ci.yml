@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+    - run: cargo fmt -- --check
+    - name: Run clippy
+      env:
+        RUSTFLAGS: -C link-args=-Wl,--allow-shlib-undefined
+      run: cargo clippy --all-targets -- -D warnings
+    - name: Build
+      env:
+        RUSTFLAGS: -C link-args=-Wl,--allow-shlib-undefined
+      run: cargo build
+    - name: Run unit tests
+      env:
+        RUSTFLAGS: -C link-args=-Wl,--allow-shlib-undefined
+      run: cargo test --lib
