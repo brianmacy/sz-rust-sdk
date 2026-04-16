@@ -12,21 +12,20 @@ env:
 jobs:
   check:
     runs-on: ubuntu-latest
+    env:
+      SENZING_ACCEPT_EULA: I_ACCEPT_THE_SENZING_EULA
     steps:
     - uses: actions/checkout@v6
+    - name: Install Senzing SDK
+      run: |
+        curl -fsSL https://senzing-production-apt.s3.amazonaws.com/senzingrepo_2.0.1-1_all.deb -o /tmp/senzingrepo.deb
+        sudo dpkg -i /tmp/senzingrepo.deb
+        sudo apt-get update
+        sudo apt-get install -y senzingsdk-runtime
     - uses: dtolnay/rust-toolchain@stable
       with:
         components: rustfmt, clippy
     - run: cargo fmt -- --check
-    - name: Run clippy
-      env:
-        RUSTFLAGS: -C link-args=-Wl,--allow-shlib-undefined
-      run: cargo clippy --all-targets -- -D warnings
-    - name: Build
-      env:
-        RUSTFLAGS: -C link-args=-Wl,--allow-shlib-undefined
-      run: cargo build
-    - name: Run unit tests
-      env:
-        RUSTFLAGS: -C link-args=-Wl,--allow-shlib-undefined
-      run: cargo test --lib
+    - run: cargo clippy --all-targets -- -D warnings
+    - run: cargo build
+    - run: cargo test --lib
