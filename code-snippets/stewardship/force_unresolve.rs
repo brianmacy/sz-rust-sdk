@@ -64,7 +64,7 @@ fn main() -> SzResult<()> {
     }"#;
 
     // Load the records with info to track resolution
-    let load_flags = SzFlags::ADD_RECORD_DEFAULT;
+    let load_flags = SzFlags::ADD_RECORD_DEFAULT_FLAGS;
     let info1 = engine.add_record("TEST", "FORCE_UNRESOLVE_1", record1, Some(load_flags))?;
     let info2 = engine.add_record("TEST", "FORCE_UNRESOLVE_2", record2, Some(load_flags))?;
     let info3 = engine.add_record("TEST", "FORCE_UNRESOLVE_3", record3, Some(load_flags))?;
@@ -125,7 +125,7 @@ fn main() -> SzResult<()> {
 
     // Method 1: Delete a record and reload with modified data to discourage resolution
     println!("Deleting record 2 to separate it from the entity...");
-    let delete_flags = SzFlags::DELETE_RECORD_DEFAULT;
+    let delete_flags = SzFlags::DELETE_RECORD_DEFAULT_FLAGS;
     let delete_info = engine.delete_record("TEST", "FORCE_UNRESOLVE_2", Some(delete_flags))?;
     println!("Delete info: {}", delete_info);
 
@@ -174,7 +174,7 @@ fn main() -> SzResult<()> {
     // Show why analysis to understand the separation
     println!("\n6. Why analysis for the unresolve operation:");
     if primary_entity_id != new_entity_id2 {
-        let why_flags = SzFlags::WHY_ENTITY_DEFAULT;
+        let why_flags = SzFlags::WHY_ENTITIES_DEFAULT_FLAGS;
         let why_result = engine.why_entities(primary_entity_id, new_entity_id2, Some(why_flags))?;
         println!("Why entities result: {}", why_result);
     } else {
@@ -183,7 +183,7 @@ fn main() -> SzResult<()> {
 
     // Alternative method: Use reevaluate to force reconsideration
     println!("\n7. Alternative: Using reevaluate to force reconsideration...");
-    let reevaluate_flags = SzFlags::REEVALUATE_ENTITY_DEFAULT;
+    let reevaluate_flags = SzFlags::REEVALUATE_ENTITY_DEFAULT_FLAGS;
     let reevaluate_info = engine.reevaluate_entity(primary_entity_id, Some(reevaluate_flags))?;
     println!("Reevaluate info: {}", reevaluate_info);
 

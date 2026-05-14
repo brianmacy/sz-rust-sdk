@@ -23,21 +23,35 @@ fn find_senzing_sdk_path() -> Option<PathBuf> {
         eprintln!("Warning: SENZING_SDK_PATH set but path doesn't exist: {path}");
     }
 
-    // Priority 2: macOS Homebrew ARM
-    let homebrew_arm = PathBuf::from("/opt/homebrew/opt/senzing/runtime/er");
+    // Priority 2: macOS Homebrew official cask (ARM)
+    let homebrew_arm = PathBuf::from("/opt/homebrew/opt/senzing/er");
     if homebrew_arm.exists() {
         println!("Found Senzing SDK at: {}", homebrew_arm.display());
         return Some(homebrew_arm);
     }
 
-    // Priority 3: macOS Homebrew Intel
-    let homebrew_intel = PathBuf::from("/usr/local/opt/senzing/runtime/er");
+    // Priority 3: macOS Homebrew official cask (Intel)
+    let homebrew_intel = PathBuf::from("/usr/local/opt/senzing/er");
     if homebrew_intel.exists() {
         println!("Found Senzing SDK at: {}", homebrew_intel.display());
         return Some(homebrew_intel);
     }
 
-    // Priority 4: Linux standard
+    // Priority 4: Legacy unofficial Homebrew tap (ARM)
+    let legacy_arm = PathBuf::from("/opt/homebrew/opt/senzing/runtime/er");
+    if legacy_arm.exists() {
+        println!("Found Senzing SDK at: {}", legacy_arm.display());
+        return Some(legacy_arm);
+    }
+
+    // Priority 5: Legacy unofficial Homebrew tap (Intel)
+    let legacy_intel = PathBuf::from("/usr/local/opt/senzing/runtime/er");
+    if legacy_intel.exists() {
+        println!("Found Senzing SDK at: {}", legacy_intel.display());
+        return Some(legacy_intel);
+    }
+
+    // Priority 6: Linux standard
     let linux = PathBuf::from("/opt/senzing/er");
     if linux.exists() {
         println!("Found Senzing SDK at: {}", linux.display());

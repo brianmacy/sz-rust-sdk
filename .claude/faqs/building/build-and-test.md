@@ -11,8 +11,10 @@ source ~/dev/G2/dev/setupEnv
 On macOS with Homebrew installation, set:
 
 ```bash
-export DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib
+export DYLD_LIBRARY_PATH="/opt/homebrew/opt/senzing/er/lib:/opt/homebrew/opt/sqlite/lib:/opt/homebrew/opt/openssl@3/lib"
 ```
+
+Or source the setup script: `source "$(brew --prefix)/opt/senzing/er/setupEnv"`
 
 On Linux:
 
@@ -31,13 +33,13 @@ cargo build --release
 
 ```bash
 # All tests (requires Senzing SDK runtime)
-DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib cargo test
+DYLD_LIBRARY_PATH="/opt/homebrew/opt/senzing/er/lib:/opt/homebrew/opt/sqlite/lib:/opt/homebrew/opt/openssl@3/lib" cargo test
 
 # Doc tests only
-DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib cargo test --doc
+DYLD_LIBRARY_PATH="/opt/homebrew/opt/senzing/er/lib:/opt/homebrew/opt/sqlite/lib:/opt/homebrew/opt/openssl@3/lib" cargo test --doc
 
 # Specific test
-DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib cargo test test_name
+DYLD_LIBRARY_PATH="/opt/homebrew/opt/senzing/er/lib:/opt/homebrew/opt/sqlite/lib:/opt/homebrew/opt/openssl@3/lib" cargo test test_name
 ```
 
 ### Code Quality

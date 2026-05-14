@@ -168,7 +168,7 @@ fn delete_records_in_batches(engine: &Box<dyn SzEngine>) -> SzResult<()> {
             // Progress reporting
             let total_processed =
                 DELETED_COUNT.load(Ordering::Relaxed) + ERROR_COUNT.load(Ordering::Relaxed);
-            if total_processed % PROGRESS_REPORT_INTERVAL == 0 {
+            if total_processed.is_multiple_of(PROGRESS_REPORT_INTERVAL) {
                 report_progress(total_processed);
             }
         }
@@ -197,7 +197,7 @@ fn delete_record_with_retry(
     record_id: &str,
 ) -> SzResult<()> {
     let mut attempts = 0;
-    let delete_flags = SzFlags::DELETE_RECORD_DEFAULT;
+    let delete_flags = SzFlags::DELETE_RECORD_DEFAULT_FLAGS;
 
     loop {
         attempts += 1;

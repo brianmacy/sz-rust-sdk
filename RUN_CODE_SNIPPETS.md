@@ -4,7 +4,7 @@ This document describes how to run the Rust code snippets for the Senzing SDK.
 
 ## Prerequisites
 
-1. **Senzing SDK**: Ensure Senzing is installed at `/opt/senzing/er/`
+1. **Senzing SDK**: Ensure Senzing is installed (see README for platform-specific instructions)
 2. **Rust**: Install Rust 2024 edition
 3. **Dependencies**: All dependencies are managed through the central `Cargo.toml`
 
@@ -149,9 +149,9 @@ Each snippet follows these principles:
 
 ### Common Issues
 
-1. **Senzing Not Found**: Ensure Senzing is installed at `/opt/senzing/er/`
+1. **Senzing Not Found**: Ensure Senzing is installed (see README for platform-specific instructions)
 2. **Permission Issues**: Make sure you have read access to Senzing installation
-3. **Database Issues**: The examples use temporary SQLite databases automatically created
+3. **Database Issues**: The examples use `internal://` in-memory databases (v4.3+)
 4. **Timeout Issues**: Some operations may take longer than 30 seconds on slower systems
 
 ### Environment Variables
@@ -159,7 +159,7 @@ Each snippet follows these principles:
 The snippets use automatic database configuration, but you can override with:
 
 ```bash
-export SENZING_ENGINE_CONFIGURATION_JSON='{% raw %}{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"},"SQL":{"CONNECTION":"sqlite3://na:na@/tmp/G2C.db"}}{% endraw %}'
+export SENZING_ENGINE_CONFIGURATION_JSON='{% raw %}{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"},"SQL":{"CONNECTION":"internal://"}}{% endraw %}'
 ```
 
 ## Performance Notes

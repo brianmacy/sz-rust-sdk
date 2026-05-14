@@ -133,7 +133,7 @@ fn load_file(engine: &Box<dyn SzEngine>, file_path: &str) -> SzResult<()> {
         match process_record_with_redo(engine, &line, line_number) {
             Ok(()) => {
                 SUCCESS_COUNT.fetch_add(1, Ordering::Relaxed);
-                if SUCCESS_COUNT.load(Ordering::Relaxed) % 100 == 0 {
+                if SUCCESS_COUNT.load(Ordering::Relaxed).is_multiple_of(100) {
                     println!(
                         "Processed {} records successfully",
                         SUCCESS_COUNT.load(Ordering::Relaxed)
@@ -265,7 +265,7 @@ fn process_single_redo_record(_engine: &Box<dyn SzEngine>, redo_record: &str) ->
 
     REDONE_COUNT.fetch_add(1, Ordering::Relaxed);
 
-    if REDONE_COUNT.load(Ordering::Relaxed) % 10 == 0 {
+    if REDONE_COUNT.load(Ordering::Relaxed).is_multiple_of(10) {
         println!(
             "Processed {} redo records",
             REDONE_COUNT.load(Ordering::Relaxed)

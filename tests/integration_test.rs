@@ -51,7 +51,7 @@ fn test_environment_initialization_with_expected_error() {
             "SUPPORTPATH": "/opt/senzing/data"
         },
         "SQL": {
-            "CONNECTION": "sqlite3://na:na@/tmp/G2C.db"
+            "CONNECTION": "internal://"
         }
     }"#;
 

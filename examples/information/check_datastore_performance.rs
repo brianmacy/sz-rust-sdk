@@ -12,8 +12,8 @@
 //!
 //! ## Prerequisites
 //!
-//! * Senzing v4 installed at `/opt/senzing/er/`
-//! * Uses SQLite database at `/tmp/G2C.db` by default
+//! * Senzing v4 SDK installed (see README for platform-specific instructions)
+//! * Uses `internal://` in-memory database by default (v4.3+)
 //! * No manual configuration required - automatic setup included
 //!
 //! ## Usage

@@ -116,7 +116,7 @@ let env = ExampleEnvironment::initialize("my-app")?;
 let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
 
 // Custom initialization with specific settings
-let settings = r#"{% raw %}{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"},"SQL":{"CONNECTION":"..."}}{% endraw %}"#;
+let settings = r#"{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"},"SQL":{"CONNECTION":"internal://"}}"#;
 let env = SzEnvironmentCore::new("my-app", &settings, true)?;
 ```
 
@@ -125,10 +125,9 @@ let env = SzEnvironmentCore::new("my-app", &settings, true)?;
 ```rust
 match engine.add_record("CUSTOMERS", "CUST001", record_json, None) {
     Ok(result) => println!("Record added: {}", result),
-    Err(SzError::Engine { message, code, .. }) => {
-        eprintln!("Engine error {}: {}", code, message);
-    }
-    Err(e) => eprintln!("Other error: {}", e),
+    Err(ref e) if e.is_retryable() => eprintln!("Retryable: {e}"),
+    Err(ref e) if e.is_bad_input() => eprintln!("Bad input: {e}"),
+    Err(e) => eprintln!("Other error: {e}"),
 }
 ```
 

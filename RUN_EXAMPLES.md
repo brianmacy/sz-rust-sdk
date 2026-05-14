@@ -101,5 +101,5 @@ Both scripts help identify:
 ## Requirements
 
 - Rust toolchain
-- Senzing SDK installed at `/opt/senzing/er/`
+- Senzing SDK installed (see README for platform-specific instructions)
 - All project dependencies (`cargo build` should work)

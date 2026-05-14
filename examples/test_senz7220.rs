@@ -8,8 +8,8 @@ use sz_rust_sdk::prelude::*;
 fn main() -> SzResult<()> {
     println!("=== Test SENZ7220 Error ===\n");
 
-    // Use an isolated empty database that should connect but have no config
-    // Generate a unique empty database path to avoid conflicts
+    // Intentionally uses sqlite3:// (not internal://) to get an empty database
+    // with no registered config — internal:// auto-bootstraps and won't trigger SENZ7220.
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()

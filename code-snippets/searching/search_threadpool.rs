@@ -118,7 +118,7 @@ fn main() -> SzResult<()> {
                                 MATCHES_FOUND
                                     .fetch_add(search_result.match_count, Ordering::Relaxed);
 
-                                if current % STATS_REPORT_INTERVAL == 0 {
+                                if current.is_multiple_of(STATS_REPORT_INTERVAL) {
                                     println!(
                                         "Worker {}: Completed {} searches",
                                         worker_id, current
@@ -251,7 +251,7 @@ fn load_test_data(engine: &Box<dyn SzEngine>) -> SzResult<()> {
             "TEST",
             record_id,
             record_data,
-            Some(SzFlags::ADD_RECORD_DEFAULT),
+            Some(SzFlags::ADD_RECORD_DEFAULT_FLAGS),
         )?;
     }
 
@@ -303,7 +303,7 @@ fn process_search_task(engine: &Box<dyn SzEngine>, task: &SearchTask) -> SzResul
     let search_response = engine.search_by_attributes(
         &task.search_attributes,
         None, // search_profile
-        Some(SzFlags::SEARCH_BY_ATTRIBUTES_DEFAULT),
+        Some(SzFlags::SEARCH_BY_ATTRIBUTES_DEFAULT_FLAGS),
     )?;
 
     let search_time = start_time.elapsed();

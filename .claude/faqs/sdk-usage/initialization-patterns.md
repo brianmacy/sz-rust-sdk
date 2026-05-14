@@ -12,7 +12,7 @@ let env = ExampleEnvironment::initialize("my-app")?;
 let engine = env.get_engine()?;
 ```
 
-`ExampleEnvironment` auto-detects Senzing paths, creates an isolated SQLite database, sets up initial configuration, and returns an `Arc<SzEnvironmentCore>`.
+`ExampleEnvironment` auto-detects Senzing paths, uses an `internal://` in-memory database (v4.3+), sets up initial configuration, and returns an `Arc<SzEnvironmentCore>`. No temp files or schema setup required.
 
 ### SenzingGuard (RAII cleanup)
 
