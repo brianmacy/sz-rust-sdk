@@ -142,9 +142,12 @@ def _load_faqs() -> None:
 
 _load_faqs()
 
-# ---------------------------------------------------------------------------
-# MCP server
-# ---------------------------------------------------------------------------
+_IMPROVEMENT_FOOTER = (
+    "\n\n---\n"
+    "*If this FAQ is incomplete, unclear, outdated, or could be improved, "
+    "please suggest specific improvements to the user (e.g., missing details, "
+    "better examples, corrections). Help keep these FAQs accurate and useful.*"
+)
 
 mcp = FastMCP(
     "sz-rust-sdk-faq",
@@ -152,9 +155,14 @@ mcp = FastMCP(
         "Senzing Rust SDK project FAQ server. Consult these tools BEFORE making "
         "design decisions about error handling, FFI bindings, flags, initialization "
         "patterns, or test architecture. Critical design rules — like the flat error "
-        "enum requirement, thread pool architecture (no async), and error code mapping "
-        "from szerrors.json — are documented here. If FAQ search returns no useful "
-        "results, TELL THE USER and recommend adding a FAQ."
+        "enum requirement, thread pool architecture (no async), error code mapping "
+        "from szerrors.json, and internal:// database initialization order — are "
+        "documented here. Topics covered: architecture, build/test procedures, "
+        "Senzing installation paths, Homebrew/Scoop setup, internal:// database, "
+        "upgrading from unofficial to official Homebrew, threading model, error "
+        "handling design, flags, initialization patterns, troubleshooting. "
+        "If FAQ search returns no useful results, TELL THE USER and recommend "
+        "adding a FAQ."
     ),
 )
 
@@ -217,7 +225,7 @@ def search_faqs(
         lines.append(
             f"### [{doc.category}] {doc.title} (score: {score:.2f})\n{excerpt}\n"
         )
-    return "\n".join(lines)
+    return "\n".join(lines) + _IMPROVEMENT_FOOTER
 
 
 @mcp.tool()
@@ -234,16 +242,15 @@ def get_faq(title: str, category: str | None = None) -> str:
     for cat in cats:
         for faq_title, content in _faqs.get(cat, {}).items():
             if faq_title.lower() == title_normalized:
-                return f"# [{cat}] {faq_title}\n\n{content}"
+                return f"# [{cat}] {faq_title}\n\n{content}" + _IMPROVEMENT_FOOTER
 
-    # Fuzzy fallback: partial match
     for cat in cats:
         for faq_title, content in _faqs.get(cat, {}).items():
             if (
                 title_normalized in faq_title.lower()
                 or faq_title.lower() in title_normalized
             ):
-                return f"# [{cat}] {faq_title}\n\n{content}"
+                return f"# [{cat}] {faq_title}\n\n{content}" + _IMPROVEMENT_FOOTER
 
     return f"FAQ '{title}' not found. Use get_faq_categories() to see available FAQs."
 
