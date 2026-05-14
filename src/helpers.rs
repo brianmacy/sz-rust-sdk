@@ -33,7 +33,25 @@ struct SenzingPaths {
 ///
 /// This matches the detection logic used by `build.rs` for library linking.
 fn detect_senzing_paths() -> SenzingPaths {
-    // Check macOS Homebrew locations — official cask first, then legacy unofficial
+    // Priority 1: SENZING_DIR env var (set by Scoop on Windows, or manual override)
+    if let Ok(senzing_dir) = std::env::var("SENZING_DIR") {
+        let base = Path::new(&senzing_dir);
+        if base.join("resources").exists() {
+            return SenzingPaths {
+                config_path: base
+                    .join("resources/templates")
+                    .to_string_lossy()
+                    .to_string(),
+                resource_path: base.join("resources").to_string_lossy().to_string(),
+                support_path: base.parent().map_or_else(
+                    || base.join("../data").to_string_lossy().to_string(),
+                    |p| p.join("data").to_string_lossy().to_string(),
+                ),
+            };
+        }
+    }
+
+    // Priority 2: macOS Homebrew — official cask first, then legacy unofficial
     for homebrew_base in [
         "/opt/homebrew/opt/senzing",
         "/usr/local/opt/senzing",
@@ -49,7 +67,7 @@ fn detect_senzing_paths() -> SenzingPaths {
         }
     }
 
-    // Linux: use /etc/opt/senzing for config if it exists, otherwise resources/templates
+    // Priority 3: Linux standard
     let config_path = if Path::new("/etc/opt/senzing").exists() {
         "/etc/opt/senzing".to_string()
     } else {

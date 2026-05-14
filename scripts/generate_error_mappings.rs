@@ -23,15 +23,25 @@ fn find_szerrors_json() -> Option<PathBuf> {
         return Some(project_root);
     }
 
-    // Priority 2: G2 dev build directory
-    let g2_dev =
-        PathBuf::from(env::var("HOME").unwrap()).join("dev/G2/dev/build/dist/sdk/szerrors.json");
-    if g2_dev.exists() {
-        println!("Found szerrors.json in G2 dev build directory");
-        return Some(g2_dev);
+    // Priority 2: SENZING_DIR env var (set by Scoop on Windows, or manual override)
+    if let Ok(senzing_dir) = env::var("SENZING_DIR") {
+        let p = PathBuf::from(&senzing_dir).join("sdk/szerrors.json");
+        if p.exists() {
+            println!("Found szerrors.json via SENZING_DIR");
+            return Some(p);
+        }
     }
 
-    // Priority 3: Official Homebrew cask on macOS (ARM)
+    // Priority 3: G2 dev build directory
+    if let Ok(home) = env::var("HOME") {
+        let g2_dev = PathBuf::from(home).join("dev/G2/dev/build/dist/sdk/szerrors.json");
+        if g2_dev.exists() {
+            println!("Found szerrors.json in G2 dev build directory");
+            return Some(g2_dev);
+        }
+    }
+
+    // Priority 4: Official Homebrew cask on macOS (ARM)
     let homebrew_arm = PathBuf::from("/opt/homebrew/opt/senzing/er/sdk/szerrors.json");
     if homebrew_arm.exists() {
         println!("Found szerrors.json in Homebrew cask (ARM)");

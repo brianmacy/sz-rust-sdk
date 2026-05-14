@@ -23,7 +23,16 @@ fn find_senzing_sdk_path() -> Option<PathBuf> {
         eprintln!("Warning: SENZING_SDK_PATH set but path doesn't exist: {path}");
     }
 
-    // Priority 2: macOS Homebrew official cask (ARM)
+    // Priority 2: SENZING_DIR env var (set by Scoop on Windows, or manual override)
+    if let Ok(senzing_dir) = env::var("SENZING_DIR") {
+        let p = PathBuf::from(&senzing_dir);
+        if p.exists() {
+            println!("Using SENZING_DIR: {senzing_dir}");
+            return Some(p);
+        }
+    }
+
+    // Priority 3: macOS Homebrew official cask (ARM)
     let homebrew_arm = PathBuf::from("/opt/homebrew/opt/senzing/er");
     if homebrew_arm.exists() {
         println!("Found Senzing SDK at: {}", homebrew_arm.display());
