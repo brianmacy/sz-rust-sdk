@@ -32,12 +32,13 @@ jobs:
     - name: Install Senzing SDK
       env:
         SENZING_ACCEPT_EULA: I_ACCEPT_THE_SENZING_EULA
+        DEBIAN_FRONTEND: noninteractive
       run: |
         sudo apt-get install -y apt-transport-https
         wget -q https://senzing-production-apt.s3.amazonaws.com/senzingrepo_2.0.2-1_all.deb -O /tmp/senzingrepo.deb
         sudo apt-get install -y /tmp/senzingrepo.deb
         sudo apt-get update
-        sudo apt-get install -y senzingsdk-poc
+        sudo apt-get install -y senzingsdk-runtime
     - name: Run tests
       env:
         LD_LIBRARY_PATH: /opt/senzing/er/lib

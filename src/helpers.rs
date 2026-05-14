@@ -32,20 +32,23 @@ struct SenzingPaths {
 /// 4. Linux standard: `/opt/senzing` with `/etc/opt/senzing` for config
 ///
 /// This matches the detection logic used by `build.rs` for library linking.
+fn to_forward_slashes(p: &Path) -> String {
+    p.to_string_lossy().replace('\\', "/")
+}
+
 fn detect_senzing_paths() -> SenzingPaths {
     // Priority 1: SENZING_DIR env var (set by Scoop on Windows, or manual override)
     if let Ok(senzing_dir) = std::env::var("SENZING_DIR") {
         let base = Path::new(&senzing_dir);
         if base.join("resources").exists() {
+            // Senzing config JSON requires forward slashes even on Windows
             return SenzingPaths {
-                config_path: base
-                    .join("resources/templates")
-                    .to_string_lossy()
-                    .to_string(),
-                resource_path: base.join("resources").to_string_lossy().to_string(),
-                support_path: base.parent().map_or_else(
-                    || base.join("../data").to_string_lossy().to_string(),
-                    |p| p.join("data").to_string_lossy().to_string(),
+                config_path: to_forward_slashes(&base.join("resources/templates")),
+                resource_path: to_forward_slashes(&base.join("resources")),
+                support_path: to_forward_slashes(
+                    &base
+                        .parent()
+                        .map_or_else(|| base.join("../data"), |p| p.join("data")),
                 ),
             };
         }
