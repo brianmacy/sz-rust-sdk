@@ -73,7 +73,7 @@ fn main() -> SzResult<()> {
         match process_record(&engine, &line, record_num) {
             Ok(()) => {
                 SUCCESS_COUNT.fetch_add(1, Ordering::Relaxed);
-                if SUCCESS_COUNT.load(Ordering::Relaxed) % 10 == 0 {
+                if SUCCESS_COUNT.load(Ordering::Relaxed).is_multiple_of(10) {
                     println!(
                         "Processed {} records successfully",
                         SUCCESS_COUNT.load(Ordering::Relaxed)
@@ -161,7 +161,7 @@ fn process_record(engine: &Box<dyn SzEngine>, json_line: &str, line_number: usiz
         data_source,
         record_id,
         json_line,
-        Some(SzFlags::ADD_RECORD_DEFAULT),
+        Some(SzFlags::ADD_RECORD_DEFAULT_FLAGS),
     )?;
 
     Ok(())

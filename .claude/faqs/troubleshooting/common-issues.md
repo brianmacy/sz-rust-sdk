@@ -7,8 +7,10 @@
 **Fix:** Set the library path before running:
 
 ```bash
-export DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib  # macOS
-export LD_LIBRARY_PATH=/opt/senzing/er/lib                          # Linux
+# macOS (include openssl/sqlite for 4.3 cask missing rpath)
+export DYLD_LIBRARY_PATH="/opt/homebrew/opt/senzing/er/lib:/opt/homebrew/opt/sqlite/lib:/opt/homebrew/opt/openssl@3/lib"
+# Linux
+export LD_LIBRARY_PATH=/opt/senzing/er/lib
 ```
 
 ### "Unknown data source" Error

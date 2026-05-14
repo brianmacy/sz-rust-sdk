@@ -138,21 +138,50 @@ This is a Rust SDK for Senzing entity resolution engine following the same patte
 
 #### macOS (Homebrew)
 
-Installed via: `brew install senzingsdk-runtime-unofficial`
+Installed via official cask:
+
+```bash
+brew tap senzing/senzingsdk https://github.com/Senzing/homebrew-senzingsdk
+brew install --cask senzingsdk
+```
 
 ```
-Base:       /opt/homebrew/opt/senzing/runtime
-Library:    /opt/homebrew/opt/senzing/runtime/er/lib/libSz.dylib
-Config:     /opt/homebrew/opt/senzing/runtime/er/resources/templates
-Resources:  /opt/homebrew/opt/senzing/runtime/er/resources
-Support:    /opt/homebrew/opt/senzing/runtime/data
+Base:       /opt/homebrew/opt/senzing
+Library:    /opt/homebrew/opt/senzing/er/lib/libSz.dylib
+Config:     /opt/homebrew/opt/senzing/er/resources/templates
+Resources:  /opt/homebrew/opt/senzing/er/resources
+Support:    /opt/homebrew/opt/senzing/data
 ```
 
 Required environment variable for macOS (library loading only):
 
 ```bash
-export DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib
+export DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/er/lib
 ```
+
+**Note:** The macOS 4.3 cask is missing rpath entries for OpenSSL and SQLite.
+At runtime you may need to extend `DYLD_LIBRARY_PATH`:
+
+```bash
+export DYLD_LIBRARY_PATH="/opt/homebrew/opt/senzing/er/lib:/opt/homebrew/opt/sqlite/lib:/opt/homebrew/opt/openssl@3/lib"
+```
+
+Or source the provided setup script:
+
+```bash
+source "$(brew --prefix)/opt/senzing/er/setupEnv"
+```
+
+#### Windows (Scoop)
+
+Installed via official Scoop bucket:
+
+```pwsh
+scoop bucket add senzingsdk https://github.com/Senzing/scoop-senzingsdk
+scoop install senzingsdk/senzingsdk
+```
+
+Scoop sets `SENZING_DIR` and adds the library directory to `PATH` automatically.
 
 The SDK's `ExampleEnvironment` helper auto-detects Senzing installation paths by checking
 standard platform locations (Homebrew on macOS, `/opt/senzing` on Linux). Engine configuration

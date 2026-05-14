@@ -11,7 +11,6 @@
 //! setup when needed.
 
 use crate::prelude::*;
-use std::cell::RefCell;
 use std::path::Path;
 
 /// Detected Senzing installation paths for building the engine init JSON.
@@ -27,14 +26,17 @@ struct SenzingPaths {
 /// Auto-detect Senzing installation paths based on platform.
 ///
 /// Checks standard installation locations in priority order:
-/// 1. macOS Homebrew (Apple Silicon): `/opt/homebrew/opt/senzing/runtime`
-/// 2. macOS Homebrew (Intel): `/usr/local/opt/senzing/runtime`
-/// 3. Linux standard: `/opt/senzing` with `/etc/opt/senzing` for config
+/// 1. macOS Homebrew official cask (Apple Silicon): `/opt/homebrew/opt/senzing`
+/// 2. macOS Homebrew official cask (Intel): `/usr/local/opt/senzing`
+/// 3. macOS Homebrew legacy unofficial tap: `.../senzing/runtime`
+/// 4. Linux standard: `/opt/senzing` with `/etc/opt/senzing` for config
 ///
 /// This matches the detection logic used by `build.rs` for library linking.
 fn detect_senzing_paths() -> SenzingPaths {
-    // Check macOS Homebrew locations (Apple Silicon, then Intel)
+    // Check macOS Homebrew locations — official cask first, then legacy unofficial
     for homebrew_base in [
+        "/opt/homebrew/opt/senzing",
+        "/usr/local/opt/senzing",
         "/opt/homebrew/opt/senzing/runtime",
         "/usr/local/opt/senzing/runtime",
     ] {
@@ -59,20 +61,6 @@ fn detect_senzing_paths() -> SenzingPaths {
         resource_path: "/opt/senzing/er/resources".to_string(),
         support_path: "/opt/senzing/data".to_string(),
     }
-}
-
-/// Get the path to the SQLite schema creation SQL file
-fn get_schema_sql_path() -> String {
-    let paths = detect_senzing_paths();
-    format!(
-        "{}/schema/szcore-schema-sqlite-create.sql",
-        paths.resource_path
-    )
-}
-
-// Thread-local storage for test database cleanup
-thread_local! {
-    static CURRENT_TEST_DB: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
 /// Enhanced error reporting for examples with backtrace support
@@ -131,7 +119,7 @@ pub fn print_error_with_backtrace(error: &crate::error::SzError) {
 /// * Singleton pattern enforcement
 /// * Comprehensive error handling
 /// * Production-ready initialization sequence
-/// * Isolated test databases with automatic cleanup
+/// * In-memory `internal://` database (v4.3+) — no temp files or schema setup
 ///
 /// # Examples
 ///
@@ -173,95 +161,6 @@ pub fn print_error_with_backtrace(error: &crate::error::SzError) {
 pub struct ExampleEnvironment;
 
 impl ExampleEnvironment {
-    /// Generate a random database path in /tmp/
-    fn generate_random_db_path() -> String {
-        use std::time::{SystemTime, UNIX_EPOCH};
-        let timestamp = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        let random_suffix = format!("{timestamp:x}");
-        format!("/tmp/senzing_test_{random_suffix}.db")
-    }
-
-    /// Set up a new database by executing the SQLite schema SQL
-    fn setup_test_database() -> SzResult<String> {
-        let db_path = Self::generate_random_db_path();
-        let schema_path = get_schema_sql_path();
-
-        // Check if schema SQL exists
-        if !Path::new(&schema_path).exists() {
-            return Err(SzError::configuration(format!(
-                "SQLite schema SQL not found at {schema_path}. Verify Senzing SDK is installed correctly."
-            )));
-        }
-
-        // Read the schema SQL
-        let schema_sql = std::fs::read_to_string(&schema_path).map_err(|e| {
-            SzError::configuration(format!("Failed to read schema SQL from {schema_path}: {e}"))
-        })?;
-
-        // Create database and execute schema SQL using rusqlite
-        let conn = rusqlite::Connection::open(&db_path).map_err(|e| {
-            SzError::configuration(format!("Failed to create database at {db_path}: {e}"))
-        })?;
-
-        // Execute each statement in the schema (split by semicolons)
-        // The schema file contains multiple statements separated by semicolons
-        conn.execute_batch(&schema_sql).map_err(|e| {
-            // Clean up the partially created database
-            let _ = std::fs::remove_file(&db_path);
-            SzError::configuration(format!("Failed to execute schema SQL: {e}"))
-        })?;
-
-        // Store the path for cleanup in thread-local storage
-        CURRENT_TEST_DB.with(|db| {
-            *db.borrow_mut() = Some(db_path.clone());
-        });
-
-        println!("Created test database from SQL schema: {db_path}");
-
-        // Set up initial configuration in the new database
-        Self::setup_initial_configuration(&db_path)?;
-
-        Ok(db_path)
-    }
-
-    /// Set up initial configuration in a fresh database
-    /// Uses a temporary environment to access config components through traits
-    fn setup_initial_configuration(db_path: &str) -> SzResult<()> {
-        let paths = detect_senzing_paths();
-        let settings = format!(
-            r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,
-            paths.config_path, paths.resource_path, paths.support_path, db_path
-        );
-
-        println!("Setting up initial configuration in database...");
-
-        // Create environment - this works without config being set up yet
-        let temp_env = SzEnvironmentCore::get_instance("SzRustSDK-Setup", &settings, false)?;
-
-        // Get config manager through traits - SzConfigMgr initializes independently of Sz_init
-        let config_mgr = temp_env.get_config_manager()?;
-        let config = config_mgr.create_config()?;
-
-        let config_definition = config.export()?;
-        let config_id = config_mgr.register_config(
-            &config_definition,
-            Some("Initial default configuration for isolated test"),
-        )?;
-
-        // Set as default
-        config_mgr.set_default_config_id(config_id)?;
-
-        println!("✅ Initial configuration setup complete with ID: {config_id}");
-
-        // Destroy the temporary environment so the main environment can be created fresh
-        temp_env.destroy()?;
-
-        Ok(())
-    }
-
     /// Clean up the environment by destroying native resources.
     ///
     /// Takes ownership of the environment Arc, ensuring clean ownership semantics.
@@ -283,12 +182,11 @@ impl ExampleEnvironment {
         println!("✅ Environment cleanup complete");
         Ok(())
     }
+
     /// Create and initialize a Senzing environment for examples using singleton pattern
     ///
-    /// This creates a working Senzing environment that can perform
-    /// basic operations like search and entity resolution.
+    /// Uses the `internal://` in-memory database (v4.3+) for zero-setup isolation.
     /// If no configuration exists, it registers a default one.
-    /// Uses the singleton pattern to ensure only one environment exists per process.
     ///
     /// # Arguments
     ///
@@ -316,138 +214,68 @@ impl ExampleEnvironment {
     /// # Ok::<(), sz_rust_sdk::error::SzError>(())
     /// ```
     pub fn initialize(instance_name: &str) -> SzResult<std::sync::Arc<SzEnvironmentCore>> {
-        let settings = Self::get_configuration()?;
-
-        // Use singleton pattern to get or create the environment
-        println!("Getting singleton SzEnvironmentCore instance with isolated database");
-        match SzEnvironmentCore::get_instance(instance_name, &settings, false) {
-            Ok(env) => Ok(env),
-            Err(e) => {
-                // Check if this is a configuration error - if so, try to set up default configuration
-                if matches!(e, SzError::Configuration { .. }) {
-                    println!("No configuration found, setting up default configuration...");
-                    // Try to set up default configuration
-                    let temp_env = SzEnvironmentCore::get_instance(
-                        &format!("{instance_name}-setup"),
-                        &settings,
-                        false,
-                    )?;
-                    let config_mgr = temp_env.get_config_manager()?;
-                    let config = config_mgr.create_config()?;
-                    let config_definition = config.export()?;
-                    let config_id = config_mgr.register_config(
-                        &config_definition,
-                        Some("Default configuration for tests"),
-                    )?;
-                    config_mgr.set_default_config_id(config_id)?;
-                    println!("✅ Configuration setup complete with ID: {config_id}");
-
-                    // Now try again with the main instance name
-                    SzEnvironmentCore::get_instance(instance_name, &settings, false)
-                } else {
-                    Err(e)
-                }
-            }
-        }
-    }
-
-    /// Get the standard Senzing configuration for examples with verbose logging
-    fn get_configuration_verbose() -> SzResult<String> {
-        if let Ok(config) = std::env::var("SENZING_ENGINE_CONFIGURATION_JSON") {
-            if !config.contains("CONNECTION") {
-                return Err(SzError::configuration(
-                    "SENZING_ENGINE_CONFIGURATION_JSON is set but missing SQL.CONNECTION",
-                ));
-            }
-            return Ok(config);
-        }
-
-        // Use a single shared database path for all tests to avoid Senzing library conflicts
-        // The isolation will come from destroying and recreating the environment between tests
-        static SHARED_DB_PATH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
-        let db_path = SHARED_DB_PATH.get_or_init(|| {
-            let path = Self::setup_test_database()
-                .unwrap_or_else(|_| "/tmp/senzing_shared_test.db".to_string());
-            println!("Using shared test database: {path}");
-            path
-        });
-
-        let paths = detect_senzing_paths();
-        let config = format!(
-            r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}","DEBUGLEVEL":"2"}}}}"#,
-            paths.config_path, paths.resource_path, paths.support_path, db_path
-        );
-
-        Ok(config)
-    }
-
-    /// Get the standard Senzing configuration for examples with shared database
-    fn get_configuration() -> SzResult<String> {
-        if let Ok(config) = std::env::var("SENZING_ENGINE_CONFIGURATION_JSON") {
-            if !config.contains("CONNECTION") {
-                return Err(SzError::configuration(
-                    "SENZING_ENGINE_CONFIGURATION_JSON is set but missing SQL.CONNECTION",
-                ));
-            }
-            return Ok(config);
-        }
-
-        // Use a single shared database path for all tests to avoid Senzing library conflicts
-        // The isolation will come from destroying and recreating the environment between tests
-        static SHARED_DB_PATH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
-        let db_path = SHARED_DB_PATH.get_or_init(|| {
-            let path = Self::setup_test_database()
-                .unwrap_or_else(|_| "/tmp/senzing_shared_test.db".to_string());
-            println!("Using shared test database: {path}");
-            path
-        });
-
-        let paths = detect_senzing_paths();
-        let config = format!(
-            r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"sqlite3://na:na@{}"}}}}"#,
-            paths.config_path, paths.resource_path, paths.support_path, db_path
-        );
-
-        Ok(config)
+        Self::initialize_with_logging(instance_name, false)
     }
 
     /// Initialize with verbose logging for debugging using singleton pattern
     pub fn initialize_verbose(instance_name: &str) -> SzResult<std::sync::Arc<SzEnvironmentCore>> {
-        let settings = Self::get_configuration_verbose()?;
-
-        // Try with verbose logging enabled using singleton pattern
-        match SzEnvironmentCore::get_instance(instance_name, &settings, true) {
-            Ok(env) => Ok(env),
-            Err(e) => {
-                // Use proper error hierarchy instead of string matching
-                if matches!(e, SzError::Configuration { .. }) {
-                    // Try to set up default configuration with verbose logging
-                    let temp_env = SzEnvironmentCore::get_instance(
-                        &format!("{instance_name}-setup"),
-                        &settings,
-                        true,
-                    )?;
-                    let config_mgr = temp_env.get_config_manager()?;
-                    let config = config_mgr.create_config()?;
-                    let config_definition = config.export()?;
-                    let config_id = config_mgr.register_config(
-                        &config_definition,
-                        Some("Default configuration for examples"),
-                    )?;
-                    config_mgr.set_default_config_id(config_id)?;
-
-                    SzEnvironmentCore::get_instance(instance_name, &settings, true)
-                } else {
-                    Err(e)
-                }
-            }
-        }
+        Self::initialize_with_logging(instance_name, true)
     }
 
-    /// Get engine from environment - configuration is set up during database initialization
+    fn initialize_with_logging(
+        instance_name: &str,
+        verbose: bool,
+    ) -> SzResult<std::sync::Arc<SzEnvironmentCore>> {
+        let settings = Self::get_configuration(verbose)?;
+
+        println!("Getting singleton SzEnvironmentCore instance with in-memory database");
+        let env = SzEnvironmentCore::get_instance(instance_name, &settings, verbose)?;
+
+        // With internal://, each environment has its own ephemeral in-memory DB.
+        // Register a default config BEFORE Sz_init (triggered by get_engine) so
+        // the engine finds it in the same DB instance.
+        // Note: get_default_config_id() returns Ok(0) (not Err) when no config exists
+        // with internal://, so check the value, not just Ok/Err.
+        let config_mgr = env.get_config_manager()?;
+        let needs_config = config_mgr
+            .get_default_config_id()
+            .map_or(true, |id| id == 0);
+        if needs_config {
+            println!("No configuration found, setting up default configuration...");
+            let config = config_mgr.create_config()?;
+            let config_definition = config.export()?;
+            let config_id =
+                config_mgr.register_config(&config_definition, Some("Default configuration"))?;
+            config_mgr.set_default_config_id(config_id)?;
+            println!("✅ Configuration setup complete with ID: {config_id}");
+        }
+
+        Ok(env)
+    }
+
+    fn get_configuration(verbose: bool) -> SzResult<String> {
+        if let Ok(config) = std::env::var("SENZING_ENGINE_CONFIGURATION_JSON") {
+            if !config.contains("CONNECTION") {
+                return Err(SzError::configuration(
+                    "SENZING_ENGINE_CONFIGURATION_JSON is set but missing SQL.CONNECTION",
+                ));
+            }
+            return Ok(config);
+        }
+
+        let paths = detect_senzing_paths();
+        let debug = if verbose { r#","DEBUGLEVEL":"2""# } else { "" };
+        let config = format!(
+            r#"{{"PIPELINE":{{"CONFIGPATH":"{}","RESOURCEPATH":"{}","SUPPORTPATH":"{}"}},"SQL":{{"CONNECTION":"internal://"{debug}}}}}"#,
+            paths.config_path, paths.resource_path, paths.support_path
+        );
+
+        Ok(config)
+    }
+
+    /// Get engine from environment.
     ///
-    /// This is a convenience method that simply calls env.get_engine() since configuration
-    /// is now automatically set up during database creation.
+    /// Convenience method that calls `env.get_engine()`.
     pub fn get_engine_with_setup(
         env: &std::sync::Arc<SzEnvironmentCore>,
     ) -> SzResult<Box<dyn crate::traits::SzEngine>> {

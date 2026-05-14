@@ -5,10 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [4.3.0] - Unreleased
+
+Version numbering now aligns with Senzing SDK versions. Targets Senzing v4.3.
 
 ### Added
 
+- Support for official Senzing Homebrew cask (`senzing/senzingsdk`) with auto-detection in `build.rs` and `ExampleEnvironment`
+- Windows installation docs for official Scoop bucket (`Senzing/scoop-senzingsdk`)
+- `build.rs` adds Homebrew `sqlite` and `openssl@3` lib paths to resolve missing rpath in macOS 4.3 cask
+- `ExampleEnvironment` uses `internal://` in-memory database (v4.3+) — no temp files or schema setup
 - Runnable doc examples on all public trait methods (121 doc tests) - converted from `ignore` to runnable or `no_run`
 - Safety documentation on `destroy()` warning against `ptr::read` in `Drop` impls (causes double-free / heap corruption) and recommending `Option<Arc<...>>` + `.take()` or `SenzingGuard`
 - "Why Use This Instead of a Custom Drop" section on `SenzingGuard` docs
@@ -22,8 +28,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `unregister_data_source` JSON wrapping bug in config.rs - data source name now correctly wrapped in JSON object
 - **BREAKING**: Renamed `close_export` to `close_export_report` to align with C#/Java/Python SDK naming conventions
 
+### Removed
+
+- `rusqlite` dependency — replaced by `internal://` in-memory database
+
 ### Changed
 
+- Path detection order: official cask paths checked before legacy unofficial tap (fallback preserved)
 - Updated .gitignore for project-specific patterns
 - **BREAKING**: Renamed `find_path` to `find_path_by_entity_id` to clarify it operates on entity IDs (matches C#/Java/Python SDKs)
 - **BREAKING**: Renamed `find_network` to `find_network_by_entity_id` to clarify it operates on entity IDs (matches C#/Java/Python SDKs)
@@ -309,9 +320,10 @@ engine.find_interesting_entities(EntityRef::Record { data_source: "TEST", record
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 
+[4.3.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v4.2.0...HEAD
+[4.2.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.11.1...v4.2.0
 [0.11.1]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.10.0...v0.11.0
-[Unreleased]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.11.1...HEAD
 [0.9.1]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.7.0...v0.8.0

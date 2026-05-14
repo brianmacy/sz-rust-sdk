@@ -94,7 +94,7 @@ fn main() -> SzResult<()> {
                             ERROR_COUNT.fetch_add(1, Ordering::Relaxed);
                         } else {
                             let current = LOADED_COUNT.fetch_add(1, Ordering::Relaxed) + 1;
-                            if current % PROGRESS_REPORT_INTERVAL == 0 {
+                            if current.is_multiple_of(PROGRESS_REPORT_INTERVAL) {
                                 println!("Processed {} records successfully", current);
                             }
                         }
@@ -206,7 +206,7 @@ fn process_load_task(engine: &Box<dyn SzEngine>, task: &LoadTask) -> SzResult<()
         &task.data_source,
         &task.record_id,
         &task.record_data,
-        Some(SzFlags::ADD_RECORD_DEFAULT),
+        Some(SzFlags::ADD_RECORD_DEFAULT_FLAGS),
     )?;
     Ok(())
 }

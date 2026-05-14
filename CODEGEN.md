@@ -51,7 +51,7 @@ cargo run --example generate_error_mappings
 - `szerrors.json` must be available in one of:
   - Project root: `./szerrors.json`
   - G2 dev build: `~/dev/G2/dev/build/dist/sdk/szerrors.json`
-  - Homebrew: `/opt/homebrew/opt/senzing/runtime/sdk/szerrors.json`
+  - Homebrew cask: `/opt/homebrew/opt/senzing/er/sdk/szerrors.json`
 
 **Output:**
 

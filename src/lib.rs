@@ -27,7 +27,7 @@
 //!         "SUPPORTPATH": "/opt/senzing/data"
 //!     },
 //!     "SQL": {
-//!         "CONNECTION": "sqlite3://na:na@/tmp/G2C.db"
+//!         "CONNECTION": "internal://"
 //!     }
 //! }"#;
 //! let env = SzEnvironmentCore::new("my-app", settings, false)?;

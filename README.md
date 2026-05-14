@@ -33,25 +33,50 @@ The SDK is organized into several core components:
 
 - Rust 1.88+ (2024 edition)
 - Senzing v4 SDK
-- SQLite3 (for database operations)
+- Senzing v4.3+ (uses `internal://` in-memory database)
 
 ### Platform-Specific Installation
 
 #### macOS (Homebrew)
 
-```bash
-brew install senzing/tap/senzing
-```
-
-Senzing installs to `/opt/homebrew/opt/senzing/runtime/er/` (Apple Silicon) or `/usr/local/opt/senzing/runtime/er/` (Intel).
-
-**Required environment variable (for library loading):**
+Install the official Senzing SDK cask:
 
 ```bash
-export DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib
+brew tap senzing/senzingsdk https://github.com/Senzing/homebrew-senzingsdk
+brew install --cask senzingsdk
 ```
 
-Senzing engine configuration is passed programmatically as a JSON string — see [Quick Start](#quick-start) and the [Senzing engine configuration tutorial](https://www.senzing.com/docs/tutorials/senzing_engine_config/).
+Senzing installs to `/opt/homebrew/opt/senzing/er/` (Apple Silicon) or `/usr/local/opt/senzing/er/` (Intel).
+
+**Required environment variables (for library loading):**
+
+```bash
+export DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/er/lib
+```
+
+The macOS 4.3 cask is missing rpath entries for its OpenSSL and SQLite dependencies.
+The SDK's `build.rs` handles this automatically, but at runtime you may also need:
+
+```bash
+export DYLD_LIBRARY_PATH="/opt/homebrew/opt/senzing/er/lib:/opt/homebrew/opt/sqlite/lib:/opt/homebrew/opt/openssl@3/lib"
+```
+
+Or source the provided setup script which handles this:
+
+```bash
+source "$(brew --prefix)/opt/senzing/er/setupEnv"
+```
+
+#### Windows (Scoop)
+
+Install the Senzing SDK via [Scoop](https://scoop.sh/):
+
+```pwsh
+scoop bucket add senzingsdk https://github.com/Senzing/scoop-senzingsdk
+scoop install senzingsdk/senzingsdk
+```
+
+Scoop automatically sets `SENZING_DIR` and adds the library directory to `PATH`.
 
 #### Linux
 
@@ -70,9 +95,13 @@ Senzing engine configuration is passed programmatically as a JSON string — see
 The SDK's `build.rs` automatically detects Senzing in these locations (in order):
 
 1. `SENZING_LIB_PATH` environment variable (if set)
-2. Homebrew location: `/opt/homebrew/opt/senzing/runtime/er/lib`
-3. Intel Homebrew: `/usr/local/opt/senzing/runtime/er/lib`
-4. Default Linux: `/opt/senzing/er/lib`
+2. Official Homebrew cask: `/opt/homebrew/opt/senzing/er/lib`
+3. Official Homebrew cask (Intel): `/usr/local/opt/senzing/er/lib`
+4. Legacy unofficial Homebrew tap: `.../senzing/runtime/er/lib`
+5. Default Linux: `/opt/senzing/er/lib`
+
+On macOS, `build.rs` also adds Homebrew's `sqlite` and `openssl@3` library paths
+to resolve missing rpath entries in the Senzing 4.3 cask.
 
 To override, set `SENZING_LIB_PATH` before building:
 
@@ -87,7 +116,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-sz-rust-sdk = { git = "https://github.com/brianmacy/sz-rust-sdk", tag = "v0.9.1" }
+sz-rust-sdk = { git = "https://github.com/brianmacy/sz-rust-sdk", tag = "v4.3.0" }
 ```
 
 ## Quick Start
@@ -99,11 +128,11 @@ fn main() -> SzResult<()> {
     // Build settings JSON (paths vary by platform - see Prerequisites above)
     let settings = r#"{
         "PIPELINE": {
-            "CONFIGPATH": "/opt/homebrew/opt/senzing/runtime/er/resources/templates",
-            "RESOURCEPATH": "/opt/homebrew/opt/senzing/runtime/er/resources",
-            "SUPPORTPATH": "/opt/homebrew/opt/senzing/runtime/data"
+            "CONFIGPATH": "/opt/homebrew/opt/senzing/er/resources/templates",
+            "RESOURCEPATH": "/opt/homebrew/opt/senzing/er/resources",
+            "SUPPORTPATH": "/opt/homebrew/opt/senzing/data"
         },
-        "SQL": {"CONNECTION": "sqlite3://na:na@/tmp/my_senzing.db"}
+        "SQL": {"CONNECTION": "internal://"}
     }"#;
 
     // Initialize - SzEnvironmentCore is the only concrete type you use directly
@@ -396,8 +425,8 @@ fn log_error(err: &(dyn std::error::Error + 'static)) {
 
 The SDK automatically provides database isolation for testing:
 
-- Each test uses a unique SQLite database in `/tmp/`
-- Databases are automatically created and cleaned up
+- Uses `internal://` in-memory database (v4.3+) — no temp files or schema setup
+- Each environment gets its own ephemeral database
 - No manual database management required
 - Safe for concurrent test execution
 
@@ -405,18 +434,20 @@ The SDK automatically provides database isolation for testing:
 
 Senzing engine configuration is a JSON string passed to the initialization function. See the [Senzing engine configuration tutorial](https://www.senzing.com/docs/tutorials/senzing_engine_config/) for full details.
 
-The JSON contains `PIPELINE` paths and a `SQL` connection:
+The JSON contains `PIPELINE` paths and a `SQL` connection. For testing and examples,
+use `internal://` (v4.3+) for a zero-setup in-memory database. For production, use
+SQLite or a full database:
 
 **macOS (Homebrew):**
 
 ```json
 {
   "PIPELINE": {
-    "CONFIGPATH": "/opt/homebrew/opt/senzing/runtime/er/resources/templates",
-    "RESOURCEPATH": "/opt/homebrew/opt/senzing/runtime/er/resources",
-    "SUPPORTPATH": "/opt/homebrew/opt/senzing/runtime/data"
+    "CONFIGPATH": "/opt/homebrew/opt/senzing/er/resources/templates",
+    "RESOURCEPATH": "/opt/homebrew/opt/senzing/er/resources",
+    "SUPPORTPATH": "/opt/homebrew/opt/senzing/data"
   },
-  "SQL": { "CONNECTION": "sqlite3://na:na@/tmp/senzing.db" }
+  "SQL": { "CONNECTION": "internal://" }
 }
 ```
 
@@ -429,11 +460,11 @@ The JSON contains `PIPELINE` paths and a `SQL` connection:
     "RESOURCEPATH": "/opt/senzing/er/resources",
     "SUPPORTPATH": "/opt/senzing/data"
   },
-  "SQL": { "CONNECTION": "sqlite3://na:na@/tmp/senzing.db" }
+  "SQL": { "CONNECTION": "internal://" }
 }
 ```
 
-You can also set the `SENZING_ENGINE_CONFIGURATION_JSON` environment variable with this JSON string. The SDK's `ExampleEnvironment` helper automatically builds appropriate settings for development and testing.
+You can also set the `SENZING_ENGINE_CONFIGURATION_JSON` environment variable with this JSON string. The SDK's `ExampleEnvironment` helper automatically builds appropriate settings for development and testing using `internal://`.
 
 ## Contributing
 

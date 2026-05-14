@@ -54,7 +54,7 @@ fn main() -> SzResult<()> {
     }"#;
 
     // Load the records
-    let load_flags = SzFlags::ADD_RECORD_DEFAULT;
+    let load_flags = SzFlags::ADD_RECORD_DEFAULT_FLAGS;
     let info1 = engine.add_record("TEST", "FORCE_RESOLVE_1", record1, Some(load_flags))?;
     let info2 = engine.add_record("TEST", "FORCE_RESOLVE_2", record2, Some(load_flags))?;
 
@@ -109,7 +109,7 @@ fn main() -> SzResult<()> {
         println!("\n4. Performing force resolve...");
 
         // The reevaluate method forces resolution between entities
-        let reevaluate_flags = SzFlags::REEVALUATE_ENTITY_DEFAULT;
+        let reevaluate_flags = SzFlags::REEVALUATE_ENTITY_DEFAULT_FLAGS;
         let reevaluate_info = engine.reevaluate_entity(entity_id1, Some(reevaluate_flags))?;
 
         println!("Reevaluate info: {}", reevaluate_info);
@@ -119,7 +119,7 @@ fn main() -> SzResult<()> {
         println!("\n5. Alternative: Using load flags to encourage resolution...");
 
         // Reload one of the records with flags that might encourage resolution
-        let force_flags = SzFlags::ADD_RECORD_DEFAULT;
+        let force_flags = SzFlags::ADD_RECORD_DEFAULT_FLAGS;
         let reload_info =
             engine.add_record("TEST", "FORCE_RESOLVE_1", record1, Some(force_flags))?;
         println!("Reload info: {}", reload_info);
@@ -145,7 +145,7 @@ fn main() -> SzResult<()> {
 
     // Show why analysis for the resolution
     println!("\n7. Why analysis for entity resolution:");
-    let why_flags = SzFlags::WHY_ENTITY_DEFAULT;
+    let why_flags = SzFlags::WHY_ENTITIES_DEFAULT_FLAGS;
     let why_result = engine.why_entities(entity_id1, entity_id2, Some(why_flags))?;
     println!("Why entities result: {}", why_result);
 

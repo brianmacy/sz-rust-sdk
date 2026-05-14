@@ -31,7 +31,7 @@ Doc tests use `ExampleEnvironment` in hidden `#` lines for setup:
 
 ```bash
 # Requires DYLD_LIBRARY_PATH on macOS
-DYLD_LIBRARY_PATH=/opt/homebrew/opt/senzing/runtime/er/lib cargo test
+DYLD_LIBRARY_PATH="/opt/homebrew/opt/senzing/er/lib:/opt/homebrew/opt/sqlite/lib:/opt/homebrew/opt/openssl@3/lib" cargo test
 
 # Error unit tests (no SDK needed)
 cargo test --lib test_error_mapping

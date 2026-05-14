@@ -28,7 +28,7 @@ fn main() -> SzResult<()> {
 
     // Use a test settings string since this test is focused on singleton pattern validation
     // not actual database connectivity. The settings don't need to be valid for this test.
-    let settings = r#"{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"},"SQL":{"CONNECTION":"sqlite3://na:na@/tmp/test_singleton.db"}}"#;
+    let settings = r#"{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"},"SQL":{"CONNECTION":"internal://"}}"#;
     let env1 = SzEnvironmentCore::get_instance("test-module-1", settings, true)?;
     println!(
         "✅ First instance created: {:p}",
@@ -97,7 +97,7 @@ fn main() -> SzResult<()> {
 
     // Test 6: Try to call get_instance with different ini_params - should fail
     println!("\n6. Testing get_instance() with different ini_params...");
-    let different_settings = r#"{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"},"SQL":{"CONNECTION":"sqlite3://na:na@/tmp/G2C_different_test.db"}}"#;
+    let different_settings = r#"{"PIPELINE":{"CONFIGPATH":"/etc/opt/senzing","RESOURCEPATH":"/opt/senzing/er/resources","SUPPORTPATH":"/opt/senzing/data"},"SQL":{"CONNECTION":"sqlite3://na:na@different"}}"#;
     match SzEnvironmentCore::get_instance("test-module-1", different_settings, true) {
         Ok(_) => {
             println!("❌ ERROR: get_instance() with different ini_params should have failed!");
