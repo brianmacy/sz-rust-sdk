@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.1] - Unreleased
+
+### Added
+
+- `SENZING_DIR` env var support for Windows/Scoop path detection in `build.rs`, `helpers.rs`, and generator scripts
+- Multi-platform CI: real SDK install and `cargo test` on Linux, macOS, and Windows
+- Versioning convention documented: major.minor = minimum Senzing SDK version, patch = Rust SDK-specific
+
 ## [4.3.0] - 2026-05-14
 
 Version numbering now aligns with Senzing SDK versions. Targets Senzing v4.3.
@@ -320,7 +328,8 @@ engine.find_interesting_entities(EntityRef::Record { data_source: "TEST", record
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 
-[4.3.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v4.2.0...HEAD
+[4.3.1]: https://github.com/brianmacy/sz-rust-sdk/compare/v4.3.0...HEAD
+[4.3.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v4.2.0...v4.3.0
 [4.2.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.11.1...v4.2.0
 [0.11.1]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.10.0...v0.11.0

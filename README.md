@@ -116,8 +116,12 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-sz-rust-sdk = { git = "https://github.com/brianmacy/sz-rust-sdk", tag = "v4.3.0" }
+sz-rust-sdk = { git = "https://github.com/brianmacy/sz-rust-sdk", tag = "v4.3.1" }
 ```
+
+### Versioning
+
+The SDK version tracks the minimum Senzing SDK version it supports: **major.minor** matches the Senzing SDK version, **patch** is Rust SDK-specific. For example, `4.3.1` requires Senzing SDK v4.3+ and is the first Rust SDK patch release for that series.
 
 ## Quick Start
 
