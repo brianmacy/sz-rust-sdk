@@ -33,10 +33,11 @@ jobs:
       env:
         SENZING_ACCEPT_EULA: I_ACCEPT_THE_SENZING_EULA
       run: |
-        curl -fsSL https://senzing-production-apt.s3.amazonaws.com/senzingrepo_2.0.0-1_all.deb -o /tmp/senzingrepo.deb
-        sudo dpkg -i /tmp/senzingrepo.deb
+        sudo apt-get install -y apt-transport-https
+        wget -q https://senzing-production-apt.s3.amazonaws.com/senzingrepo_2.0.2-1_all.deb -O /tmp/senzingrepo.deb
+        sudo apt-get install -y /tmp/senzingrepo.deb
         sudo apt-get update
-        sudo apt-get install -y senzingsdk-runtime senzingsdk-setup
+        sudo apt-get install -y senzingsdk-poc
     - name: Run tests
       env:
         LD_LIBRARY_PATH: /opt/senzing/er/lib
@@ -65,20 +66,21 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - uses: dtolnay/rust-toolchain@stable
-    - name: Install Scoop
-      shell: pwsh
-      run: |
-        if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
-          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-          Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
-        }
-    - name: Install Senzing SDK
+    - name: Install Scoop and Senzing SDK
       shell: pwsh
       env:
         SENZING_ACCEPT_EULA: I_ACCEPT_THE_SENZING_EULA
       run: |
+        Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+        Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+        # Scoop installer adds shims to PATH for the current process
+        $env:PATH = "$HOME\scoop\shims;$env:PATH"
         scoop bucket add senzingsdk https://github.com/Senzing/scoop-senzingsdk
         scoop install senzingsdk/senzingsdk
+        # Persist SENZING_DIR for subsequent steps
+        $senzingDir = (scoop prefix senzingsdk) + "\er"
+        echo "SENZING_DIR=$senzingDir" >> $env:GITHUB_ENV
+        echo "$senzingDir\lib" >> $env:GITHUB_PATH
     - name: Run tests
       shell: pwsh
       run: cargo test
