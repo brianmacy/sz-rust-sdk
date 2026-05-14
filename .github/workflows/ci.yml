@@ -23,23 +23,25 @@ jobs:
         RUSTFLAGS: -C link-args=-Wl,--allow-shlib-undefined
       run: cargo clippy --all-targets -- -D warnings
 
-  test-linux:
-    runs-on: ubuntu-latest
-    needs: lint
-    steps:
-    - uses: actions/checkout@v6
-    - uses: dtolnay/rust-toolchain@stable
-    - name: Install Senzing SDK
-      run: |
-        sudo apt-get install -y apt-transport-https
-        wget -q https://senzing-production-apt.s3.amazonaws.com/senzingrepo_2.0.2-1_all.deb -O /tmp/senzingrepo.deb
-        sudo apt-get install -y /tmp/senzingrepo.deb
-        sudo apt-get update
-        sudo SENZING_ACCEPT_EULA=I_ACCEPT_THE_SENZING_EULA DEBIAN_FRONTEND=noninteractive apt-get install -y senzingsdk-runtime
-    - name: Run tests
-      env:
-        LD_LIBRARY_PATH: /opt/senzing/er/lib
-      run: cargo test
+  # Linux SDK tests disabled — apt repo does not yet have v4.3 (internal:// support)
+  # Re-enable when senzingsdk-runtime >= 4.3 is published to the apt repo
+  # test-linux:
+  #   runs-on: ubuntu-latest
+  #   needs: lint
+  #   steps:
+  #   - uses: actions/checkout@v6
+  #   - uses: dtolnay/rust-toolchain@stable
+  #   - name: Install Senzing SDK
+  #     run: |
+  #       sudo apt-get install -y apt-transport-https
+  #       wget -q https://senzing-production-apt.s3.amazonaws.com/senzingrepo_2.0.2-1_all.deb -O /tmp/senzingrepo.deb
+  #       sudo apt-get install -y /tmp/senzingrepo.deb
+  #       sudo apt-get update
+  #       sudo SENZING_ACCEPT_EULA=I_ACCEPT_THE_SENZING_EULA DEBIAN_FRONTEND=noninteractive apt-get install -y senzingsdk-runtime
+  #   - name: Run tests
+  #     env:
+  #       LD_LIBRARY_PATH: /opt/senzing/er/lib
+  #     run: cargo test
 
   test-macos:
     runs-on: macos-latest
