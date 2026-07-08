@@ -40,18 +40,32 @@ impl SzEngine for SzEngineCore {
         let data_source_c = crate::ffi::helpers::str_to_c_string(data_source_code)?;
         let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
         let record_def_c = crate::ffi::helpers::str_to_c_string(record_definition)?;
-        let flags_bits = flags.unwrap_or(SzFlags::ADD_RECORD_DEFAULT_FLAGS).bits() as i64;
+        let flags = flags.unwrap_or(SzFlags::ADD_RECORD_DEFAULT_FLAGS);
 
-        let result = unsafe {
-            crate::ffi::Sz_addRecordWithInfo_helper(
-                data_source_c.as_ptr(),
-                record_id_c.as_ptr(),
-                record_def_c.as_ptr(),
-                flags_bits,
-            )
-        };
-
-        process_engine_result!(result)
+        // Only compute (and return) the info document when the caller opts in
+        // via WITH_INFO, mirroring the Python/C# SDKs. Otherwise use the
+        // cheaper non-info entry point and return SZ_NO_INFO.
+        if flags.contains(SzFlags::WITH_INFO) {
+            let result = unsafe {
+                crate::ffi::Sz_addRecordWithInfo_helper(
+                    data_source_c.as_ptr(),
+                    record_id_c.as_ptr(),
+                    record_def_c.as_ptr(),
+                    flags.bits() as i64,
+                )
+            };
+            process_engine_result!(result)
+        } else {
+            let return_code = unsafe {
+                crate::ffi::Sz_addRecord(
+                    data_source_c.as_ptr(),
+                    record_id_c.as_ptr(),
+                    record_def_c.as_ptr(),
+                )
+            };
+            crate::ffi::helpers::check_return_code(return_code)?;
+            Ok(SZ_NO_INFO.to_string())
+        }
     }
 
     fn get_record_preview(
@@ -76,17 +90,24 @@ impl SzEngine for SzEngineCore {
     ) -> SzResult<JsonString> {
         let data_source_c = crate::ffi::helpers::str_to_c_string(data_source_code)?;
         let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
-        let flags_bits = flags.unwrap_or(SzFlags::DELETE_RECORD_DEFAULT_FLAGS).bits() as i64;
+        let flags = flags.unwrap_or(SzFlags::DELETE_RECORD_DEFAULT_FLAGS);
 
-        let result = unsafe {
-            crate::ffi::Sz_deleteRecordWithInfo_helper(
-                data_source_c.as_ptr(),
-                record_id_c.as_ptr(),
-                flags_bits,
-            )
-        };
-
-        process_engine_result!(result)
+        if flags.contains(SzFlags::WITH_INFO) {
+            let result = unsafe {
+                crate::ffi::Sz_deleteRecordWithInfo_helper(
+                    data_source_c.as_ptr(),
+                    record_id_c.as_ptr(),
+                    flags.bits() as i64,
+                )
+            };
+            process_engine_result!(result)
+        } else {
+            let return_code = unsafe {
+                crate::ffi::Sz_deleteRecord(data_source_c.as_ptr(), record_id_c.as_ptr())
+            };
+            crate::ffi::helpers::check_return_code(return_code)?;
+            Ok(SZ_NO_INFO.to_string())
+        }
     }
 
     fn reevaluate_record(
@@ -97,19 +118,28 @@ impl SzEngine for SzEngineCore {
     ) -> SzResult<JsonString> {
         let data_source_c = crate::ffi::helpers::str_to_c_string(data_source_code)?;
         let record_id_c = crate::ffi::helpers::str_to_c_string(record_id)?;
-        let flags_bits = flags
-            .unwrap_or(SzFlags::REEVALUATE_RECORD_DEFAULT_FLAGS)
-            .bits() as i64;
+        let flags = flags.unwrap_or(SzFlags::REEVALUATE_RECORD_DEFAULT_FLAGS);
 
-        let result = unsafe {
-            crate::ffi::Sz_reevaluateRecordWithInfo_helper(
-                data_source_c.as_ptr(),
-                record_id_c.as_ptr(),
-                flags_bits,
-            )
-        };
-
-        process_engine_result!(result)
+        if flags.contains(SzFlags::WITH_INFO) {
+            let result = unsafe {
+                crate::ffi::Sz_reevaluateRecordWithInfo_helper(
+                    data_source_c.as_ptr(),
+                    record_id_c.as_ptr(),
+                    flags.bits() as i64,
+                )
+            };
+            process_engine_result!(result)
+        } else {
+            let return_code = unsafe {
+                crate::ffi::Sz_reevaluateRecord(
+                    data_source_c.as_ptr(),
+                    record_id_c.as_ptr(),
+                    flags.bits() as i64,
+                )
+            };
+            crate::ffi::helpers::check_return_code(return_code)?;
+            Ok(SZ_NO_INFO.to_string())
+        }
     }
 
     fn reevaluate_entity(
@@ -117,14 +147,19 @@ impl SzEngine for SzEngineCore {
         entity_id: EntityId,
         flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
-        let flags_bits = flags
-            .unwrap_or(SzFlags::REEVALUATE_ENTITY_DEFAULT_FLAGS)
-            .bits() as i64;
+        let flags = flags.unwrap_or(SzFlags::REEVALUATE_ENTITY_DEFAULT_FLAGS);
 
-        let result =
-            unsafe { crate::ffi::Sz_reevaluateEntityWithInfo_helper(entity_id, flags_bits) };
-
-        process_engine_result!(result)
+        if flags.contains(SzFlags::WITH_INFO) {
+            let result = unsafe {
+                crate::ffi::Sz_reevaluateEntityWithInfo_helper(entity_id, flags.bits() as i64)
+            };
+            process_engine_result!(result)
+        } else {
+            let return_code =
+                unsafe { crate::ffi::Sz_reevaluateEntity(entity_id, flags.bits() as i64) };
+            crate::ffi::helpers::check_return_code(return_code)?;
+            Ok(SZ_NO_INFO.to_string())
+        }
     }
 
     fn search_by_attributes(
@@ -507,14 +542,22 @@ impl SzEngine for SzEngineCore {
     fn process_redo_record(
         &self,
         redo_record: &str,
-        _flags: Option<SzFlags>,
+        flags: Option<SzFlags>,
     ) -> SzResult<JsonString> {
         let redo_record_c = crate::ffi::helpers::str_to_c_string(redo_record)?;
-        // Note: Sz_processRedoRecordWithInfo_helper does not accept flags in the C API
-        let result =
-            unsafe { crate::ffi::Sz_processRedoRecordWithInfo_helper(redo_record_c.as_ptr()) };
+        let flags = flags.unwrap_or(SzFlags::REDO_DEFAULT_FLAGS);
 
-        process_engine_result!(result)
+        // Neither the info nor the non-info redo entry point accepts flags in
+        // the C API; WITH_INFO only selects which variant is called.
+        if flags.contains(SzFlags::WITH_INFO) {
+            let result =
+                unsafe { crate::ffi::Sz_processRedoRecordWithInfo_helper(redo_record_c.as_ptr()) };
+            process_engine_result!(result)
+        } else {
+            let return_code = unsafe { crate::ffi::Sz_processRedoRecord(redo_record_c.as_ptr()) };
+            crate::ffi::helpers::check_return_code(return_code)?;
+            Ok(SZ_NO_INFO.to_string())
+        }
     }
 
     fn get_redo_record(&self) -> SzResult<JsonString> {

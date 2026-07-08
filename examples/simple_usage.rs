@@ -37,8 +37,14 @@ fn main() -> SzResult<()> {
 
     // Step 4: Add a record
     let record = r#"{"NAME_FULL": "John Smith", "EMAIL_ADDRESS": "john@example.com"}"#;
-    let result = engine.add_record("CUSTOMERS", "CUST001", record, None)?;
-    println!("Record added: {result}");
+    // With default flags (no WITH_INFO), add_record returns SZ_NO_INFO (empty);
+    // pass Some(SzFlags::WITH_INFO) if you want the resolution info document.
+    let info = engine.add_record("CUSTOMERS", "CUST001", record, None)?;
+    if info.is_empty() {
+        println!("Record CUST001 added.");
+    } else {
+        println!("Record CUST001 added: {info}");
+    }
 
     // Step 5: Search for the entity
     let search_attrs = r#"{"NAME_FULL": "Jon Smith"}"#;

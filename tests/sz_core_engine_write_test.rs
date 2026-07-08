@@ -162,3 +162,79 @@ fn test_write_operations_flag_combinations() -> SzResult<()> {
     ExampleEnvironment::cleanup(env)?;
     Ok(())
 }
+
+/// Regression test for issue #29: without WITH_INFO, add_record must use the
+/// non-info native entry point and return SZ_NO_INFO (empty), not an
+/// unsolicited info document.
+#[test]
+#[serial]
+fn test_add_record_without_info_returns_no_info() -> SzResult<()> {
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-write-noinfo-test")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+
+    let info = engine.add_record(
+        "TEST",
+        "NOINFO_1",
+        r#"{"NAME_FULL": "No Info Person"}"#,
+        None,
+    )?;
+    assert_eq!(
+        info, SZ_NO_INFO,
+        "add_record without WITH_INFO must return SZ_NO_INFO (empty), got: {info:?}"
+    );
+
+    ExampleEnvironment::cleanup(env)?;
+    Ok(())
+}
+
+/// Regression test for issue #29: with WITH_INFO, add_record must return the
+/// affected-entity info document.
+#[test]
+#[serial]
+fn test_add_record_with_info_returns_document() -> SzResult<()> {
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-write-withinfo-test")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+
+    let info = engine.add_record(
+        "TEST",
+        "WITHINFO_1",
+        r#"{"NAME_FULL": "With Info Person"}"#,
+        Some(SzFlags::WITH_INFO),
+    )?;
+    assert_ne!(
+        info, SZ_NO_INFO,
+        "add_record with WITH_INFO must return a non-empty info document"
+    );
+    assert!(
+        info.contains("AFFECTED_ENTITIES") || info.contains("DATA_SOURCE"),
+        "WITH_INFO document should describe affected entities, got: {info}"
+    );
+
+    ExampleEnvironment::cleanup(env)?;
+    Ok(())
+}
+
+/// Regression test for issue #29: delete_record honors WITH_INFO the same way.
+#[test]
+#[serial]
+fn test_delete_record_info_dispatch() -> SzResult<()> {
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-delete-info-dispatch-test")?;
+    let engine = ExampleEnvironment::get_engine_with_setup(&env)?;
+
+    engine.add_record("TEST", "DEL_1", r#"{"NAME_FULL": "Delete Me"}"#, None)?;
+    let no_info = engine.delete_record("TEST", "DEL_1", None)?;
+    assert_eq!(
+        no_info, SZ_NO_INFO,
+        "delete_record without WITH_INFO must return SZ_NO_INFO, got: {no_info:?}"
+    );
+
+    engine.add_record("TEST", "DEL_2", r#"{"NAME_FULL": "Delete Me Too"}"#, None)?;
+    let with_info = engine.delete_record("TEST", "DEL_2", Some(SzFlags::WITH_INFO))?;
+    assert_ne!(
+        with_info, SZ_NO_INFO,
+        "delete_record with WITH_INFO must return a non-empty info document"
+    );
+
+    ExampleEnvironment::cleanup(env)?;
+    Ok(())
+}

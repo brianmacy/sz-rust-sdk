@@ -13,7 +13,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: dtolnay/rust-toolchain@stable
       with:
         components: rustfmt, clippy
@@ -29,7 +29,7 @@ jobs:
   #   runs-on: ubuntu-latest
   #   needs: lint
   #   steps:
-  #   - uses: actions/checkout@v6
+  #   - uses: actions/checkout@v7
   #   - uses: dtolnay/rust-toolchain@stable
   #   - name: Install Senzing SDK
   #     run: |
@@ -47,7 +47,7 @@ jobs:
     runs-on: macos-latest
     needs: lint
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: dtolnay/rust-toolchain@stable
     - name: Install Senzing SDK
       env:
@@ -64,7 +64,7 @@ jobs:
     runs-on: windows-latest
     needs: lint
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: dtolnay/rust-toolchain@stable
     - name: Install Scoop and Senzing SDK
       shell: pwsh

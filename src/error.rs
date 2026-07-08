@@ -1779,6 +1779,15 @@ mod test_error_mapping {
             matches!(error, SzError::RetryTimeoutExceeded(_)),
             "Error code 10 should map to RetryTimeoutExceeded, got: {error:?}"
         );
+        // Regression guard for issue #26: RetryTimeoutExceeded must be
+        // produced from a native code AND classify as retryable, so consumer
+        // `matches!(err, SzError::RetryTimeoutExceeded { .. })` / retry loops
+        // are not dead code.
+        assert!(
+            error.is_retryable(),
+            "RetryTimeoutExceeded must be retryable"
+        );
+        assert!(error.is(ErrorCategory::Retryable));
         assert_eq!(error.error_code(), Some(10));
     }
 
