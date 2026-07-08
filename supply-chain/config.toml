@@ -65,7 +65,7 @@ version = "1.0.18"
 criteria = "safe-to-deploy"
 
 [[exemptions.libc]]
-version = "0.2.185"
+version = "0.2.186"
 criteria = "safe-to-deploy"
 
 [[exemptions.libloading]]
