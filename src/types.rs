@@ -21,6 +21,12 @@ pub type RecordId = String;
 /// JSON string type for Senzing data exchange
 pub type JsonString = String;
 
+/// The value returned by record-mutation methods when `SzFlags::WITH_INFO` is
+/// not requested. Matches the Python SDK's `SZ_NO_INFO` sentinel (an empty
+/// string): the native non-info FFI entry point produces no info document, so
+/// the SDK returns this instead of an unsolicited info payload.
+pub const SZ_NO_INFO: &str = "";
+
 /// Reference to an entity - either by direct ID or by record key.
 ///
 /// This enum allows functions to accept either an entity ID or a record

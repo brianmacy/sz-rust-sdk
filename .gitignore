@@ -39,3 +39,7 @@ quick_test*
 
 # Claude Code local settings (user-specific)
 .claude/settings.local.json
+
+# Session handoff notes (local only, never committed)
+/.claude/STATUS.md
+/.claude/NEXT_STEPS.md

@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SENZING_DIR` env var support for Windows/Scoop path detection in `build.rs`, `helpers.rs`, and generator scripts
 - Multi-platform CI: real SDK install and `cargo test` on Linux, macOS, and Windows
 - Versioning convention documented: major.minor = minimum Senzing SDK version, patch = Rust SDK-specific
+- `SZ_NO_INFO` public constant — the empty info result returned by mutation methods when `SzFlags::WITH_INFO` is not requested
+
+### Changed
+
+- Dependency updates: `serde_json` 1.0.150, `serial_test` 3.5.0, `bitflags` 2.13.0, `actions/checkout` v6 → v7
+
+### Fixed
+
+- `add_record`, `delete_record`, `reevaluate_record`, `reevaluate_entity`, and `process_redo_record` now honor `SzFlags::WITH_INFO` — without it they call the non-info FFI entry point and return `SZ_NO_INFO` (empty string), matching Python/C# SDK behavior (#29, #27)
+- `load_with_info` and `redo_with_info_continuous` examples now actually request `SzFlags::WITH_INFO` instead of passing empty flags
 
 ## [4.3.0] - 2026-05-14
 

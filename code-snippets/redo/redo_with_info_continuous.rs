@@ -195,8 +195,13 @@ fn process_redo_records_with_info(
                     // Analyze the redo record before processing
                     analyze_redo_record(&redo_record, info_tracker)?;
 
-                    // Process the redo record using Senzing API
-                    match engine.process_redo_record(&redo_record, None) {
+                    // Process the redo record using Senzing API. WITH_INFO
+                    // makes Senzing return the resolution info document that
+                    // this "with info" example analyzes below; without it, the
+                    // non-info entry point is used and no info is returned.
+                    match engine
+                        .process_redo_record(&redo_record, Some(SzFlags::WITH_INFO))
+                    {
                         Ok(result) => {
                             println!(
                                 "✅ Processed redo record {}/{}: {} bytes result",

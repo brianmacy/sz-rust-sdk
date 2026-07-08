@@ -13,7 +13,7 @@ version = "0.72.1"
 criteria = "safe-to-run"
 
 [[exemptions.bitflags]]
-version = "2.11.1"
+version = "2.13.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.cexpr]]
@@ -165,15 +165,15 @@ version = "1.0.228"
 criteria = "safe-to-deploy"
 
 [[exemptions.serde_json]]
-version = "1.0.149"
+version = "1.0.150"
 criteria = "safe-to-deploy"
 
 [[exemptions.serial_test]]
-version = "3.4.0"
+version = "3.5.0"
 criteria = "safe-to-run"
 
 [[exemptions.serial_test_derive]]
-version = "3.4.0"
+version = "3.5.0"
 criteria = "safe-to-run"
 
 [[exemptions.shlex]]

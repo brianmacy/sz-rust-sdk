@@ -31,6 +31,19 @@ engine.add_record("TEST", "1001", record, Some(SzFlags::WITH_INFO))?;
 let flags = SzFlags::ENTITY_INCLUDE_RECORD_DATA | SzFlags::WITH_INFO;
 ```
 
+### WITH_INFO Dispatch on Mutation Methods
+
+Mutation methods (`add_record`, `delete_record`, `reevaluate_record`, `reevaluate_entity`,
+`process_redo_record`) branch on `SzFlags::WITH_INFO`:
+
+- **`WITH_INFO` set** — the "with info" FFI entry point is called and the info document
+  (affected entities JSON) is returned.
+- **`WITH_INFO` not set** — the plain (non-info) FFI entry point is called and the method
+  returns the public constant `SZ_NO_INFO` (an empty string).
+
+This matches Python/C# SDK behavior. Do not expect an info document unless you explicitly
+pass `SzFlags::WITH_INFO` (fixed in #29/#27 — previously the info path was always used).
+
 ### Data Source: "TEST"
 
 The "TEST" data source is always available — no configuration setup required. Use it for examples and quick tests.

@@ -113,8 +113,10 @@ fn main() -> SzResult<()> {
     let mut loaded_count = 0;
 
     for ((data_source_code, record_id), record_definition) in records.iter() {
-        // Use flags to get detailed information about the resolution process
-        let flags = SzFlags::ADD_RECORD_DEFAULT_FLAGS;
+        // Request the resolution info document by setting WITH_INFO; without
+        // it, add_record uses the cheaper non-info entry point and returns no
+        // info (see SzFlags::WITH_INFO).
+        let flags = SzFlags::ADD_RECORD_DEFAULT_FLAGS | SzFlags::WITH_INFO;
 
         let result =
             engine.add_record(data_source_code, record_id, record_definition, Some(flags))?;
