@@ -54,6 +54,9 @@ jobs:
         HOMEBREW_SENZING_ACCEPT_EULA: i_accept_the_senzing_eula
       run: |
         brew tap senzing/senzingsdk https://github.com/Senzing/homebrew-senzingsdk
+        # Newer Homebrew sets HOMEBREW_REQUIRE_TAP_TRUST and refuses to load a
+        # cask from a third-party tap until it is explicitly trusted.
+        brew trust --tap senzing/senzingsdk
         brew install --cask senzingsdk
     - name: Run tests
       env:
