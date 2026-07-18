@@ -189,6 +189,71 @@ pub trait SzEnvironment: Send + Sync {
     ///
     /// * `SzError::EnvironmentDestroyed` - Environment was destroyed
     fn get_diagnostic(&self) -> SzResult<Box<dyn SzDiagnostic>>;
+
+    /// Exports the current datastore contents to a single portable snapshot file.
+    ///
+    /// This writes a self-describing, version-checked snapshot that captures the
+    /// registered engine configuration plus every loaded record (with its original
+    /// mapped JSON). Restoring the snapshot into a fresh environment with
+    /// [`import_datastore_snapshot`](Self::import_datastore_snapshot) reproduces the
+    /// same entity-resolution state without needing the original input data.
+    ///
+    /// The primary motivation is the in-memory `internal://` datastore, which is
+    /// otherwise lost when the process exits — a snapshot lets a later process
+    /// warm-start from a previous run. The mechanism is datastore-agnostic, so it
+    /// works with any connection string.
+    ///
+    /// # Snapshot format and scope
+    ///
+    /// The snapshot is a newline-delimited JSON (`.szsnapshot`) stream: a manifest
+    /// line (format id, format version, SDK version, engine version, creation time),
+    /// a configuration line, then one line per record. Because records are stored as
+    /// their portable mapped JSON, the snapshot is CPU- and OS-independent.
+    ///
+    /// Restoring re-adds the records, so Senzing re-runs entity resolution on load.
+    /// Resolution is deterministic, so the restored entity IDs, match keys, and
+    /// scoring reproduce the source state. This does **not** persist opaque internal
+    /// indexes, so restore is not faster than the original load phase; when records
+    /// already carry precomputed `SEMANTIC_VALUE` embeddings, restore avoids
+    /// recomputing those embeddings.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Destination file path for the snapshot.
+    ///
+    /// # Errors
+    ///
+    /// * `SzError::EnvironmentDestroyed` - Environment was destroyed
+    /// * `SzError::Configuration` - No configuration is registered to snapshot
+    /// * `SzError::BadInput` - The destination path cannot be written
+    fn export_datastore_snapshot(&self, path: &std::path::Path) -> SzResult<()>;
+
+    /// Restores datastore contents from a snapshot file created by
+    /// [`export_datastore_snapshot`](Self::export_datastore_snapshot).
+    ///
+    /// This must be called on a **fresh** environment before the engine has been
+    /// initialized (i.e. before the first [`get_engine`](Self::get_engine) call),
+    /// which is the supported warm-start flow for the `internal://` datastore. The
+    /// snapshot's configuration is registered as the default, then every record is
+    /// re-added so the engine re-resolves them into the same entities as the source.
+    ///
+    /// # Version checking
+    ///
+    /// The snapshot manifest is validated before any data is loaded. A snapshot
+    /// written by an incompatible SDK format version is rejected with a clear error
+    /// rather than being loaded into a potentially inconsistent state.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Path to a snapshot file previously produced by
+    ///   [`export_datastore_snapshot`](Self::export_datastore_snapshot).
+    ///
+    /// # Errors
+    ///
+    /// * `SzError::EnvironmentDestroyed` - Environment was destroyed
+    /// * `SzError::BadInput` - The file is missing, unreadable, or not a valid
+    ///   snapshot (wrong format id or incompatible format version)
+    fn import_datastore_snapshot(&self, path: &std::path::Path) -> SzResult<()>;
 }
 
 /// Core entity resolution engine operations.

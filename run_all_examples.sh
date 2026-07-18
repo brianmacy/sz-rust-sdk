@@ -26,6 +26,7 @@ examples=(
     "load_with_info"
     "minimal_test"
     "search_records"
+    "snapshot_restore"
     "why_search"
     "simple_demo"
     "simple_working_demo"
