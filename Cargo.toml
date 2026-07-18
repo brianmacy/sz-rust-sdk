@@ -85,6 +85,10 @@ name = "complete_workflow"
 path = "examples/complete_workflow.rs"
 
 [[example]]
+name = "snapshot_restore"
+path = "examples/snapshot/snapshot_restore.rs"
+
+[[example]]
 name = "generate_bindings"
 path = "scripts/generate_bindings.rs"
 

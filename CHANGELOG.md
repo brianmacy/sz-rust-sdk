@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `SzEnvironment::export_datastore_snapshot` / `import_datastore_snapshot` — persist an `internal://` in-memory datastore to a single portable, version-checked file and restore it into a fresh environment without re-ingesting the source data. The snapshot captures the active configuration plus every record's original mapped JSON; restore re-registers the configuration and re-adds the records so the engine reproduces the same resolution state. Records are stored as portable JSON, so snapshots are CPU- and OS-independent. Adds the `snapshot_restore` example. (#13)
+
 ## [4.3.1] - 2026-07-08
 
 ### Added

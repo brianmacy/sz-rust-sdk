@@ -14,6 +14,7 @@ This SDK provides Rust developers with access to Senzing's powerful entity resol
 - **Comprehensive Error Handling** - Structured error types with detailed error messages
 - **Database Isolation** - Automatic test database isolation for concurrent testing
 - **Entity Resolution** - Add, search, and resolve entities across data sources
+- **Datastore Snapshot / Restore** - Persist an `internal://` in-memory datastore to a portable file and warm-start a later run without re-ingesting the source data
 - **Configuration Management** - Manage Senzing configurations and data sources
 - **Performance Diagnostics** - Built-in performance testing and monitoring
 - **Memory Safety** - No manual memory management required
@@ -195,6 +196,7 @@ The SDK includes comprehensive examples demonstrating various use cases:
 - **`load_records`** - Loading and managing entity records
 - **`delete_records`** - Deleting records and observing impact
 - **`search_records`** - Searching and finding entities
+- **`snapshot_restore`** - Snapshot an `internal://` datastore to a file and warm-start a fresh environment from it
 
 ### Configuration
 

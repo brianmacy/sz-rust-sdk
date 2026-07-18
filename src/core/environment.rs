@@ -659,6 +659,14 @@ impl SzEnvironment for SzEnvironmentCore {
         )?;
         Ok(Box::new(diagnostic_core))
     }
+
+    fn export_datastore_snapshot(&self, path: &std::path::Path) -> SzResult<()> {
+        super::snapshot::export_snapshot(self, path)
+    }
+
+    fn import_datastore_snapshot(&self, path: &std::path::Path) -> SzResult<()> {
+        super::snapshot::import_snapshot(self, path)
+    }
 }
 
 /// # Drop Behavior - Intentionally Does NOT Clean Up Native Resources

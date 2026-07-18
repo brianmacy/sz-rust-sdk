@@ -13,6 +13,7 @@ mod diagnostic;
 mod engine;
 mod guard;
 mod product;
+mod snapshot;
 
 pub mod environment;
 
