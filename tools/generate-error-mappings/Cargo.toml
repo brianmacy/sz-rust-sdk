@@ -1,0 +1,11 @@
+[package]
+name = "generate-error-mappings"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+# Deliberately its OWN standalone Cargo project, NOT a workspace member of (or path-dependency
+# from) the main sz-rust-sdk crate -- see README.md in this directory for why. Mirrors the existing
+# `code-snippets/` precedent (also its own independent Cargo.toml in this repo).
+[dependencies]
+sz-rust-sdk-ffi = { git = "https://github.com/brianmacy/sz-rust-sdk-ffi", rev = "acf5a58c9cd407a560c768fcb36f76a2758cfc14", default-features = false, features = ["codegen"] } # v0.1.1 (CI-lockfile fix)

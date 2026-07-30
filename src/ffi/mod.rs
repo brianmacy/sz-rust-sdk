@@ -4,21 +4,15 @@
 //! with the native Senzing C library. This module is internal to the SDK
 //! and not part of the public API.
 //!
-//! Bindings are auto-generated from Senzing C headers using bindgen.
-//! To regenerate: cargo run --example generate_bindings
-
-// Auto-generated bindings from C headers
-#[allow(
-    dead_code,
-    non_camel_case_types,
-    non_snake_case,
-    non_upper_case_globals,
-    clippy::upper_case_acronyms
-)]
-pub(crate) mod bindings_generated;
+//! The bindgen-generated bindings + str<->C marshaling primitives now live in the shared
+//! `sz-rust-sdk-ffi` crate (github.com/brianmacy/sz-rust-sdk-ffi), also depended on by Senzing's
+//! in-tree Rust binding layer (senzing-sys in the G2 repo) -- replacing this crate's previously
+//! independently-maintained copy. To regenerate the bindings: see that crate's
+//! `examples/generate_bindings.rs`.
 
 #[allow(dead_code)]
 pub(crate) mod helpers;
 
-// Re-export all generated bindings for internal use
-pub(crate) use bindings_generated::*;
+// Re-export all shared bindings for internal use (unqualified `crate::ffi::Sz_*` call sites
+// throughout src/core/*.rs are unchanged).
+pub(crate) use sz_rust_sdk_ffi::bindings::*;

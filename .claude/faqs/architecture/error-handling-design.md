@@ -27,13 +27,21 @@ if return_code != 0 {
 }
 ```
 
-### Error Code Mappings Are Auto-Generated
+### Error Code Mappings — Now Category-Based, Not Per-Code (2026-07-30)
 
-The 456 error code mappings come from `szerrors.json` and are generated into `src/error_mappings_generated.rs`. Regenerate with:
+Previously the 456 error code→`SzError`-variant mappings were generated directly into
+`src/error_mappings_generated.rs` (one match arm per code). As of the `sz-rust-sdk-ffi` extraction,
+the code→category *classification* is generated (`src/error_category_generated.rs`, via the shared
+`sz_rust_sdk_ffi::codegen` generator also used by Senzing's in-tree Rust binding layer), and
+`map_error_code()`/`get_error_hierarchy()` are now **hand-written** in
+`src/error_category_bridge.rs` — a 13-arm exhaustive match over `SzErrorCategory` (one per error
+*class*, not per code). See `CODEGEN.md` for the full picture. Regenerate with:
 
 ```bash
-cargo run --example generate_error_mappings
+cd tools/generate-error-mappings && cargo run
 ```
+
+(a standalone Cargo project now, not a `sz-rust-sdk` example — see that directory's README.md).
 
 Source file: `~/dev/G2/dev/build/dist/sdk/szerrors.json`
 

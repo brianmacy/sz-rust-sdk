@@ -22,6 +22,17 @@ jobs:
       env:
         RUSTFLAGS: -C link-args=-Wl,--allow-shlib-undefined
       run: cargo clippy --all-targets -- -D warnings
+    # tools/generate-error-mappings is a standalone Cargo project (see its README.md for why --
+    # it must have ZERO dependency edge shared with the main crate above, or the Windows link
+    # failure it exists to avoid comes back). It needs no Senzing SDK (codegen-only), so it's
+    # cheap to gate here rather than in the SDK-installing test-macos/test-windows jobs. Without
+    # this, it has no CI coverage at all and can silently bitrot.
+    - name: Lint tools/generate-error-mappings
+      run: |
+        cd tools/generate-error-mappings
+        cargo fmt -- --check
+        cargo clippy --all-targets -- -D warnings
+        cargo build
 
   # Linux SDK tests disabled — apt repo does not yet have v4.3 (internal:// support)
   # Re-enable when senzingsdk-runtime >= 4.3 is published to the apt repo

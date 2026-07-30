@@ -24,12 +24,22 @@ bitflags = "2.11"
 thiserror = "2.0"
 libc = "0.2"
 hex = "0.4"
+# Shared FFI/marshaling core (C-ABI bindings + str<->C helpers) + error-taxonomy codegen, also
+# depended on by Senzing's in-tree Rust binding layer (senzing-sys in the G2 repo) -- replaces the
+# previously independently-vendored/maintained copies. Pinned to a full commit SHA; tag is a
+# human-readable marker only.
+sz-rust-sdk-ffi = { git = "https://github.com/brianmacy/sz-rust-sdk-ffi", rev = "acf5a58c9cd407a560c768fcb36f76a2758cfc14" } # v0.1.1 (CI-lockfile fix)
 
 [dev-dependencies]
 tokio-test = "0.4"
 serial_test = "3.4"
-bindgen = "0.72"
 serde_json = "1.0"
+# NOTE: do NOT add sz-rust-sdk-ffi here. Cargo unifies a dependency's features across a package's
+# normal + dev dependency edges (unlike build-dependencies, which resolver v2 keeps separate), so
+# a dev-dependency entry here would silently re-enable the `ffi` feature already pulled in by the
+# [dependencies] entry above -- exactly the Windows link failure
+# tools/generate-error-mappings/README.md documents. Anything needing ONLY `codegen` belongs in
+# tools/generate-error-mappings (its own standalone Cargo project), not here.
 
 # Examples configuration
 [[example]]
@@ -88,10 +98,5 @@ path = "examples/complete_workflow.rs"
 name = "snapshot_restore"
 path = "examples/snapshot/snapshot_restore.rs"
 
-[[example]]
-name = "generate_bindings"
-path = "scripts/generate_bindings.rs"
-
-[[example]]
-name = "generate_error_mappings"
-path = "scripts/generate_error_mappings.rs"
+# generate_error_mappings moved to tools/generate-error-mappings/ (its own standalone Cargo
+# project) -- see that directory's README.md for why it can no longer be an [[example]] here.

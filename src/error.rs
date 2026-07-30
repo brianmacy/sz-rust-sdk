@@ -1439,7 +1439,7 @@ impl SzError {
     pub fn hierarchy(&self) -> Vec<ErrorCategory> {
         // If we have an error code, use the generated hierarchy
         if let Some(code) = self.error_code() {
-            let generated = crate::error_mappings_generated::get_error_hierarchy(code);
+            let generated = crate::error_category_bridge::get_error_hierarchy(code);
             if !generated.is_empty() {
                 return generated;
             }
@@ -1609,7 +1609,7 @@ impl SzError {
         let ctx = ErrorContext::with_code(error_msg, error_code, component);
 
         // Use generated error mapping (456 error codes from szerrors.json)
-        crate::error_mappings_generated::map_error_code(error_code, ctx)
+        crate::error_category_bridge::map_error_code(error_code, ctx)
     }
 
     /// Gets the last exception message from the specified component
