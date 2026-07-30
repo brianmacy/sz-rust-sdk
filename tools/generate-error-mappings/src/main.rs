@@ -6,25 +6,33 @@
 //! own szerrors.json copy, so the code->category classification logic has exactly one source
 //! instead of being independently re-implemented per SDK.
 //!
-//! `map_error_code`/`get_error_hierarchy` (in `src/error_category_bridge.rs`) are now HAND-WRITTEN
-//! (not generated) -- a 13-arm exhaustive match over `SzErrorCategory` is far more stable than a
-//! 456-arm per-code match, and the compiler enforces that a newly-added category can't be silently
-//! ignored (no wildcard arm).
+//! `map_error_code`/`get_error_hierarchy` (in `../../src/error_category_bridge.rs`) are now
+//! HAND-WRITTEN (not generated) -- a 13-arm exhaustive match over `SzErrorCategory` is far more
+//! stable than a 456-arm per-code match, and the compiler enforces that a newly-added category
+//! can't be silently ignored (no wildcard arm).
 //!
-//! Run with: cargo run --example generate_error_mappings
+//! Run with: cd tools/generate-error-mappings && cargo run (see README.md for why this is its own
+//! standalone Cargo project, not an example of the main sz-rust-sdk crate).
 //!
 //! The generated file is committed to version control since the Senzing v4 error codes are stable.
-//! Re-run this script when upgrading to a new Senzing SDK version.
+//! Re-run this after upgrading to a new Senzing SDK version.
 //!
-//! Input: szerrors.json (from Senzing SDK distribution or ~/dev/G2/dev/build/dist/sdk/)
-//! Output: src/error_category_generated.rs
+//! Input: szerrors.json (repo root, SENZING_DIR, or an installed Senzing SDK)
+//! Output: ../../src/error_category_generated.rs
 
 use std::env;
 use std::path::PathBuf;
 
+/// The main sz-rust-sdk repo root, two levels up from this standalone tool crate.
+fn repo_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("..")
+}
+
 fn find_szerrors_json() -> Option<PathBuf> {
-    // Priority 1: Project root
-    let project_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("szerrors.json");
+    // Priority 1: main repo root
+    let project_root = repo_root().join("szerrors.json");
     if project_root.exists() {
         println!("Found szerrors.json in project root");
         return Some(project_root);
@@ -89,8 +97,7 @@ fn find_szerrors_json() -> Option<PathBuf> {
 fn main() {
     let szerrors_path = find_szerrors_json().expect(
         "Could not find szerrors.json. \
-         Copy it from ~/dev/G2/dev/build/dist/sdk/szerrors.json to the project root, \
-         or ensure Senzing SDK is installed.",
+         Copy it to the sz-rust-sdk repo root, or ensure the Senzing SDK is installed.",
     );
 
     println!(
@@ -101,9 +108,7 @@ fn main() {
     let out = sz_rust_sdk_ffi::codegen::generate_error_taxonomy(&szerrors_path)
         .unwrap_or_else(|e| panic!("error-taxonomy codegen failed: {e}"));
 
-    let out_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("src")
-        .join("error_category_generated.rs");
+    let out_path = repo_root().join("src").join("error_category_generated.rs");
     std::fs::write(&out_path, out).expect("write error_category_generated.rs");
 
     let status = std::process::Command::new("rustfmt")
@@ -120,5 +125,5 @@ fn main() {
     println!("1. Review the generated file");
     println!("2. If a NEW category appeared, update src/error_category_bridge.rs's exhaustive");
     println!("   match (it will fail to compile until you do -- that's the point)");
-    println!("3. Run cargo build to verify");
+    println!("3. Run cargo build (from the repo root) to verify");
 }

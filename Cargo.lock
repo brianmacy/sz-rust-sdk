@@ -269,7 +269,6 @@ source = "git+https://github.com/brianmacy/sz-rust-sdk-ffi?rev=2ad405774e71be325
 dependencies = [
  "hex",
  "libc",
- "serde_json",
 ]
 
 [[package]]
