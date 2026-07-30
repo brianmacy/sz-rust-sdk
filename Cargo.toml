@@ -28,13 +28,16 @@ hex = "0.4"
 # depended on by Senzing's in-tree Rust binding layer (senzing-sys in the G2 repo) -- replaces the
 # previously independently-vendored/maintained copies. Pinned to a full commit SHA; tag is a
 # human-readable marker only.
-sz-rust-sdk-ffi = { git = "https://github.com/brianmacy/sz-rust-sdk-ffi", rev = "c5675844e6b4bbbf2200617ad95a93b3721bf10f" } # v0.1.0
+sz-rust-sdk-ffi = { git = "https://github.com/brianmacy/sz-rust-sdk-ffi", rev = "2ad405774e71be3256d25206c00f2ba94ccab2db" } # v0.1.1
 
 [dev-dependencies]
 tokio-test = "0.4"
 serial_test = "3.4"
 serde_json = "1.0"
-sz-rust-sdk-ffi = { git = "https://github.com/brianmacy/sz-rust-sdk-ffi", rev = "c5675844e6b4bbbf2200617ad95a93b3721bf10f", features = ["codegen"] } # v0.1.0
+# default-features = false: this example is codegen-only (a build-script-style generator), and on
+# Windows an unused default `ffi` feature's SzHelper_free reference isn't reliably dead-stripped,
+# causing an unresolved-external link failure -- see sz-rust-sdk-ffi's CHANGELOG (0.1.1).
+sz-rust-sdk-ffi = { git = "https://github.com/brianmacy/sz-rust-sdk-ffi", rev = "2ad405774e71be3256d25206c00f2ba94ccab2db", default-features = false, features = ["codegen"] } # v0.1.1
 
 # Examples configuration
 [[example]]
