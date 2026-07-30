@@ -28,7 +28,7 @@ hex = "0.4"
 # depended on by Senzing's in-tree Rust binding layer (senzing-sys in the G2 repo) -- replaces the
 # previously independently-vendored/maintained copies. Pinned to a full commit SHA; tag is a
 # human-readable marker only.
-sz-rust-sdk-ffi = { git = "https://github.com/brianmacy/sz-rust-sdk-ffi", rev = "2ad405774e71be3256d25206c00f2ba94ccab2db" } # v0.1.1
+sz-rust-sdk-ffi = { git = "https://github.com/brianmacy/sz-rust-sdk-ffi", rev = "acf5a58c9cd407a560c768fcb36f76a2758cfc14" } # v0.1.1 (CI-lockfile fix)
 
 [dev-dependencies]
 tokio-test = "0.4"

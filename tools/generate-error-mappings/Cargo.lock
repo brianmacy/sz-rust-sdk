@@ -107,7 +107,7 @@ dependencies = [
 [[package]]
 name = "sz-rust-sdk-ffi"
 version = "0.1.1"
-source = "git+https://github.com/brianmacy/sz-rust-sdk-ffi?rev=2ad405774e71be3256d25206c00f2ba94ccab2db#2ad405774e71be3256d25206c00f2ba94ccab2db"
+source = "git+https://github.com/brianmacy/sz-rust-sdk-ffi?rev=acf5a58c9cd407a560c768fcb36f76a2758cfc14#acf5a58c9cd407a560c768fcb36f76a2758cfc14"
 dependencies = [
  "hex",
  "libc",
