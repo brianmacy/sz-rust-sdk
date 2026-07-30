@@ -5,11 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [4.3.2] - 2026-07-30
 
 ### Added
 
 - `SzEnvironment::export_datastore_snapshot` / `import_datastore_snapshot` — persist an `internal://` in-memory datastore to a single portable, version-checked file and restore it into a fresh environment without re-ingesting the source data. The snapshot captures the active configuration plus every record's original mapped JSON; restore re-registers the configuration and re-adds the records so the engine reproduces the same resolution state. Records are stored as portable JSON, so snapshots are CPU- and OS-independent. Adds the `snapshot_restore` example. (#13)
+
+### Changed
+
+- FFI/marshaling core (C-ABI bindings + `str`↔C helpers) and error-taxonomy codegen extracted into the shared, git-pinned `sz-rust-sdk-ffi` crate (github.com/brianmacy/sz-rust-sdk-ffi), replacing the previously independently-vendored/maintained copies also used by Senzing's in-tree Rust binding layer (`senzing-sys` in the G2 repo). No public API change. (#33)
 
 ## [4.3.1] - 2026-07-08
 
@@ -344,7 +348,8 @@ engine.find_interesting_entities(EntityRef::Record { data_source: "TEST", record
 - Proper error code retrieval using `getLastExceptionCode()` instead of mapping return codes directly
 - No exposure of internal FFI bindings to public API
 
-[4.3.1]: https://github.com/brianmacy/sz-rust-sdk/compare/v4.3.0...HEAD
+[4.3.2]: https://github.com/brianmacy/sz-rust-sdk/compare/v4.3.1...HEAD
+[4.3.1]: https://github.com/brianmacy/sz-rust-sdk/compare/v4.3.0...v4.3.1
 [4.3.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v4.2.0...v4.3.0
 [4.2.0]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.11.1...v4.2.0
 [0.11.1]: https://github.com/brianmacy/sz-rust-sdk/compare/v0.11.0...v0.11.1
