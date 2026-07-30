@@ -1,13 +1,20 @@
 //! Helper functions for FFI operations
+//!
+//! The raw marshaling primitives (`str_to_c_string`, `sz_free`, `c_str_to_string`,
+//! `c_str_to_string_no_free`) delegate to the shared `sz-rust-sdk-ffi` crate
+//! (github.com/brianmacy/sz-rust-sdk-ffi), also depended on by Senzing's in-tree Rust binding
+//! layer -- replacing this crate's previously independently-maintained copy. Everything else in
+//! this file (return-code checking, `ResponseBuffer`, the `ffi_call*`/`process_*_result` macros)
+//! is SDK-specific application logic and stays local.
 
 use crate::error::{SzError, SzResult};
-use libc::{c_char, c_void, size_t};
+use libc::{c_char, size_t};
 use std::ffi::{CStr, CString};
 use std::ptr;
 
 /// Converts a Rust string to a C string (Internal)
 pub(crate) fn str_to_c_string(s: &str) -> SzResult<CString> {
-    CString::new(s).map_err(SzError::from)
+    sz_rust_sdk_ffi::helpers::str_to_c_string(s).map_err(SzError::from)
 }
 
 /// Frees memory allocated by Senzing helper functions
@@ -16,9 +23,7 @@ pub(crate) fn str_to_c_string(s: &str) -> SzResult<CString> {
 /// ptr must be a valid pointer allocated by Senzing or null
 #[inline]
 pub(crate) unsafe fn sz_free(ptr: *mut c_char) {
-    if !ptr.is_null() {
-        unsafe { super::SzHelper_free(ptr as *mut c_void) };
-    }
+    unsafe { sz_rust_sdk_ffi::helpers::sz_free(ptr) };
 }
 
 /// Converts a C string pointer to a Rust string and frees the C string
@@ -28,24 +33,7 @@ pub(crate) unsafe fn sz_free(ptr: *mut c_char) {
 /// The caller must ensure that `ptr` is either null or a valid pointer to a null-terminated C string
 /// that was allocated by the Senzing library.
 pub(crate) unsafe fn c_str_to_string(ptr: *mut c_char) -> SzResult<String> {
-    if ptr.is_null() {
-        return Ok(String::new());
-    }
-
-    let c_str = unsafe { CStr::from_ptr(ptr) };
-    let result = match c_str.to_str() {
-        Ok(s) => Ok(s.to_string()),
-        Err(_) => {
-            // If the C string contains invalid UTF-8, convert it to hex encoding to preserve binary data
-            let bytes = c_str.to_bytes();
-            Ok(hex::encode(bytes))
-        }
-    };
-
-    // Free the C string memory using Senzing's free function
-    unsafe { sz_free(ptr) };
-
-    result
+    Ok(unsafe { sz_rust_sdk_ffi::helpers::c_str_to_string(ptr) })
 }
 
 /// Converts C string to Rust string without freeing the memory (for static/managed strings)
@@ -55,18 +43,7 @@ pub(crate) unsafe fn c_str_to_string(ptr: *mut c_char) -> SzResult<String> {
 /// The caller must ensure that ptr is either null or points to a valid
 /// null-terminated C string. This function does NOT free the memory.
 pub(crate) unsafe fn c_str_to_string_no_free(ptr: *mut c_char) -> SzResult<String> {
-    if ptr.is_null() {
-        return Ok(String::new());
-    }
-
-    let c_str = unsafe { CStr::from_ptr(ptr) };
-    match c_str.to_str() {
-        Ok(s) => Ok(s.to_string()),
-        Err(_) => {
-            let bytes = c_str.to_bytes();
-            Ok(hex::encode(bytes))
-        }
-    }
+    Ok(unsafe { sz_rust_sdk_ffi::helpers::c_str_to_string_borrowed(ptr) })
 }
 
 /// Converts C string to raw bytes for handle storage

@@ -49,7 +49,12 @@
 
 pub mod core;
 pub mod error;
-mod error_mappings_generated; // Internal - generated error mappings used by error module
+mod error_category_bridge; // Internal - hand-written category->SzError adapter (NOT generated)
+// Internal - generated SzErrorCategory taxonomy, from sz-rust-sdk-ffi. `as_class_str`/`ALL` are
+// unused here (this crate maps categories straight to SzError variants, not class-name strings) --
+// they exist for symmetry with senzing-sys's own consumption of the same generator.
+#[allow(dead_code)]
+mod error_category_generated;
 mod ffi; // Internal FFI module - not part of public API
 pub mod flags;
 pub mod traits;

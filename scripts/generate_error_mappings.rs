@@ -1,19 +1,26 @@
-//! Senzing Error Mappings Generator
+//! Senzing Error Category Generator
 //!
-//! This script generates Rust error code mappings and hierarchy from szerrors.json.
+//! Generates the `SzErrorCategory` enum + `classify(code)` taxonomy from `szerrors.json`, via the
+//! shared `sz_rust_sdk_ffi::codegen` generator (github.com/brianmacy/sz-rust-sdk-ffi) -- the same
+//! generator Senzing's in-tree Rust binding layer (senzing-sys in the G2 repo) uses against its
+//! own szerrors.json copy, so the code->category classification logic has exactly one source
+//! instead of being independently re-implemented per SDK.
+//!
+//! `map_error_code`/`get_error_hierarchy` (in `src/error_category_bridge.rs`) are now HAND-WRITTEN
+//! (not generated) -- a 13-arm exhaustive match over `SzErrorCategory` is far more stable than a
+//! 456-arm per-code match, and the compiler enforces that a newly-added category can't be silently
+//! ignored (no wildcard arm).
+//!
 //! Run with: cargo run --example generate_error_mappings
 //!
 //! The generated file is committed to version control since the Senzing v4 error codes are stable.
 //! Re-run this script when upgrading to a new Senzing SDK version.
 //!
 //! Input: szerrors.json (from Senzing SDK distribution or ~/dev/G2/dev/build/dist/sdk/)
-//! Output: src/error/mappings_generated.rs
+//! Output: src/error_category_generated.rs
 
-use std::collections::HashMap;
 use std::env;
-use std::fs;
-use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 fn find_szerrors_json() -> Option<PathBuf> {
     // Priority 1: Project root
@@ -91,162 +98,14 @@ fn main() {
         szerrors_path.display()
     );
 
-    let json_content = fs::read_to_string(&szerrors_path).expect("Failed to read szerrors.json");
+    let out = sz_rust_sdk_ffi::codegen::generate_error_taxonomy(&szerrors_path)
+        .unwrap_or_else(|e| panic!("error-taxonomy codegen failed: {e}"));
 
-    let errors: HashMap<String, serde_json::Value> =
-        serde_json::from_str(&json_content).expect("Failed to parse szerrors.json");
-
-    println!("Parsed {} error definitions", errors.len());
-
-    // Collect and sort errors by code number
-    let mut code_map: Vec<(i64, String, String)> = errors
-        .iter()
-        .filter_map(|(code_str, value)| {
-            let code = code_str.parse::<i64>().ok()?;
-            let class = value.get("class")?.as_str()?.to_string();
-            let comment = value.get("comment")?.as_str().unwrap_or("").to_string();
-            Some((code, class, comment))
-        })
-        .collect();
-
-    code_map.sort_by_key(|(code, _, _)| *code);
-
-    // Output path (sibling to error.rs)
-    let out_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+    let out_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("src")
-        .join("error_mappings_generated.rs");
+        .join("error_category_generated.rs");
+    std::fs::write(&out_path, out).expect("write error_category_generated.rs");
 
-    let mut file = fs::File::create(&out_path).expect("Failed to create output file");
-
-    // Write file header
-    writeln!(file, "// Auto-generated from szerrors.json").unwrap();
-    writeln!(file, "// DO NOT EDIT MANUALLY").unwrap();
-    writeln!(file, "//").unwrap();
-    writeln!(
-        file,
-        "// Regenerate with: cargo run --example generate_error_mappings"
-    )
-    .unwrap();
-    writeln!(file, "//").unwrap();
-    writeln!(
-        file,
-        "// This file contains {} Senzing error code mappings",
-        code_map.len()
-    )
-    .unwrap();
-    writeln!(file).unwrap();
-    writeln!(
-        file,
-        "use crate::error::{{ErrorCategory, ErrorContext, SzError}};"
-    )
-    .unwrap();
-    writeln!(file).unwrap();
-
-    // Generate map_error_code function
-    writeln!(file, "/// Maps Senzing error codes to SzError types").unwrap();
-    writeln!(file, "///").unwrap();
-    writeln!(
-        file,
-        "/// This function is auto-generated from szerrors.json and maps each"
-    )
-    .unwrap();
-    writeln!(
-        file,
-        "/// native Senzing error code to the appropriate Rust error variant."
-    )
-    .unwrap();
-    writeln!(file, "#[allow(clippy::too_many_lines)]").unwrap();
-    writeln!(
-        file,
-        "pub(super) fn map_error_code(error_code: i64, ctx: ErrorContext) -> SzError {{"
-    )
-    .unwrap();
-    writeln!(file, "    match error_code {{").unwrap();
-
-    for (code, class, _comment) in &code_map {
-        let error_variant = match class.as_str() {
-            "SzBadInputError" => "SzError::BadInput",
-            "SzNotFoundError" => "SzError::NotFound",
-            "SzUnknownDataSourceError" => "SzError::UnknownDataSource",
-            "SzConfigurationError" => "SzError::Configuration",
-            "SzDatabaseConnectionLostError" => "SzError::DatabaseConnectionLost",
-            "SzDatabaseTransientError" => "SzError::DatabaseTransient",
-            "SzRetryTimeoutExceededError" => "SzError::RetryTimeoutExceeded",
-            "SzDatabaseError" => "SzError::Database",
-            "SzLicenseError" => "SzError::License",
-            "SzNotInitializedError" => "SzError::NotInitialized",
-            "SzUnhandledError" => "SzError::Unhandled",
-            "SzReplaceConflictError" => "SzError::ReplaceConflict",
-            "SzError" => "SzError::Unknown",
-            _ => "SzError::Unknown",
-        };
-        writeln!(file, "        {} => {}(ctx),", code, error_variant).unwrap();
-    }
-
-    writeln!(file, "        _ => SzError::Unknown(ctx),").unwrap();
-    writeln!(file, "    }}").unwrap();
-    writeln!(file, "}}").unwrap();
-    writeln!(file).unwrap();
-
-    // Generate get_error_hierarchy function
-    writeln!(
-        file,
-        "/// Returns the error hierarchy for a given error code"
-    )
-    .unwrap();
-    writeln!(file, "///").unwrap();
-    writeln!(
-        file,
-        "/// This function returns the category chain for an error code,"
-    )
-    .unwrap();
-    writeln!(
-        file,
-        "/// from most specific to most general (e.g., [DatabaseTransient, Retryable])."
-    )
-    .unwrap();
-    writeln!(file, "#[allow(clippy::too_many_lines)]").unwrap();
-    writeln!(
-        file,
-        "pub(super) fn get_error_hierarchy(error_code: i64) -> Vec<ErrorCategory> {{"
-    )
-    .unwrap();
-    writeln!(file, "    match error_code {{").unwrap();
-
-    for (code, class, _comment) in &code_map {
-        let hierarchy = match class.as_str() {
-            "SzNotFoundError" => "vec![ErrorCategory::NotFound, ErrorCategory::BadInput]",
-            "SzUnknownDataSourceError" => {
-                "vec![ErrorCategory::UnknownDataSource, ErrorCategory::BadInput]"
-            }
-            "SzBadInputError" => "vec![ErrorCategory::BadInput]",
-            "SzDatabaseConnectionLostError" => {
-                "vec![ErrorCategory::DatabaseConnectionLost, ErrorCategory::Retryable]"
-            }
-            "SzDatabaseTransientError" => {
-                "vec![ErrorCategory::DatabaseTransient, ErrorCategory::Retryable]"
-            }
-            "SzRetryTimeoutExceededError" => {
-                "vec![ErrorCategory::RetryTimeoutExceeded, ErrorCategory::Retryable]"
-            }
-            "SzDatabaseError" => "vec![ErrorCategory::Database, ErrorCategory::Unrecoverable]",
-            "SzLicenseError" => "vec![ErrorCategory::License, ErrorCategory::Unrecoverable]",
-            "SzNotInitializedError" => {
-                "vec![ErrorCategory::NotInitialized, ErrorCategory::Unrecoverable]"
-            }
-            "SzUnhandledError" => "vec![ErrorCategory::Unhandled, ErrorCategory::Unrecoverable]",
-            "SzConfigurationError" => "vec![ErrorCategory::Configuration]",
-            "SzReplaceConflictError" => "vec![ErrorCategory::ReplaceConflict]",
-            _ => "vec![]",
-        };
-        writeln!(file, "        {} => {},", code, hierarchy).unwrap();
-    }
-
-    writeln!(file, "        _ => vec![],").unwrap();
-    writeln!(file, "    }}").unwrap();
-    writeln!(file, "}}").unwrap();
-
-    // Run rustfmt on the generated file
     let status = std::process::Command::new("rustfmt")
         .arg(&out_path)
         .status()
@@ -255,12 +114,11 @@ fn main() {
         eprintln!("Warning: rustfmt exited with {status}");
     }
 
-    println!("\n✅ Successfully generated error mappings!");
+    println!("\n✅ Successfully generated error category taxonomy!");
     println!("   Output: {}", out_path.display());
-    println!("   Mapped {} error codes", code_map.len());
     println!("\nNext steps:");
     println!("1. Review the generated file");
-    println!("2. Ensure src/error/mod.rs includes: mod mappings_generated;");
-    println!("3. Update from_code_with_message() to use map_error_code()");
-    println!("4. Run cargo build to verify");
+    println!("2. If a NEW category appeared, update src/error_category_bridge.rs's exhaustive");
+    println!("   match (it will fail to compile until you do -- that's the point)");
+    println!("3. Run cargo build to verify");
 }
