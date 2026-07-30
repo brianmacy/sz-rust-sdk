@@ -63,28 +63,28 @@ fn find_szerrors_json() -> Option<PathBuf> {
         return Some(homebrew_arm);
     }
 
-    // Priority 4: Official Homebrew cask on macOS (Intel)
+    // Priority 5: Official Homebrew cask on macOS (Intel)
     let homebrew_intel = PathBuf::from("/usr/local/opt/senzing/er/sdk/szerrors.json");
     if homebrew_intel.exists() {
         println!("Found szerrors.json in Homebrew cask (Intel)");
         return Some(homebrew_intel);
     }
 
-    // Priority 5: Legacy unofficial Homebrew tap (ARM)
+    // Priority 6: Legacy unofficial Homebrew tap (ARM)
     let legacy_arm = PathBuf::from("/opt/homebrew/opt/senzing/runtime/sdk/szerrors.json");
     if legacy_arm.exists() {
         println!("Found szerrors.json in legacy Homebrew (ARM)");
         return Some(legacy_arm);
     }
 
-    // Priority 6: Legacy unofficial Homebrew tap (Intel)
+    // Priority 7: Legacy unofficial Homebrew tap (Intel)
     let legacy_intel = PathBuf::from("/usr/local/opt/senzing/runtime/sdk/szerrors.json");
     if legacy_intel.exists() {
         println!("Found szerrors.json in legacy Homebrew (Intel)");
         return Some(legacy_intel);
     }
 
-    // Priority 7: Linux standard
+    // Priority 8: Linux standard
     let linux = PathBuf::from("/opt/senzing/er/sdk/szerrors.json");
     if linux.exists() {
         println!("Found szerrors.json in Linux standard path");
