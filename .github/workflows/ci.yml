@@ -72,10 +72,23 @@ jobs:
         # cask from a third-party tap until it is explicitly trusted.
         brew trust --tap senzing/senzingsdk
         brew install --cask senzingsdk
+    # The SzEnvironmentCore doctests (incl. the 4-thread add_record thread-safety
+    # doctest) run in the next step against a SQLite file DB instead of internal://.
+    # Senzing 4.4.2's internal:// datastore intermittently fails concurrent add_record
+    # with SENZ1011 "OBS_ENT already exists ... (GDEV-4364)" (passes on 4.3.4).
     - name: Run tests
       env:
         DYLD_LIBRARY_PATH: "${{ env.HOMEBREW_PREFIX || '/opt/homebrew' }}/opt/senzing/er/lib:${{ env.HOMEBREW_PREFIX || '/opt/homebrew' }}/opt/openssl@3/lib:${{ env.HOMEBREW_PREFIX || '/opt/homebrew' }}/opt/sqlite/lib"
-      run: cargo test
+      run: cargo test -- --skip environment::SzEnvironmentCore
+    - name: Run SzEnvironmentCore doctests against SQLite file DB
+      env:
+        DYLD_LIBRARY_PATH: "${{ env.HOMEBREW_PREFIX || '/opt/homebrew' }}/opt/senzing/er/lib:${{ env.HOMEBREW_PREFIX || '/opt/homebrew' }}/opt/openssl@3/lib:${{ env.HOMEBREW_PREFIX || '/opt/homebrew' }}/opt/sqlite/lib"
+      run: |
+        SZ="$(brew --prefix)/opt/senzing"
+        DB="$RUNNER_TEMP/G2C.db"
+        python3 -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); c.executescript(open(sys.argv[2]).read()); c.commit(); c.close()" "$DB" "$SZ/er/resources/schema/szcore-schema-sqlite-create.sql"
+        export SENZING_ENGINE_CONFIGURATION_JSON="{\"PIPELINE\":{\"CONFIGPATH\":\"$SZ/er/resources/templates\",\"RESOURCEPATH\":\"$SZ/er/resources\",\"SUPPORTPATH\":\"$SZ/data\"},\"SQL\":{\"CONNECTION\":\"sqlite3://na:na@$DB\"}}"
+        cargo test --doc environment::SzEnvironmentCore -- --test-threads=1
 
   test-windows:
     runs-on: windows-latest
@@ -98,6 +111,21 @@ jobs:
         $senzingDir = (scoop prefix senzingsdk) + "\er"
         echo "SENZING_DIR=$senzingDir" >> $env:GITHUB_ENV
         echo "$senzingDir\lib" >> $env:GITHUB_PATH
+    # See test-macos: SzEnvironmentCore doctests run against a SQLite file DB
+    # (GDEV-4364 internal:// concurrency regression in Senzing 4.4.2).
     - name: Run tests
       shell: pwsh
-      run: cargo test
+      run: cargo test -- --skip environment::SzEnvironmentCore
+    - name: Run SzEnvironmentCore doctests against SQLite file DB
+      shell: pwsh
+      run: |
+        $er = $env:SENZING_DIR -replace '\\', '/'
+        $data = (Split-Path $env:SENZING_DIR -Parent) -replace '\\', '/'
+        $db = "$($env:RUNNER_TEMP -replace '\\', '/')/G2C.db"
+        python -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); c.executescript(open(sys.argv[2]).read()); c.commit(); c.close()" $db "$er/resources/schema/szcore-schema-sqlite-create.sql"
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        $env:SENZING_ENGINE_CONFIGURATION_JSON = @{
+          PIPELINE = @{ CONFIGPATH = "$er/resources/templates"; RESOURCEPATH = "$er/resources"; SUPPORTPATH = "$data/data" }
+          SQL = @{ CONNECTION = "sqlite3://na:na@$db" }
+        } | ConvertTo-Json -Compress
+        cargo test --doc environment::SzEnvironmentCore -- --test-threads=1
