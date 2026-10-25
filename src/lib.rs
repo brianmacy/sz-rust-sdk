@@ -47,6 +47,8 @@
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
+#![warn(missing_docs)]
+
 pub mod core;
 pub mod error;
 mod error_category_bridge; // Internal - hand-written category->SzError adapter (NOT generated)

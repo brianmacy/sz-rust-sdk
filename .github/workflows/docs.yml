@@ -59,9 +59,13 @@ jobs:
         echo "Tests would run here with proper Senzing setup"
 
     - name: Generate documentation
+      env:
+        # Fail on any rustdoc warning (broken intra-doc links, etc.)
+        RUSTDOCFLAGS: -D warnings
       run: |
-        # Generate docs with all features and private items
-        cargo doc --no-deps --all-features --document-private-items
+        # Public API only: internal pub(crate) items (e.g. the ffi shims) are
+        # intentionally NOT published (see issue #47).
+        cargo doc --no-deps --all-features
 
         # Create a simple index.html that redirects to the main crate docs
         cat > target/doc/index.html << 'EOF'

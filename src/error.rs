@@ -186,10 +186,15 @@ use std::ffi::{CStr, NulError};
 /// Senzing SDK component for error reporting
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SzComponent {
+    /// The engine component ([`crate::traits::SzEngine`]).
     Engine,
+    /// The configuration component ([`crate::traits::SzConfig`]).
     Config,
+    /// The configuration manager component ([`crate::traits::SzConfigManager`]).
     ConfigMgr,
+    /// The diagnostic component ([`crate::traits::SzDiagnostic`]).
     Diagnostic,
+    /// The product component ([`crate::traits::SzProduct`]).
     Product,
 }
 
@@ -220,29 +225,47 @@ pub enum SzComponent {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ErrorCategory {
     // Base categories
+    /// Invalid input (base category; parent of `NotFound` and `UnknownDataSource`).
     BadInput,
+    /// The operation may succeed if retried (base category; parent of the
+    /// database-connection-lost, database-transient and retry-timeout categories).
     Retryable,
+    /// The environment cannot continue (base category; parent of `Database`,
+    /// `License`, `NotInitialized` and `Unhandled`).
     Unrecoverable,
 
     // Specific types under BadInput
+    /// The requested entity or record was not found (child of `BadInput`).
     NotFound,
+    /// The data source is not registered (child of `BadInput`).
     UnknownDataSource,
 
     // Specific types under Retryable
+    /// The database connection was lost (child of `Retryable`).
     DatabaseConnectionLost,
+    /// A transient database error such as a deadlock (child of `Retryable`).
     DatabaseTransient,
+    /// The retry timeout was exceeded (child of `Retryable`).
     RetryTimeoutExceeded,
 
     // Specific types under Unrecoverable
+    /// A non-transient database error (child of `Unrecoverable`).
     Database,
+    /// A license error (child of `Unrecoverable`).
     License,
+    /// The SDK is not initialized (child of `Unrecoverable`).
     NotInitialized,
+    /// An unhandled internal error (child of `Unrecoverable`).
     Unhandled,
 
     // Standalone types
+    /// A configuration error (standalone category).
     Configuration,
+    /// A configuration replace conflict (standalone category).
     ReplaceConflict,
+    /// The environment has already been destroyed (standalone category).
     EnvironmentDestroyed,
+    /// An unknown or unclassified error (standalone category).
     Unknown,
 }
 
