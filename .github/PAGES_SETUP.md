@@ -26,7 +26,7 @@ After pushing the repository to GitHub, you'll need to configure Pages in the re
 
 ### What the Workflow Does:
 
-- **Builds documentation** using `cargo doc --all-features --document-private-items`
+- **Builds documentation** using `cargo doc --no-deps --all-features` (public API only; warnings are errors)
 - **Runs quality checks** (formatting, clippy, tests)
 - **Creates redirect page** at root for easy navigation
 - **Deploys to GitHub Pages** automatically on main branch pushes
