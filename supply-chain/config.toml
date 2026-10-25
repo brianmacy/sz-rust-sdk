@@ -5,7 +5,7 @@
 version = "0.10"
 
 [[exemptions.bitflags]]
-version = "2.13.0"
+version = "2.13.2"
 criteria = "safe-to-deploy"
 
 [[exemptions.cfg-if]]
@@ -37,7 +37,7 @@ version = "1.0.18"
 criteria = "safe-to-deploy"
 
 [[exemptions.libc]]
-version = "0.2.186"
+version = "0.2.189"
 criteria = "safe-to-deploy"
 
 [[exemptions.lock_api]]
@@ -85,19 +85,19 @@ version = "1.2.0"
 criteria = "safe-to-run"
 
 [[exemptions.serde]]
-version = "1.0.228"
+version = "1.0.229"
 criteria = "safe-to-deploy"
 
 [[exemptions.serde_core]]
-version = "1.0.228"
+version = "1.0.229"
 criteria = "safe-to-deploy"
 
 [[exemptions.serde_derive]]
-version = "1.0.228"
+version = "1.0.229"
 criteria = "safe-to-deploy"
 
 [[exemptions.serde_json]]
-version = "1.0.150"
+version = "1.0.151"
 criteria = "safe-to-deploy"
 
 [[exemptions.serial_test]]
@@ -120,12 +120,16 @@ criteria = "safe-to-run"
 version = "2.0.117"
 criteria = "safe-to-deploy"
 
+[[exemptions.syn]]
+version = "3.0.9"
+criteria = "safe-to-deploy"
+
 [[exemptions.thiserror]]
-version = "2.0.18"
+version = "2.0.21"
 criteria = "safe-to-deploy"
 
 [[exemptions.thiserror-impl]]
-version = "2.0.18"
+version = "2.0.21"
 criteria = "safe-to-deploy"
 
 [[exemptions.tokio]]
@@ -137,7 +141,7 @@ version = "0.1.18"
 criteria = "safe-to-run"
 
 [[exemptions.tokio-test]]
-version = "0.4.5"
+version = "0.4.6"
 criteria = "safe-to-run"
 
 [[exemptions.unicode-ident]]
