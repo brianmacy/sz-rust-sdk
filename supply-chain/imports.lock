@@ -249,6 +249,10 @@ user-name = "David Tolnay"
 
 [audits.isrg.audits]
 
-[audits.mozilla.audits]
+[[audits.mozilla.audits.hex]]
+who = "Simon Friedberger <simon@mozilla.com>"
+criteria = "safe-to-deploy"
+version = "0.4.3"
+aggregated-from = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/supply-chain/audits.toml"
 
 [audits.zcash.audits]
