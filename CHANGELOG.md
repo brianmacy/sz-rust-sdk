@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Supply chain (`supply-chain/`): `cargo vet` now imports the Mozilla, Google, ISRG, Bytecode Alliance, Zcash, Embark, Actix, Ariel OS and Fermyon audit sets and has 33 `cargo vet trust` entries for reputable publishers (dtolnay, BurntSushi, Darksonn, Amanieu, kennykerr, mbrubeck, rust-lang-owner, KodrAus, taiki-e, matklad), each noting its evidence. Exemptions regenerated and pruned: 35 fully audited / 3 exempted (was 0 / 38); each remaining exemption has a `notes` justification. No source changes.
+
 ## [4.3.2] - 2026-07-30
 
 ### Added

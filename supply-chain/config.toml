@@ -34,11 +34,14 @@ url = "https://raw.githubusercontent.com/zcash/rust-ecosystem/main/supply-chain/
 [[exemptions.redox_syscall]]
 version = "0.5.18"
 criteria = "safe-to-run"
+notes = "Redox OS syscall bindings; compiled only on target_os=redox, reached via parking_lot_core <- parking_lot <- serial_test (DEV-ONLY test serialization), safe-to-run. Not audited; no imported audit covers 0.5.18. cargo audit (2026-10-25): no advisory. Not covered by trust: publisher 4lDO2 is not in any imported audit set's [[trusted]] list (checked 2026-10-25) and has no other reputability evidence on record."
 
 [[exemptions.serial_test]]
 version = "3.5.0"
 criteria = "safe-to-run"
+notes = "#[serial] test attribute; DEV-ONLY dependency used to serialize engine tests, safe-to-run. Not audited; no imported audit covers 3.5.0. cargo audit (2026-10-25): no advisory. Not covered by trust: publisher palfrey is not in any imported audit set's [[trusted]] list (checked 2026-10-25) and has no other reputability evidence on record."
 
 [[exemptions.serial_test_derive]]
 version = "3.5.0"
 criteria = "safe-to-run"
+notes = "Proc macro behind serial_test; DEV-ONLY, safe-to-run. Not audited; no imported audit covers 3.5.0. cargo audit (2026-10-25): no advisory. Not covered by trust: publisher palfrey is not in any imported audit set's [[trusted]] list (checked 2026-10-25) and has no other reputability evidence on record."
