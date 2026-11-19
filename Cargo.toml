@@ -98,5 +98,25 @@ path = "examples/complete_workflow.rs"
 name = "snapshot_restore"
 path = "examples/snapshot/snapshot_restore.rs"
 
+[[example]]
+name = "verbose_toggle"
+path = "examples/logging/verbose_toggle.rs"
+
+[[example]]
+name = "module_stats"
+path = "examples/logging/module_stats.rs"
+
+[[example]]
+name = "stream_to_channel"
+path = "examples/logging/stream_to_channel.rs"
+
+[[example]]
+name = "default_output_file"
+path = "examples/logging/default_output_file.rs"
+
+[[example]]
+name = "jsonl_file"
+path = "examples/logging/jsonl_file.rs"
+
 # generate_error_mappings moved to tools/generate-error-mappings/ (its own standalone Cargo
 # project) -- see that directory's README.md for why it can no longer be an [[example]] here.

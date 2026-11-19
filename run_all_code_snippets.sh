@@ -96,6 +96,9 @@ run_snippet "load_records" "loading" "load_records.rs"
 run_snippet "load_via_loop" "loading" "load_via_loop.rs"
 run_snippet "load_via_loop_threadpool" "loading" "load_via_loop_threadpool.rs"
 
+# Logging snippets
+run_snippet "log_callback" "logging" "log_callback.rs"
+
 # Redo snippets
 run_snippet "load_with_redo_via_loop" "redo" "load_with_redo_via_loop.rs"
 run_snippet "redo_continuous" "redo" "redo_continuous.rs"

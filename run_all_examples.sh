@@ -38,6 +38,11 @@ examples=(
     "test_senz7220"
     "test_singleton"
     "working_demo"
+    "verbose_toggle"
+    "module_stats"
+    "stream_to_channel"
+    "default_output_file"
+    "jsonl_file"
 )
 
 # Counters

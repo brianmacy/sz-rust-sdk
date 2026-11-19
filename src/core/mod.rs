@@ -12,6 +12,7 @@ mod config_manager;
 mod diagnostic;
 mod engine;
 mod guard;
+pub(crate) mod logging;
 mod product;
 mod snapshot;
 

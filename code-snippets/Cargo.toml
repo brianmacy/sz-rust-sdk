@@ -103,3 +103,7 @@ path = "error_handling/error_inspection.rs"
 [[bin]]
 name = "retry_with_backoff"
 path = "error_handling/retry_with_backoff.rs"
+
+[[bin]]
+name = "log_callback"
+path = "logging/log_callback.rs"

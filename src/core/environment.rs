@@ -729,3 +729,26 @@ impl Drop for SzEnvironmentCore {
         }
     }
 }
+
+#[cfg(test)]
+mod logging_tests {
+    use super::*;
+
+    #[test]
+    fn test_get_logging_needs_no_native_init() {
+        let env = SzEnvironmentCore::new("logging-unit", "{}", false).unwrap();
+        assert!(env.get_logging().is_ok());
+        assert!(!env.init_once.is_completed(), "get_logging must not init");
+    }
+
+    #[test]
+    fn test_get_logging_on_destroyed_environment() {
+        let env = SzEnvironmentCore::new("logging-unit", "{}", false).unwrap();
+        env.is_destroyed.store(true, Ordering::Relaxed);
+        let err = env.get_logging().err().expect("destroyed env must refuse");
+        assert!(err.is_unrecoverable());
+        // Same error the other component getters return.
+        let other = env.get_product().err().expect("destroyed env must refuse");
+        assert_eq!(err.to_string(), other.to_string());
+    }
+}
