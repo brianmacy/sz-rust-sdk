@@ -24,10 +24,14 @@
 //! return `SzError::Configuration` naming the native function and "Senzing >= 4.5.1/4.6.0" (or
 //! `None` for the record fields). There is no runtime version detection.
 //!
+//! **Thread-local registrations receive nothing on Senzing 4.5.0** (native compares mismatched
+//! thread ids), so [`capture_thread_logs`](crate::traits::SzLoggingExt::capture_thread_logs)
+//! returns no entries there. GDEV-4960 fixes this in Senzing >= 4.5.1 / 4.6.0.
+//!
 //! # The Senzing 4.5.0 usage rule
 //!
 //! In 4.5.0, registering or unregistering a callback, setting a default callback, and changing the
-//! default output or default formatter rebuild native's sink list without synchronizing with
+//! default output or default format rebuild native's sink list without synchronizing with
 //! threads that are logging. Do these **only while nothing else in the process can log** (no other
 //! application thread calling Senzing, and):
 //!
@@ -36,8 +40,8 @@
 //! - **after [`destroy`](crate::SzEnvironmentCore::destroy)**.
 //!
 //! Joining your own worker threads is not enough: engine initialization starts Senzing's
-//! lock-watcher thread, which logs on its own until destroy. [`set_log_level`](crate::traits::SzLogging::set_log_level) and
-//! [`get_log_level`](crate::traits::SzLogging::get_log_level) are safe at any time. The full
+//! lock-watcher thread, which logs on its own until destroy. [`set_default_log_level`](crate::traits::SzLogging::set_default_log_level) and
+//! [`get_effective_log_level`](crate::traits::SzLogging::get_effective_log_level) are safe at any time. The full
 //! concurrency guarantees (any call, any thread, any time) need the GDEV-4960 native fix.
 //!
 //! # Callback rules
@@ -48,11 +52,12 @@
 //!   some messages are logged while the engine holds internal locks, so re-entering it can
 //!   deadlock.
 //! - Inside a callback, registering, setting a default callback and changing the default output or
-//!   formatter return an error on 4.5.0 (native would rebuild the sink list it is iterating).
-//!   [`set_log_level`](crate::traits::SzLogging::set_log_level) and
-//!   [`get_log_level`](crate::traits::SzLogging::get_log_level) are allowed.
+//!   format return an error on 4.5.0 (native would rebuild the sink list it is iterating).
+//!   [`set_default_log_level`](crate::traits::SzLogging::set_default_log_level) and
+//!   [`get_effective_log_level`](crate::traits::SzLogging::get_effective_log_level) are allowed.
 //! - A panic in a callback (or in a closure's `Drop`) is caught at the FFI boundary and discarded;
-//!   it never unwinds into native code. The panic hook still runs, so the message is printed.
+//!   it never unwinds into native code. The panic hook still runs, so the message is printed. With
+//!   `panic = "abort"` nothing can be caught: a panicking callback aborts the process.
 //!
 //! # Closure lifetime
 //!
@@ -65,6 +70,10 @@
 //!   the closure: on 4.5.0 unregistering there would rebuild the sink list native is iterating,
 //!   and the closure may still be running on this or another thread. Once the native release hook
 //!   ships, native frees it exactly after its last invocation instead.
+//! - "Inside a callback" means inside a callback registered through **this SDK**. Do not drop a
+//!   registration from inside a log callback registered some other way (C/C++, another language
+//!   binding in the same process): the SDK cannot tell, frees the closure, and an invocation may
+//!   still be running. Once the native release hook ships, native owns the free and this is safe.
 //! - A **default callback** ([`set_default_callback`](crate::traits::SzLogging::set_default_callback))
 //!   is leaked when it is replaced: 4.5.0 has no release hook, and freeing it would require the SDK
 //!   to track which closure is the current default.
@@ -81,7 +90,9 @@ use std::time::{Duration, SystemTime};
 
 /// Log severity. The discriminants are the native `SZ_LOG_LEVEL_*` values.
 ///
-/// Ordered from most to least verbose, so `level >= SzLogLevel::Warn` reads naturally.
+/// Ordered from most to least verbose, so `level >= SzLogLevel::Warn` reads naturally. This is
+/// the native order and the **opposite** of `log::Level` / `tracing::Level`, where `Error` is the
+/// smallest.
 ///
 /// # Examples
 ///
@@ -109,13 +120,14 @@ pub enum SzLogLevel {
     Error = 4,
     /// Critical errors (`SZ_LOG_LEVEL_CRITICAL`).
     Critical = 5,
-    /// Nothing is delivered (`SZ_LOG_LEVEL_OFF`). A filter value only; never a record's level.
+    /// Nothing is delivered (`SZ_LOG_LEVEL_OFF`). A filter value only; never a record's level
+    /// (a native record claiming `OFF` is dropped).
     Off = 6,
 }
 
 impl SzLogLevel {
     /// All levels, most verbose first.
-    pub const ALL: [Self; 7] = [
+    pub const ALL: &'static [Self] = &[
         Self::Trace,
         Self::Debug,
         Self::Info,
@@ -214,7 +226,7 @@ pub enum SzLogFormat {
 
 impl SzLogFormat {
     /// All formats.
-    pub const ALL: [Self; 4] = [Self::Legacy, Self::Jsonl, Self::Bare, Self::Default];
+    pub const ALL: &'static [Self] = &[Self::Legacy, Self::Jsonl, Self::Bare, Self::Default];
 
     /// The canonical upper-case name: `"LEGACY"`, `"JSONL"`, `"BARE"` or `"DEFAULT"`.
     pub const fn as_str(self) -> &'static str {
@@ -344,6 +356,7 @@ impl SzLogOutput {
 /// assert_eq!(SzLogCallbackOptions::from(SzLogLevel::Info).format, SzLogFormat::Legacy);
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub struct SzLogCallbackOptions {
     /// Minimum level delivered to the callback.
     pub min_level: SzLogLevel,
@@ -455,6 +468,9 @@ impl<'a> SzLogRecord<'a> {
 
     /// When native logged the message (UTC), as a [`SystemTime`].
     ///
+    /// Precision is the platform's `SystemTime` resolution (100 ns on Windows), so sub-100 ns
+    /// digits are truncated there; [`timestamp_ns`](Self::timestamp_ns) is exact.
+    ///
     /// `None` until Senzing >= 4.5.1 / 4.6.0: the 4.5.0 callback does not receive the time.
     pub fn timestamp(&self) -> Option<SystemTime> {
         self.timestamp_ns.map(system_time_from_unix_nanos)
@@ -521,6 +537,7 @@ fn system_time_from_unix_nanos(nanos: i64) -> SystemTime {
 
 /// An owned copy of a [`SzLogRecord`].
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub struct SzLogEntry {
     /// The message's severity.
     pub level: SzLogLevel,
@@ -559,7 +576,7 @@ pub type SzLogCallback = Box<dyn Fn(&SzLogRecord<'_>) + Send + Sync + 'static>;
 ///
 /// The handle is `Send + Sync`: share it through an `Arc` or drop it on another thread.
 ///
-/// A thread-local registration stays registered after its thread exits, and OS thread ids can be
+/// A thread-local registration (which receives nothing on Senzing 4.5.0) stays registered after its thread exits, and OS thread ids can be
 /// reused (a later thread with the same id would receive its messages). Drop it before the
 /// registering thread exits.
 #[must_use = "the callback is unregistered as soon as the registration is dropped"]
@@ -588,7 +605,7 @@ impl SzLogRegistration {
     /// Changes this callback's minimum level in place (`SzLogging_setCallbackLevel`).
     ///
     /// Use it to turn verbose logging on and off at runtime, for example from a signal-handling
-    /// thread. Until it is available, [`SzLogging::set_log_level`](crate::traits::SzLogging::set_log_level)
+    /// thread. Until it is available, [`SzLogging::set_default_log_level`](crate::traits::SzLogging::set_default_log_level)
     /// changes the default output's level at any time.
     ///
     /// # Errors
@@ -627,7 +644,7 @@ impl Drop for SzLogRegistration {
 }
 
 /// Collects the records logged on the thread that created it, until [`finish`](Self::finish) (or
-/// drop). Created by [`SzLoggingExt::capture_thread_logs`](crate::traits::SzLoggingExt::capture_thread_logs).
+/// drop). Captures nothing on Senzing 4.5.0 (thread-local delivery needs >= 4.5.1 / 4.6.0). Created by [`SzLoggingExt::capture_thread_logs`](crate::traits::SzLoggingExt::capture_thread_logs).
 ///
 /// It is one thread-local registration whose closure owns the buffer. Work the engine does on its
 /// own threads is not captured.
@@ -825,7 +842,8 @@ mod tests {
     fn test_record_timestamp() {
         assert_eq!(record(c"m:h", c"x", None).timestamp(), None);
 
-        let ns = 1_763_568_000_123_456_789_i64;
+        // A multiple of 100 ns: Windows `SystemTime` truncates finer digits.
+        let ns = 1_763_568_000_123_456_700_i64;
         let rec = record(c"m:h", c"x", Some(ns));
         assert_eq!(rec.timestamp_ns(), Some(ns));
         let since = rec

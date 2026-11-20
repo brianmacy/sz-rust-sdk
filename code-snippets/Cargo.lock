@@ -186,14 +186,24 @@ dependencies = [
 
 [[package]]
 name = "sz-rust-sdk"
-version = "0.13.0"
+version = "4.3.2"
 dependencies = [
  "bitflags",
  "hex",
  "libc",
  "serde",
  "serde_json",
+ "sz-rust-sdk-ffi",
  "thiserror",
+]
+
+[[package]]
+name = "sz-rust-sdk-ffi"
+version = "0.1.1"
+source = "git+https://github.com/brianmacy/sz-rust-sdk-ffi?rev=f2f36719325d230abe09e4df1b87a5846183c5ac#f2f36719325d230abe09e4df1b87a5846183c5ac"
+dependencies = [
+ "hex",
+ "libc",
 ]
 
 [[package]]

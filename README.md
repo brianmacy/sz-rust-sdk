@@ -460,16 +460,16 @@ drop(engine);
 env.destroy()?;
 drop(registration);                   // unregister AFTER destroy (4.5.0)
 
-logging.set_default_output(&SzLogOutput::file("/var/log/senzing/sz.log"))?;
-logging.set_default_formatter(SzLogFormat::Jsonl)?; // after the output on 4.5.0
-logging.set_log_level(SzLogLevel::Warn)?;           // safe at any time
+logging.set_default_output(SzLogOutput::file("/var/log/senzing/sz.log"))?;
+logging.set_default_format(SzLogFormat::Jsonl)?; // after the output on 4.5.0
+logging.set_default_log_level(SzLogLevel::Warn)?;           // safe at any time
 ```
 
 **Senzing 4.5.0 usage rule.** Register or unregister callbacks, set a default callback, and change
-the default output or formatter only while nothing else logs: before the first engine
+the default output or format only while nothing else logs: before the first engine
 initialization (`get_engine()` / `get_diagnostic()`) or after `destroy()`. Senzing's own
 lock-watcher thread logs once the engine is initialized, so joining your threads is not enough.
-`set_log_level` / `get_log_level` are safe at any time. The full concurrency guarantees need the
+`set_default_log_level` / `get_effective_log_level` are safe at any time. The full concurrency guarantees need the
 GDEV-4960 native fix.
 
 **Callbacks** run on the logging thread, concurrently across threads: keep them fast and never
@@ -479,7 +479,7 @@ callback deactivates and leaks its closure (native may still be running it).
 
 **Needs Senzing >= 4.5.1 / 4.6.0** (returns `SzError::Configuration` naming the native function
 until then; record fields return `None`): `SzLogRegistration::set_level` / `level`,
-`get_default_output` / `get_default_formatter` / `get_default_log_level`,
+`get_default_output` / `get_default_format` / `get_default_log_level`,
 `SzLogOutput::append_file`, thread-local callbacks with a non-LEGACY format, record
 `timestamp()` / `thread_id()`, UTC JSONL timestamps, and working thread-local callbacks (4.5.0
 never delivers to them). Each stub is marked `SZ-FUTURE(<C function>)` in the source.

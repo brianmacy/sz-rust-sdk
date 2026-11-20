@@ -578,6 +578,12 @@ impl SzEnvironment for SzEnvironmentCore {
         self.is_destroyed.load(Ordering::Relaxed)
     }
 
+    fn get_logging(&self) -> SzResult<Box<dyn crate::traits::SzLogging>> {
+        // No destroyed check: logging is process-global native state that needs no engine
+        // initialization, and the 4.5.0 usage rule changes it after destroy.
+        Ok(Box::new(crate::core::logging::SzLoggingCore))
+    }
+
     fn reinitialize(&self, config_id: ConfigId) -> SzResult<()> {
         if self.is_destroyed() {
             return Err(SzError::unrecoverable("Environment has been destroyed"));
@@ -745,10 +751,8 @@ mod logging_tests {
     fn test_get_logging_on_destroyed_environment() {
         let env = SzEnvironmentCore::new("logging-unit", "{}", false).unwrap();
         env.is_destroyed.store(true, Ordering::Relaxed);
-        let err = env.get_logging().err().expect("destroyed env must refuse");
-        assert!(err.is_unrecoverable());
-        // Same error the other component getters return.
-        let other = env.get_product().err().expect("destroyed env must refuse");
-        assert_eq!(err.to_string(), other.to_string());
+        // Unlike the component getters: the 4.5.0 usage rule changes logging after destroy.
+        assert!(env.get_product().is_err(), "component getters refuse");
+        assert!(env.get_logging().is_ok(), "get_logging works after destroy");
     }
 }

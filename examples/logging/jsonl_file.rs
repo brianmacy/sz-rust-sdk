@@ -12,9 +12,9 @@ fn main() -> SzResult<()> {
     let logging = env.get_logging()?;
 
     // Senzing 4.5.0: change the default output only before the engine is initialized.
-    logging.set_default_output(&SzLogOutput::file(&path))?;
-    logging.set_default_formatter(SzLogFormat::Jsonl)?;
-    logging.set_log_level(SzLogLevel::Debug)?;
+    logging.set_default_output(SzLogOutput::file(&path))?;
+    logging.set_default_format(SzLogFormat::Jsonl)?;
+    logging.set_default_log_level(SzLogLevel::Debug)?;
 
     let engine = env.get_engine()?;
     engine.add_record("TEST", "JSONL_1", r#"{"NAME_FULL": "Robert Smith"}"#, None)?;
@@ -22,9 +22,9 @@ fn main() -> SzResult<()> {
     ExampleEnvironment::cleanup(env)?;
 
     // After destroy: restore stderr (closes the file) and the LEGACY format.
-    logging.set_default_output(&SzLogOutput::Stderr)?;
-    logging.set_default_formatter(SzLogFormat::Legacy)?;
-    logging.set_log_level(SzLogLevel::Error)?;
+    logging.set_default_output(SzLogOutput::Stderr)?;
+    logging.set_default_format(SzLogFormat::Legacy)?;
+    logging.set_default_log_level(SzLogLevel::Error)?;
 
     let text = std::fs::read_to_string(&path).map_err(|e| SzError::bad_input(e.to_string()))?;
     let mut lines = 0;

@@ -62,6 +62,9 @@ thread_local! {
 }
 
 /// True while this thread runs a callback registered through this SDK.
+///
+/// Callbacks registered outside this SDK (C/C++, another binding) are not seen; see the module
+/// docs' closure-lifetime rules.
 pub(crate) fn inside_callback() -> bool {
     CALLBACK_DEPTH.with(Cell::get) > 0
 }
@@ -104,7 +107,8 @@ unsafe extern "C" fn on_log(
     if module.is_null() || message.is_null() || user_data.is_null() {
         return;
     }
-    let Some(level) = SzLogLevel::from_native(level) else {
+    // Out of range, or OFF (a filter value, never a message level): drop.
+    let Some(level) = SzLogLevel::from_native(level).filter(|l| *l != SzLogLevel::Off) else {
         return;
     };
     // SAFETY: user_data is a CallbackSlot from `CallbackSlot::new_raw`. It is freed only after
@@ -119,9 +123,18 @@ unsafe extern "C" fn on_log(
     // SZ-FUTURE(SzLogging_registerCallbackEx SzLogRecord.timestamp_ns / thread_id)
     let record = SzLogRecord::new(level, module, message, None, None);
     let _depth = DepthGuard::enter();
+    // AssertUnwindSafe: the closure is user-owned and only called through `&dyn Fn`; state it left
+    // half-updated by a panic is its own (mutexes poison), as with `std::thread::spawn`.
     if let Err(payload) = catch_unwind(AssertUnwindSafe(|| (slot.callback)(&record))) {
-        // Never unwind into native. Forget the payload: its own Drop could panic again.
-        std::mem::forget(payload);
+        discard_panic(payload);
+    }
+}
+
+/// Drops a caught panic payload without letting a panicking `Drop` of the payload unwind into
+/// native code. Only a payload whose own drop panics is leaked.
+fn discard_panic(payload: Box<dyn std::any::Any + Send>) {
+    if let Err(nested) = catch_unwind(AssertUnwindSafe(move || drop(payload))) {
+        std::mem::forget(nested);
     }
 }
 
@@ -150,7 +163,7 @@ pub(crate) unsafe fn unregister(handle: NonNull<c_void>, slot: NonNull<CallbackS
     // SAFETY: native no longer references the slot; it came from Box::leak.
     let slot = unsafe { Box::from_raw(slot.as_ptr()) };
     if let Err(payload) = catch_unwind(AssertUnwindSafe(move || drop(slot))) {
-        std::mem::forget(payload);
+        discard_panic(payload);
     }
 }
 
@@ -242,9 +255,9 @@ impl SzLogging for SzLoggingCore {
         Ok(())
     }
 
-    fn set_default_output(&self, output: &SzLogOutput) -> SzResult<()> {
+    fn set_default_output(&self, output: SzLogOutput) -> SzResult<()> {
         refuse_inside_callback("set_default_output")?;
-        let (output_type, path) = match output {
+        let (output_type, path) = match &output {
             SzLogOutput::Stderr => (native::SzLogOutputType_SZ_LOG_OUTPUT_STDERR, None),
             SzLogOutput::Stdout => (native::SzLogOutputType_SZ_LOG_OUTPUT_STDOUT, None),
             SzLogOutput::Null => (native::SzLogOutputType_SZ_LOG_OUTPUT_NULL, None),
@@ -270,7 +283,7 @@ impl SzLogging for SzLoggingCore {
         };
         let param = path.as_ref().map_or(ptr::null(), |p| p.as_ptr());
         // SAFETY: param is null or a NUL-terminated path that outlives the call.
-        unsafe { native::SzLogging_setDefaultOutput(output_type as c_int, param) };
+        unsafe { native::SzLogging_setDefaultOutput(output_type.cast_signed(), param) };
         // SZ-FUTURE(int SzLogging_setDefaultOutput): 4.5.0 returns void, so a file that cannot be
         // opened is not reported here (native logs an ERROR and keeps the previous output).
         Ok(())
@@ -281,20 +294,20 @@ impl SzLogging for SzLoggingCore {
         Err(requires_newer_senzing("SzLogging_getDefaultOutput"))
     }
 
-    fn set_default_formatter(&self, format: SzLogFormat) -> SzResult<()> {
-        refuse_inside_callback("set_default_formatter")?;
+    fn set_default_format(&self, format: SzLogFormat) -> SzResult<()> {
+        refuse_inside_callback("set_default_format")?;
         // SAFETY: plain value call with an in-range format.
         unsafe { native::SzLogging_setDefaultFormatter(format.to_native()) };
         // SZ-FUTURE(int SzLogging_setDefaultFormatter): status return.
         Ok(())
     }
 
-    fn get_default_formatter(&self) -> SzResult<SzLogFormat> {
+    fn get_default_format(&self) -> SzResult<SzLogFormat> {
         // SZ-FUTURE(SzLogging_getDefaultFormatter)
         Err(requires_newer_senzing("SzLogging_getDefaultFormatter"))
     }
 
-    fn set_log_level(&self, level: SzLogLevel) -> SzResult<()> {
+    fn set_default_log_level(&self, level: SzLogLevel) -> SzResult<()> {
         // SAFETY: plain value call with an in-range level. Safe at any time, also in a callback.
         unsafe { native::SzLogging_setLogLevel(level.to_native()) };
         // SZ-FUTURE(int SzLogging_setLogLevel): status return.
@@ -306,7 +319,7 @@ impl SzLogging for SzLoggingCore {
         Err(requires_newer_senzing("SzLogging_getDefaultLogLevel"))
     }
 
-    fn get_log_level(&self) -> SzResult<SzLogLevel> {
+    fn get_effective_log_level(&self) -> SzResult<SzLogLevel> {
         // SAFETY: plain value call.
         let value = unsafe { native::SzLogging_getLogLevel() };
         level_from_native(value, "SzLogging_getLogLevel")
@@ -373,6 +386,7 @@ mod tests {
         }));
         deliver(slot, 2, c"m:h", c"x");
         deliver(slot, 99, c"m:h", c"x"); // level out of range: dropped
+        deliver(slot, 6, c"m:h", c"x"); // OFF is never a message level: dropped
         // SAFETY: null arguments are rejected before any dereference.
         unsafe {
             on_log(2, ptr::null(), c"x".as_ptr(), slot.as_ptr().cast());

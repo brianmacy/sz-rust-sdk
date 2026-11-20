@@ -269,6 +269,9 @@ pub trait SzEnvironment: Send + Sync {
     /// [the usage rule](crate::logging#the-senzing-450-usage-rule)). Registrations outlive
     /// [`destroy`](crate::SzEnvironmentCore::destroy) and [`reinitialize`](Self::reinitialize).
     ///
+    /// Unlike the other component getters it also works **after** `destroy`, which is when the
+    /// Senzing 4.5.0 usage rule allows changing registrations and the default output.
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -290,15 +293,9 @@ pub trait SzEnvironment: Send + Sync {
     ///
     /// # Errors
     ///
-    /// * `SzError::Unrecoverable` - Environment was destroyed (as for the other component getters)
-    fn get_logging(&self) -> SzResult<Box<dyn SzLogging>> {
-        if self.is_destroyed() {
-            return Err(crate::error::SzError::unrecoverable(
-                "Environment has been destroyed",
-            ));
-        }
-        Ok(Box::new(crate::core::logging::SzLoggingCore))
-    }
+    /// None for [`SzEnvironmentCore`](crate::SzEnvironmentCore); the `SzResult` matches the other
+    /// component getters.
+    fn get_logging(&self) -> SzResult<Box<dyn SzLogging>>;
 }
 
 /// Core entity resolution engine operations.
@@ -2007,8 +2004,8 @@ pub trait SzProduct: Send + Sync {
 /// native registration. Binds the Senzing 4.5.0 API; methods that need Senzing >= 4.5.1 / 4.6.0
 /// return `SzError::Configuration` until then. See [`crate::logging`] for the callback rules, the
 /// closure lifetime and **the Senzing 4.5.0 usage rule**: register, unregister and change the
-/// default output or formatter only before the first engine initialization or after destroy
-/// ([`set_log_level`](Self::set_log_level) and [`get_log_level`](Self::get_log_level) are safe at
+/// default output or format only before the first engine initialization or after destroy
+/// ([`set_default_log_level`](Self::set_default_log_level) and [`get_effective_log_level`](Self::get_effective_log_level) are safe at
 /// any time). The full concurrency guarantees need the GDEV-4960 native fix.
 ///
 /// The object-safe methods take a boxed [`SzLogCallback`]; the closure forms are on
@@ -2107,7 +2104,7 @@ pub trait SzLogging: Send + Sync {
     ///
     /// let logging = env.get_logging()?;
     /// logging.set_default_callback(SzLogLevel::Info.into(), Box::new(|r| println!("{r}")))?;
-    /// logging.set_default_output(&SzLogOutput::Stderr)?; // replaces the callback
+    /// logging.set_default_output(SzLogOutput::Stderr)?; // replaces the callback
     /// # Ok::<(), SzError>(())
     /// ```
     ///
@@ -2122,7 +2119,7 @@ pub trait SzLogging: Send + Sync {
 
     /// Sets the default output (`SzLogging_setDefaultOutput`). The default level is kept and a
     /// replaced file is flushed and closed. On Senzing 4.5.0 the default format resets to `Legacy`,
-    /// so call [`set_default_formatter`](Self::set_default_formatter) **after** this, and a file that
+    /// so call [`set_default_format`](Self::set_default_format) **after** this, and a file that
     /// cannot be opened is not reported (native logs an ERROR and keeps the previous output).
     ///
     /// # Examples
@@ -2133,7 +2130,7 @@ pub trait SzLogging: Send + Sync {
     /// use sz_rust_sdk::prelude::*;
     ///
     /// let logging = env.get_logging()?;
-    /// logging.set_default_output(&SzLogOutput::file("/var/log/senzing/sz.log"))?;
+    /// logging.set_default_output(SzLogOutput::file("/var/log/senzing/sz.log"))?;
     /// # Ok::<(), SzError>(())
     /// ```
     ///
@@ -2143,7 +2140,7 @@ pub trait SzLogging: Send + Sync {
     ///   NUL byte
     /// * `SzError::Configuration` - append mode ([`SzLogOutput::append_file`]), or called from inside
     ///   a log callback (both need Senzing >= 4.5.1 / 4.6.0)
-    fn set_default_output(&self, output: &SzLogOutput) -> SzResult<()>;
+    fn set_default_output(&self, output: SzLogOutput) -> SzResult<()>;
 
     /// The current default output (`SzLogging_getDefaultOutput`), including a file's path and mode.
     ///
@@ -2177,18 +2174,18 @@ pub trait SzLogging: Send + Sync {
     ///
     /// ```no_run
     /// # use sz_rust_sdk::helpers::ExampleEnvironment;
-    /// # let env = ExampleEnvironment::initialize("doctest_set_default_formatter")?;
+    /// # let env = ExampleEnvironment::initialize("doctest_set_default_format")?;
     /// use sz_rust_sdk::prelude::*;
     ///
     /// let logging = env.get_logging()?;
-    /// logging.set_default_formatter(SzLogFormat::Jsonl)?;
+    /// logging.set_default_format(SzLogFormat::Jsonl)?;
     /// # Ok::<(), SzError>(())
     /// ```
     ///
     /// # Errors
     ///
     /// * `SzError::Configuration` - called from inside a log callback (needs Senzing >= 4.5.1 / 4.6.0)
-    fn set_default_formatter(&self, format: SzLogFormat) -> SzResult<()>;
+    fn set_default_format(&self, format: SzLogFormat) -> SzResult<()>;
 
     /// The default output's format (`SzLogging_getDefaultFormatter`).
     ///
@@ -2196,43 +2193,43 @@ pub trait SzLogging: Send + Sync {
     ///
     /// ```no_run
     /// # use sz_rust_sdk::helpers::ExampleEnvironment;
-    /// # let env = ExampleEnvironment::initialize("doctest_get_default_formatter")?;
+    /// # let env = ExampleEnvironment::initialize("doctest_get_default_format")?;
     /// use sz_rust_sdk::prelude::*;
     ///
     /// let logging = env.get_logging()?;
-    /// println!("default format: {}", logging.get_default_formatter()?);
+    /// println!("default format: {}", logging.get_default_format()?);
     /// # Ok::<(), SzError>(())
     /// ```
     ///
     /// # Errors
     ///
     /// * `SzError::Configuration` - requires Senzing >= 4.5.1 / 4.6.0 (`SzLogging_getDefaultFormatter`)
-    fn get_default_formatter(&self) -> SzResult<SzLogFormat>;
+    fn get_default_format(&self) -> SzResult<SzLogFormat>;
 
     /// Sets the default output's level (`SzLogging_setLogLevel`). Registered callbacks keep their
     /// own levels. Safe at any time, from any thread, including inside a callback.
     ///
     /// Marks native logging as user-configured, like
-    /// [`set_default_formatter`](Self::set_default_formatter).
+    /// [`set_default_format`](Self::set_default_format).
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # use sz_rust_sdk::helpers::ExampleEnvironment;
-    /// # let env = ExampleEnvironment::initialize("doctest_set_log_level")?;
+    /// # let env = ExampleEnvironment::initialize("doctest_set_default_log_level")?;
     /// use sz_rust_sdk::prelude::*;
     ///
     /// let logging = env.get_logging()?;
-    /// logging.set_log_level(SzLogLevel::Warn)?;
+    /// logging.set_default_log_level(SzLogLevel::Warn)?;
     /// # Ok::<(), SzError>(())
     /// ```
     ///
     /// # Errors
     ///
     /// None on Senzing 4.5.0 (the native call returns no status).
-    fn set_log_level(&self, level: SzLogLevel) -> SzResult<()>;
+    fn set_default_log_level(&self, level: SzLogLevel) -> SzResult<()>;
 
-    /// The default output's level, exactly what [`set_log_level`](Self::set_log_level) set
+    /// The default output's level, exactly what [`set_default_log_level`](Self::set_default_log_level) set
     /// (`SzLogging_getDefaultLogLevel`).
     ///
     /// # Examples
@@ -2260,13 +2257,13 @@ pub trait SzLogging: Send + Sync {
     ///
     /// ```no_run
     /// # use sz_rust_sdk::helpers::ExampleEnvironment;
-    /// # let env = ExampleEnvironment::initialize("doctest_get_log_level")?;
+    /// # let env = ExampleEnvironment::initialize("doctest_get_effective_log_level")?;
     /// use sz_rust_sdk::prelude::*;
     ///
     /// let logging = env.get_logging()?;
-    /// logging.set_log_level(SzLogLevel::Error)?;
+    /// logging.set_default_log_level(SzLogLevel::Error)?;
     /// let registration = logging.register(SzLogLevel::Debug, |_r| {})?;
-    /// assert_eq!(logging.get_log_level()?, SzLogLevel::Debug);
+    /// assert_eq!(logging.get_effective_log_level()?, SzLogLevel::Debug);
     /// # drop(registration);
     /// # Ok::<(), SzError>(())
     /// ```
@@ -2274,7 +2271,7 @@ pub trait SzLogging: Send + Sync {
     /// # Errors
     ///
     /// * `SzError::Unknown` - native returned a value outside `SzLogLevel`
-    fn get_log_level(&self) -> SzResult<SzLogLevel>;
+    fn get_effective_log_level(&self) -> SzResult<SzLogLevel>;
 }
 
 /// Closure conveniences over [`SzLogging`], usable on `Box<dyn SzLogging>`,

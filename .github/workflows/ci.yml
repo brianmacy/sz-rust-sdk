@@ -37,25 +37,33 @@ jobs:
         cargo clippy --all-targets -- -D warnings
         cargo build
 
-  # Linux SDK tests disabled — apt repo does not yet have v4.3 (internal:// support)
-  # Re-enable when senzingsdk-runtime >= 4.3 is published to the apt repo
-  # test-linux:
-  #   runs-on: ubuntu-latest
-  #   needs: lint
-  #   steps:
-  #   - uses: actions/checkout@v7.0.1
-  #   - uses: dtolnay/rust-toolchain@stable
-  #   - name: Install Senzing SDK
-  #     run: |
-  #       sudo apt-get install -y apt-transport-https
-  #       wget -q https://senzing-production-apt.s3.amazonaws.com/senzingrepo_2.0.2-1_all.deb -O /tmp/senzingrepo.deb
-  #       sudo apt-get install -y /tmp/senzingrepo.deb
-  #       sudo apt-get update
-  #       sudo SENZING_ACCEPT_EULA=I_ACCEPT_THE_SENZING_EULA DEBIAN_FRONTEND=noninteractive apt-get install -y senzingsdk-runtime
-  #   - name: Run tests
-  #     env:
-  #       LD_LIBRARY_PATH: /opt/senzing/er/lib
-  #     run: cargo test
+  test-linux:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+    - uses: actions/checkout@v7.0.1
+    - uses: dtolnay/rust-toolchain@stable
+    - name: Install Senzing SDK
+      run: |
+        sudo apt-get install -y apt-transport-https
+        wget -q https://senzing-production-apt.s3.amazonaws.com/senzingrepo_2.0.2-1_all.deb -O "$RUNNER_TEMP/senzingrepo.deb"
+        sudo apt-get install -y "$RUNNER_TEMP/senzingrepo.deb"
+        sudo apt-get update
+        sudo SENZING_ACCEPT_EULA=I_ACCEPT_THE_SENZING_EULA DEBIAN_FRONTEND=noninteractive apt-get install -y senzingsdk-runtime senzingsdk-setup
+    # See test-macos: SzEnvironmentCore doctests run against a SQLite file DB
+    # (GDEV-4364 internal:// concurrency regression in Senzing 4.4.2).
+    - name: Run tests
+      env:
+        LD_LIBRARY_PATH: /opt/senzing/er/lib
+      run: cargo test -- --skip environment::SzEnvironmentCore
+    - name: Run SzEnvironmentCore doctests against SQLite file DB
+      env:
+        LD_LIBRARY_PATH: /opt/senzing/er/lib
+      run: |
+        DB="$RUNNER_TEMP/G2C.db"
+        python3 -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); c.executescript(open(sys.argv[2]).read()); c.commit(); c.close()" "$DB" /opt/senzing/er/resources/schema/szcore-schema-sqlite-create.sql
+        export SENZING_ENGINE_CONFIGURATION_JSON="{\"PIPELINE\":{\"CONFIGPATH\":\"/opt/senzing/er/resources/templates\",\"RESOURCEPATH\":\"/opt/senzing/er/resources\",\"SUPPORTPATH\":\"/opt/senzing/data\"},\"SQL\":{\"CONNECTION\":\"sqlite3://na:na@$DB\"}}"
+        cargo test --doc environment::SzEnvironmentCore -- --test-threads=1
 
   test-macos:
     runs-on: macos-latest
