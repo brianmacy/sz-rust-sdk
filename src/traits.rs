@@ -2003,10 +2003,13 @@ pub trait SzProduct: Send + Sync {
 /// All state lives in native: each method is one native call, and each registration is its own
 /// native registration. Binds the Senzing 4.5.0 API; methods that need Senzing >= 4.5.1 / 4.6.0
 /// return `SzError::Configuration` until then. See [`crate::logging`] for the callback rules, the
-/// closure lifetime and **the Senzing 4.5.0 usage rule**: register, unregister and change the
-/// default output or format only before the first engine initialization or after destroy
-/// ([`set_default_log_level`](Self::set_default_log_level) and [`get_effective_log_level`](Self::get_effective_log_level) are safe at
-/// any time). The full concurrency guarantees need the GDEV-4960 native fix.
+/// closure lifetime and `verbose_logging`.
+///
+/// **Senzing 4.5.0 usage rule:** change registrations, the default callback, the default output or
+/// the default format only while no engine threads are running: before the first engine
+/// initialization or after `destroy()`. [`set_default_log_level`](Self::set_default_log_level) and
+/// [`get_effective_log_level`](Self::get_effective_log_level) are safe at any time. The full
+/// concurrency guarantees need the GDEV-4960 native fix.
 ///
 /// The object-safe methods take a boxed [`SzLogCallback`]; the closure forms are on
 /// [`SzLoggingExt`] (in the prelude).
@@ -2051,14 +2054,17 @@ pub trait SzLogging: Send + Sync {
         callback: SzLogCallback,
     ) -> SzResult<SzLogRegistration>;
 
-    /// Registers a callback for messages logged on the **calling OS thread** only
-    /// (`SzLogging_registerThreadLocalCallback`). On Senzing 4.5.0 the format must be
-    /// [`SzLogFormat::Legacy`].
+    /// Registers a callback for messages logged on the **calling OS thread** only.
     ///
-    /// Work the engine does on its own threads is not delivered. The registration stays registered
-    /// after its thread exits and OS thread ids can be reused, so drop it before the thread exits.
-    /// While it lives, native lowers the effective level process-wide to `options.min_level` if
-    /// needed (other threads then format messages at that level too).
+    /// **Requires Senzing >= 4.5.1 / 4.6.0.** Senzing 4.5.0 accepts a thread-local registration
+    /// but never delivers to it (fixed by GDEV-4960), so on 4.5.0 this returns
+    /// `SzError::Configuration` rather than registering a callback that never fires. Until then,
+    /// register a process-wide callback and group records by [`SzLogRecord::thread_hash`].
+    ///
+    /// The registration follows the OS thread: work the engine does on its own threads is not
+    /// delivered, and the registration stays registered after its thread exits while OS thread ids
+    /// can be reused, so drop it before the thread exits. While it lives, native lowers the
+    /// effective level process-wide to `options.min_level` if needed.
     ///
     /// # Examples
     ///
@@ -2068,6 +2074,7 @@ pub trait SzLogging: Send + Sync {
     /// use sz_rust_sdk::prelude::*;
     ///
     /// let logging = env.get_logging()?;
+    /// // Senzing >= 4.5.1 / 4.6.0; on 4.5.0 this returns SzError::Configuration.
     /// let registration = logging.register_thread_local_callback(
     ///     SzLogLevel::Debug.into(),
     ///     Box::new(|r| eprintln!("this thread: {r}")),
@@ -2078,8 +2085,8 @@ pub trait SzLogging: Send + Sync {
     ///
     /// # Errors
     ///
-    /// * `SzError::Configuration` - a format other than `Legacy`, or called from inside a log
-    ///   callback (both need Senzing >= 4.5.1 / 4.6.0)
+    /// * `SzError::Configuration` - on Senzing 4.5.0 (thread-local delivery needs the GDEV-4960
+    ///   fix in Senzing >= 4.5.1 / 4.6.0)
     /// * `SzError::Unrecoverable` - native refused the registration (process exit in progress)
     fn register_thread_local_callback(
         &self,
@@ -2117,10 +2124,21 @@ pub trait SzLogging: Send + Sync {
         callback: SzLogCallback,
     ) -> SzResult<()>;
 
-    /// Sets the default output (`SzLogging_setDefaultOutput`). The default level is kept and a
-    /// replaced file is flushed and closed. On Senzing 4.5.0 the default format resets to `Legacy`,
-    /// so call [`set_default_format`](Self::set_default_format) **after** this, and a file that
-    /// cannot be opened is not reported (native logs an ERROR and keeps the previous output).
+    /// Sets the default output (`SzLogging_setDefaultOutput`). The default level is kept. On
+    /// Senzing 4.5.0 the default format resets to `Legacy`, so call
+    /// [`set_default_format`](Self::set_default_format) **after** this.
+    ///
+    /// For a file, the SDK first opens the path for append (creating it and any missing parent
+    /// directories, as native does) and returns `BadInput` if that fails: Senzing 4.5.0 reports no
+    /// status, so this is the only way to report an unusable path. The previous output is kept.
+    ///
+    /// **Flushing:** a file output is flushed when the output is replaced (any call to this method)
+    /// or at process exit. On Senzing 4.5.0 `destroy()` does not flush it, so call
+    /// `set_default_output(..)` after `destroy()` before reading the file (Senzing >= 4.5.1 flushes
+    /// at destroy).
+    ///
+    /// When registered callbacks are your only sink, set [`SzLogOutput::Null`] so messages are not
+    /// also written to stderr.
     ///
     /// # Examples
     ///
@@ -2136,8 +2154,9 @@ pub trait SzLogging: Send + Sync {
     ///
     /// # Errors
     ///
-    /// * `SzError::BadInput` - [`SzLogOutput::Callback`] (get-only), an empty path or a path with a
-    ///   NUL byte
+    /// * `SzError::BadInput` - [`SzLogOutput::Callback`] (get-only), an empty path, a path with a
+    ///   NUL byte, or a file that cannot be opened for writing (the message names the path and the
+    ///   I/O error)
     /// * `SzError::Configuration` - append mode ([`SzLogOutput::append_file`]), or called from inside
     ///   a log callback (both need Senzing >= 4.5.1 / 4.6.0)
     fn set_default_output(&self, output: SzLogOutput) -> SzResult<()>;
@@ -2281,7 +2300,11 @@ pub trait SzLogging: Send + Sync {
 pub trait SzLoggingExt: SzLogging {
     /// [`register_callback`](SzLogging::register_callback) with a closure.
     ///
-    /// `options` is an [`SzLogLevel`] or an [`SzLogCallbackOptions`].
+    /// `options` is an [`SzLogLevel`] or an [`SzLogCallbackOptions`] (default format
+    /// [`Bare`](SzLogFormat::Bare)).
+    ///
+    /// Bind the registration to a name: `let _ = logging.register(..)` drops it, and so unregisters
+    /// the callback, immediately.
     ///
     /// # Examples
     ///
@@ -2319,6 +2342,8 @@ pub trait SzLoggingExt: SzLogging {
 
     /// [`register_thread_local_callback`](SzLogging::register_thread_local_callback) with a closure.
     ///
+    /// **Requires Senzing >= 4.5.1 / 4.6.0**; returns `SzError::Configuration` on 4.5.0.
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -2327,6 +2352,7 @@ pub trait SzLoggingExt: SzLogging {
     /// use sz_rust_sdk::prelude::*;
     ///
     /// let logging = env.get_logging()?;
+    /// // Senzing >= 4.5.1 / 4.6.0; on 4.5.0 this returns SzError::Configuration.
     /// let registration = logging.register_thread_local(SzLogLevel::Trace, |r| eprintln!("{r}"))?;
     /// # drop(registration);
     /// # Ok::<(), SzError>(())
@@ -2348,7 +2374,8 @@ pub trait SzLoggingExt: SzLogging {
 
     /// Captures the records logged on the calling thread until [`SzLogCapture::finish`].
     ///
-    /// One thread-local registration whose closure owns the buffer.
+    /// One thread-local registration whose closure owns the buffer. **Requires Senzing >= 4.5.1 /
+    /// 4.6.0** (thread-local delivery, GDEV-4960); returns `SzError::Configuration` on 4.5.0.
     ///
     /// # Examples
     ///
@@ -2358,13 +2385,16 @@ pub trait SzLoggingExt: SzLogging {
     /// use sz_rust_sdk::prelude::*;
     ///
     /// let logging = env.get_logging()?;
-    /// let capture = logging.capture_thread_logs(SzLogLevel::Debug)?; // before init on 4.5.0
     /// let engine = env.get_engine()?;
-    /// engine.add_record("TEST", "1", r#"{"NAME_FULL": "Robert Smith"}"#, None)?;
-    /// drop(engine);
-    /// env.destroy()?;
-    /// for entry in capture.finish() {
-    ///     println!("{} {}: {}", entry.level, entry.module, entry.message);
+    /// match logging.capture_thread_logs(SzLogLevel::Debug) {
+    ///     Ok(capture) => {
+    ///         engine.add_record("TEST", "1", r#"{"NAME_FULL": "Robert Smith"}"#, None)?;
+    ///         for entry in capture.finish() {
+    ///             println!("{} {}: {}", entry.level, entry.module, entry.message);
+    ///         }
+    ///     }
+    ///     // Senzing 4.5.0: thread-local delivery needs the GDEV-4960 fix.
+    ///     Err(e) => eprintln!("thread capture unavailable: {e}"),
     /// }
     /// # Ok::<(), SzError>(())
     /// ```
@@ -2384,6 +2414,88 @@ pub trait SzLoggingExt: SzLogging {
                 .push(r.to_entry());
         })?;
         Ok(SzLogCapture::new(registration, entries))
+    }
+
+    /// [`set_default_callback`](SzLogging::set_default_callback) with a closure.
+    ///
+    /// `options` is an [`SzLogLevel`] or an [`SzLogCallbackOptions`] (default format
+    /// [`Bare`](SzLogFormat::Bare)). The closure stays the default output until it is replaced; on
+    /// Senzing 4.5.0 a replaced closure is leaked, so set it once.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_set_default_ext")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let logging = env.get_logging()?;
+    /// logging.set_default(SzLogLevel::Warn, |r| eprintln!("[{}] {r}", r.level()))?;
+    /// logging.set_default_log_level(SzLogLevel::Debug)?; // the default callback's level
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// As [`set_default_callback`](SzLogging::set_default_callback).
+    fn set_default<F>(&self, options: impl Into<SzLogCallbackOptions>, callback: F) -> SzResult<()>
+    where
+        F: Fn(&SzLogRecord<'_>) + Send + Sync + 'static,
+    {
+        self.set_default_callback(options.into(), Box::new(callback))
+    }
+
+    /// Forwards Senzing's log records at `min_level` and above to the [`log`] crate. Requires the
+    /// `log` cargo feature.
+    ///
+    /// Registers one process-wide callback ([`register`](Self::register), format
+    /// [`Bare`](SzLogFormat::Bare)) that calls `log::log!` for each record:
+    ///
+    /// - **target** `senzing::<module>`, for example `senzing::szstatic`, so `RUST_LOG=senzing=info`
+    ///   (or a per-module filter) selects Senzing's records;
+    /// - **level** via `log::Level::try_from` ([`Critical`](SzLogLevel::Critical) becomes
+    ///   `log::Level::Error`);
+    /// - **message** the record's message text.
+    ///
+    /// Records above `log::max_level()` are skipped before any formatting. Keep the returned
+    /// registration for as long as records should be forwarded (`let _ = ..` drops it at once), and
+    /// set the default output to [`SzLogOutput::Null`] when this callback is your only sink, or
+    /// every message is also written to stderr. Install the logger first; the usage rule applies.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_forward_to_log")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// // install a `log` implementation first (env_logger, tracing-log, ...)
+    /// let logging = env.get_logging()?;
+    /// logging.set_default_output(SzLogOutput::Null)?; // the `log` backend is the only sink
+    /// let forwarding = logging.forward_to_log(SzLogLevel::Info)?;
+    /// let engine = env.get_engine()?; // initialization is logged through `log`
+    /// // ... use the engine ...
+    /// drop(engine);
+    /// env.destroy()?;
+    /// drop(forwarding);
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// As [`register_callback`](SzLogging::register_callback).
+    #[cfg(feature = "log")]
+    fn forward_to_log(&self, min_level: SzLogLevel) -> SzResult<SzLogRegistration> {
+        let options = SzLogCallbackOptions::new(min_level).format(SzLogFormat::Bare);
+        self.register(options, |record: &SzLogRecord<'_>| {
+            let Ok(level) = log::Level::try_from(record.level()) else {
+                return;
+            };
+            if level <= log::max_level() {
+                let target = format!("senzing::{}", record.module());
+                log::log!(target: &target, level, "{}", record.message());
+            }
+        })
     }
 }
 

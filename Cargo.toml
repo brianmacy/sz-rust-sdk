@@ -1,6 +1,6 @@
 [package]
 name = "sz-rust-sdk"
-version = "4.3.2"
+version = "4.5.0"
 edition = "2024"
 rust-version = "1.88"
 authors = ["Senzing Community"]
@@ -29,6 +29,12 @@ hex = "0.4"
 # previously independently-vendored/maintained copies. Pinned to a full commit SHA; tag is a
 # human-readable marker only.
 sz-rust-sdk-ffi = { git = "https://github.com/brianmacy/sz-rust-sdk-ffi", rev = "f2f36719325d230abe09e4df1b87a5846183c5ac" } # v0.1.1 + logging module (#10)
+# Optional: `SzLoggingExt::forward_to_log` and `log::Level::try_from(SzLogLevel)` (feature `log`).
+log = { version = "0.4", optional = true }
+
+[features]
+# Forward Senzing's native log records to the `log` crate facade.
+log = ["dep:log"]
 
 [dev-dependencies]
 tokio-test = "0.4"
@@ -117,6 +123,11 @@ path = "examples/logging/default_output_file.rs"
 [[example]]
 name = "jsonl_file"
 path = "examples/logging/jsonl_file.rs"
+
+[[example]]
+name = "forward_to_log"
+path = "examples/logging/forward_to_log.rs"
+required-features = ["log"]
 
 # generate_error_mappings moved to tools/generate-error-mappings/ (its own standalone Cargo
 # project) -- see that directory's README.md for why it can no longer be an [[example]] here.
