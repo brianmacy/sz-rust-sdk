@@ -1,7 +1,7 @@
 //! Toggle Senzing logging verbosity at runtime from a signal (SIGUSR1 = verbose, SIGUSR2 = quiet).
 //!
 //! The signal handler only flips an atomic flag (async-signal-safe); a watcher thread applies it.
-//! `set_log_level` is safe at any time, from any thread, so it works on every Senzing version.
+//! `set_default_log_level` is safe at any time, from any thread, so it works on every Senzing version.
 //! Per-callback levels (`SzLogRegistration::set_level`) need Senzing >= 4.5.1 / 4.6.0.
 //!
 //! Try it by hand: `kill -USR1 <pid>`. This demo raises the signals itself so it ends on its own.
@@ -49,7 +49,7 @@ fn main() -> SzResult<()> {
     let logging: Arc<dyn SzLogging> = Arc::from(env.get_logging()?);
 
     // Senzing 4.5.0: change the default output only before the engine is initialized.
-    // The default output is our callback, so set_log_level controls what it receives.
+    // The default output is our callback, so set_default_log_level controls what it receives.
     let delivered = Arc::new(AtomicUsize::new(0));
     let counter = Arc::clone(&delivered);
     logging.set_default_callback(
@@ -58,7 +58,7 @@ fn main() -> SzResult<()> {
             counter.fetch_add(1, Ordering::Relaxed);
         }),
     )?;
-    logging.set_log_level(SzLogLevel::Error)?;
+    logging.set_default_log_level(SzLogLevel::Error)?;
 
     // Watcher thread: applies the flag. Never calls engine methods.
     let watcher_logging = Arc::clone(&logging);
@@ -72,8 +72,8 @@ fn main() -> SzResult<()> {
                 } else {
                     SzLogLevel::Error
                 };
-                if let Err(e) = watcher_logging.set_log_level(level) {
-                    eprintln!("set_log_level failed: {e}");
+                if let Err(e) = watcher_logging.set_default_log_level(level) {
+                    eprintln!("set_default_log_level failed: {e}");
                 }
                 applied = verbose;
             }
@@ -109,7 +109,7 @@ fn main() -> SzResult<()> {
     ExampleEnvironment::cleanup(env)?;
 
     // After destroy nothing logs, so the default output may change again.
-    logging.set_default_output(&SzLogOutput::Stderr)?;
+    logging.set_default_output(SzLogOutput::Stderr)?;
 
     // Per-callback toggling on a registration handle (Senzing >= 4.5.1 / 4.6.0).
     let registration = logging.register(SzLogLevel::Error, |r| eprintln!("{r}"))?;
@@ -124,7 +124,9 @@ fn main() -> SzResult<()> {
 /// Waits until the watcher has applied `level` (the effective level reads it back).
 fn wait_for_level(logging: &dyn SzLogging, level: SzLogLevel) {
     let start = Instant::now();
-    while logging.get_log_level().ok() != Some(level) && start.elapsed() < Duration::from_secs(5) {
+    while logging.get_effective_log_level().ok() != Some(level)
+        && start.elapsed() < Duration::from_secs(5)
+    {
         thread::sleep(Duration::from_millis(10));
     }
 }

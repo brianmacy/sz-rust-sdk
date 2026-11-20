@@ -14,9 +14,9 @@ fn main() -> SzResult<()> {
     println!("truncate: {} has {after_first} lines", path.display());
 
     // Append keeps the previous run's lines (SZ_LOG_OUTPUT_FILE_APPEND, Senzing >= 4.5.1 / 4.6.0).
-    match logging.set_default_output(&SzLogOutput::append_file(&path)) {
+    match logging.set_default_output(SzLogOutput::append_file(&path)) {
         Ok(()) => {
-            logging.set_default_output(&SzLogOutput::Stderr)?;
+            logging.set_default_output(SzLogOutput::Stderr)?;
             run(&path, SzLogOutput::append_file(&path), "append")?;
             println!("append: {} has {} lines", path.display(), line_count(&path));
         }
@@ -29,16 +29,16 @@ fn main() -> SzResult<()> {
 fn run(path: &std::path::Path, output: SzLogOutput, name: &str) -> SzResult<Box<dyn SzLogging>> {
     let env = ExampleEnvironment::initialize(&format!("logging-default-output-{name}"))?;
     let logging = env.get_logging()?;
-    logging.set_default_output(&output)?;
-    logging.set_log_level(SzLogLevel::Debug)?;
+    logging.set_default_output(output)?;
+    logging.set_default_log_level(SzLogLevel::Debug)?;
 
     let engine = env.get_engine()?;
     engine.add_record("TEST", "FILE_1", r#"{"NAME_FULL": "Robert Smith"}"#, None)?;
     drop(engine);
     ExampleEnvironment::cleanup(env)?;
 
-    logging.set_default_output(&SzLogOutput::Stderr)?; // flushes and closes the file
-    logging.set_log_level(SzLogLevel::Error)?;
+    logging.set_default_output(SzLogOutput::Stderr)?; // flushes and closes the file
+    logging.set_default_log_level(SzLogLevel::Error)?;
     println!("{name}: wrote to {}", path.display());
     Ok(logging)
 }

@@ -40,7 +40,7 @@ struct Reset;
 impl Reset {
     fn quiet() -> Self {
         logging()
-            .set_default_output(&SzLogOutput::Null)
+            .set_default_output(SzLogOutput::Null)
             .expect("set Null");
         Self
     }
@@ -49,9 +49,9 @@ impl Reset {
 impl Drop for Reset {
     fn drop(&mut self) {
         let logging = logging();
-        let _ = logging.set_default_output(&SzLogOutput::Stderr);
-        let _ = logging.set_default_formatter(SzLogFormat::Legacy);
-        let _ = logging.set_log_level(SzLogLevel::Error);
+        let _ = logging.set_default_output(SzLogOutput::Stderr);
+        let _ = logging.set_default_format(SzLogFormat::Legacy);
+        let _ = logging.set_default_log_level(SzLogLevel::Error);
     }
 }
 
@@ -82,7 +82,7 @@ fn unopenable_path(marker: &str) -> PathBuf {
 /// returns Ok (no status return); the previous default output is kept.
 fn emit_error(logging: &dyn SzLogging, marker: &str) {
     logging
-        .set_default_output(&SzLogOutput::file(unopenable_path(marker)))
+        .set_default_output(SzLogOutput::file(unopenable_path(marker)))
         .expect("4.5.0 reports no status for an unopenable file");
 }
 
@@ -138,7 +138,7 @@ fn test_formats_for_registered_callbacks() {
     let logging = logging();
     let mut channels = Vec::new();
     let mut registrations = Vec::new();
-    for format in SzLogFormat::ALL {
+    for &format in SzLogFormat::ALL {
         let (tx, rx) = mpsc::channel();
         let options = SzLogCallbackOptions::new(SzLogLevel::Error).format(format);
         registrations.push(
@@ -190,8 +190,11 @@ fn test_formats_for_registered_callbacks() {
 fn test_level_filtering_and_effective_level() {
     let _reset = Reset::quiet();
     let logging = logging();
-    logging.set_log_level(SzLogLevel::Error).unwrap();
-    assert_eq!(logging.get_log_level().unwrap(), SzLogLevel::Error);
+    logging.set_default_log_level(SzLogLevel::Error).unwrap();
+    assert_eq!(
+        logging.get_effective_log_level().unwrap(),
+        SzLogLevel::Error
+    );
 
     let calls = Arc::new(AtomicUsize::new(0));
     let counter = Arc::clone(&calls);
@@ -205,12 +208,15 @@ fn test_level_filtering_and_effective_level() {
 
     let debug = logging.register(SzLogLevel::Debug, |_r| {}).unwrap();
     assert_eq!(
-        logging.get_log_level().unwrap(),
+        logging.get_effective_log_level().unwrap(),
         SzLogLevel::Debug,
         "min over sinks"
     );
     drop(debug);
-    assert_eq!(logging.get_log_level().unwrap(), SzLogLevel::Error);
+    assert_eq!(
+        logging.get_effective_log_level().unwrap(),
+        SzLogLevel::Error
+    );
     drop(critical);
 }
 
@@ -233,7 +239,7 @@ fn test_default_getters_are_stubbed() {
     let logging = logging();
     assert_requires_newer(logging.get_default_output(), "SzLogging_getDefaultOutput");
     assert_requires_newer(
-        logging.get_default_formatter(),
+        logging.get_default_format(),
         "SzLogging_getDefaultFormatter",
     );
     assert_requires_newer(
@@ -264,16 +270,16 @@ fn test_default_output_argument_errors() {
     let _reset = Reset::quiet();
     let logging = logging();
     let err = logging
-        .set_default_output(&SzLogOutput::Callback)
+        .set_default_output(SzLogOutput::Callback)
         .unwrap_err();
     assert!(err.is_bad_input(), "Callback is get-only: {err}");
     let err = logging
-        .set_default_output(&SzLogOutput::file(""))
+        .set_default_output(SzLogOutput::file(""))
         .unwrap_err();
     assert!(err.is_bad_input(), "empty path: {err}");
     let path = scratch_dir().join("append.log");
     assert_requires_newer(
-        logging.set_default_output(&SzLogOutput::append_file(&path)),
+        logging.set_default_output(SzLogOutput::append_file(&path)),
         "SZ_LOG_OUTPUT_FILE_APPEND",
     );
     assert!(!path.exists(), "the stub does not touch the file");
@@ -284,16 +290,16 @@ fn test_default_output_argument_errors() {
 fn test_default_output_file_truncates_and_keeps_previous_on_failure() {
     let _reset = Reset::quiet();
     let logging = logging();
-    logging.set_log_level(SzLogLevel::Error).unwrap();
+    logging.set_default_log_level(SzLogLevel::Error).unwrap();
     let path = scratch_dir().join("truncate.log");
     std::fs::write(&path, "PREEXISTING\n").unwrap();
 
     logging
-        .set_default_output(&SzLogOutput::file(&path))
+        .set_default_output(SzLogOutput::file(&path))
         .unwrap();
     // The failed open is logged to the previous output, which is still this file.
     emit_error(logging.as_ref(), "truncate-run");
-    logging.set_default_output(&SzLogOutput::Null).unwrap(); // flush + close
+    logging.set_default_output(SzLogOutput::Null).unwrap(); // flush + close
     let text = std::fs::read_to_string(&path).unwrap();
     assert!(!text.contains("PREEXISTING"), "FILE truncates: {text}");
     assert!(text.contains("truncate-run"), "{text}");
@@ -305,14 +311,14 @@ fn test_default_output_jsonl_file() {
     let _reset = Reset::quiet();
     let logging = logging();
     let path = scratch_dir().join("default.jsonl");
-    logging.set_log_level(SzLogLevel::Error).unwrap();
+    logging.set_default_log_level(SzLogLevel::Error).unwrap();
     // 4.5.0: setting the output resets the format to LEGACY, so set the format afterwards.
     logging
-        .set_default_output(&SzLogOutput::file(&path))
+        .set_default_output(SzLogOutput::file(&path))
         .unwrap();
-    logging.set_default_formatter(SzLogFormat::Jsonl).unwrap();
+    logging.set_default_format(SzLogFormat::Jsonl).unwrap();
     emit_error(logging.as_ref(), "jsonl-file");
-    logging.set_default_output(&SzLogOutput::Null).unwrap();
+    logging.set_default_output(SzLogOutput::Null).unwrap();
 
     let text = std::fs::read_to_string(&path).unwrap();
     let line = text
@@ -349,7 +355,7 @@ fn test_default_callback_with_format() {
         "BARE: {message}"
     );
 
-    logging.set_default_output(&SzLogOutput::Null).unwrap();
+    logging.set_default_output(SzLogOutput::Null).unwrap();
     emit_error(logging.as_ref(), "default-callback-replaced");
     assert!(
         collect(&rx).is_empty(),
@@ -440,18 +446,24 @@ fn test_sink_changes_inside_callback_are_refused() {
             ));
             out.push((
                 "set_default_output",
-                inner.set_default_output(&SzLogOutput::Null),
+                inner.set_default_output(SzLogOutput::Null),
             ));
             out.push((
-                "set_default_formatter",
-                inner.set_default_formatter(SzLogFormat::Bare),
+                "set_default_format",
+                inner.set_default_format(SzLogFormat::Bare),
             ));
             out.push((
                 "set_default_callback",
                 inner.set_default_callback(SzLogLevel::Info.into(), Box::new(|_r| {})),
             ));
-            out.push(("set_log_level", inner.set_log_level(SzLogLevel::Error)));
-            out.push(("get_log_level", inner.get_log_level().map(drop)));
+            out.push((
+                "set_default_log_level",
+                inner.set_default_log_level(SzLogLevel::Error),
+            ));
+            out.push((
+                "get_effective_log_level",
+                inner.get_effective_log_level().map(drop),
+            ));
         })
         .unwrap();
     emit_error(logging.as_ref(), "inside");
@@ -461,7 +473,9 @@ fn test_sink_changes_inside_callback_are_refused() {
     assert_eq!(results.len(), 6, "delivered once");
     for (name, result) in results.iter() {
         match *name {
-            "set_log_level" | "get_log_level" => assert!(result.is_ok(), "{name}: {result:?}"),
+            "set_default_log_level" | "get_effective_log_level" => {
+                assert!(result.is_ok(), "{name}: {result:?}")
+            }
             _ => {
                 let err = result.as_ref().unwrap_err();
                 assert!(matches!(err, SzError::Configuration(_)), "{name}: {err:?}");
@@ -684,4 +698,100 @@ fn test_engine_messages_across_init_and_destroy() -> SzResult<()> {
     );
     assert!(entries.iter().all(|e| !e.module.is_empty()));
     Ok(())
+}
+
+/// Concurrent delivery to a registration that stays in place (valid on 4.5.0): register before
+/// init, log from several engine threads, destroy, then unregister.
+#[test]
+#[serial]
+fn test_concurrent_delivery_to_stable_registration() -> SzResult<()> {
+    const THREADS: usize = 4;
+    const RECORDS: usize = 25;
+    let _reset = Reset::quiet();
+    let logging = logging();
+    let entries = Arc::new(Mutex::new(Vec::new()));
+    let sink = Arc::clone(&entries);
+    let registration = logging.register(SzLogLevel::Trace, move |r| {
+        sink.lock().unwrap().push(r.to_entry());
+    })?;
+
+    let env = ExampleEnvironment::initialize("sz-rust-sdk-logging-concurrent-test")?;
+    let engine = env.get_engine()?;
+    thread::scope(|s| {
+        for t in 0..THREADS {
+            let engine = &engine;
+            s.spawn(move || {
+                for i in 0..RECORDS {
+                    let json = format!(r#"{{"NAME_FULL": "Robert Smith {t} {i}"}}"#);
+                    engine
+                        .add_record("TEST", &format!("LOG_{t}_{i}"), &json, None)
+                        .expect("add_record");
+                }
+            });
+        }
+    });
+    drop(engine);
+    ExampleEnvironment::cleanup(env)?;
+    drop(registration);
+
+    let entries = entries.lock().unwrap();
+    let threads: std::collections::HashSet<_> = entries
+        .iter()
+        .filter_map(|e| e.thread_hash.clone())
+        .collect();
+    eprintln!(
+        "captured {} records from {} threads",
+        entries.len(),
+        threads.len()
+    );
+    assert!(
+        threads.len() > 1,
+        "records delivered concurrently from several threads"
+    );
+    Ok(())
+}
+
+/// A replaced default callback is no longer called and (4.5.0) is leaked, not freed.
+#[test]
+#[serial]
+fn test_default_callback_replaced_by_default_callback() {
+    let _reset = Reset::quiet();
+    let logging = logging();
+    let (first_freed, second_freed) = (
+        Arc::new(AtomicBool::new(false)),
+        Arc::new(AtomicBool::new(false)),
+    );
+    let (tx1, rx1) = mpsc::channel();
+    let (tx2, rx2) = mpsc::channel();
+    let flag1 = DropFlag(Arc::clone(&first_freed));
+    let flag2 = DropFlag(Arc::clone(&second_freed));
+    logging
+        .set_default_callback(
+            SzLogLevel::Error.into(),
+            Box::new(move |r| {
+                let _keep = &flag1;
+                let _ = tx1.send(r.message().into_owned());
+            }),
+        )
+        .unwrap();
+    logging
+        .set_default_callback(
+            SzLogLevel::Error.into(),
+            Box::new(move |r| {
+                let _keep = &flag2;
+                let _ = tx2.send(r.message().into_owned());
+            }),
+        )
+        .unwrap();
+    emit_error(logging.as_ref(), "default-callback-twice");
+    assert!(
+        rx2.recv_timeout(WAIT).is_ok(),
+        "the new default callback is called"
+    );
+    assert!(collect(&rx1).is_empty(), "the replaced one is not");
+    assert!(
+        !first_freed.load(Ordering::SeqCst),
+        "4.5.0: replaced closure is leaked"
+    );
+    assert!(!second_freed.load(Ordering::SeqCst));
 }
