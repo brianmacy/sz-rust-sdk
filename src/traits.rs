@@ -3,6 +3,10 @@
 //! This module contains the main trait definitions that mirror the C# SDK interfaces.
 //! These traits define the contract for interacting with the Senzing engine.
 
+use crate::logging::{
+    SzLogCallback, SzLogCallbackOptions, SzLogCapture, SzLogFormat, SzLogLevel, SzLogOutput,
+    SzLogRecord, SzLogRegistration,
+};
 use crate::{error::SzResult, flags::SzFlags, types::*};
 use std::collections::HashSet;
 
@@ -254,6 +258,47 @@ pub trait SzEnvironment: Send + Sync {
     /// * `SzError::BadInput` - The file is missing, unreadable, or not a valid
     ///   snapshot (wrong format id or incompatible format version)
     fn import_datastore_snapshot(&self, path: &std::path::Path) -> SzResult<()>;
+
+    /// Gets the logging interface: native libSzLogging callbacks, levels, formats and the default
+    /// output.
+    ///
+    /// Logging is process-global native state, so every [`SzLogging`] obtained here controls the
+    /// same native logger. This call performs no native initialization, so callbacks can be
+    /// registered **before** the first `get_engine()` (or any other component): that captures
+    /// initialization messages, and on Senzing 4.5.0 it is required (see
+    /// [the usage rule](crate::logging#the-senzing-450-usage-rule)). Registrations outlive
+    /// [`destroy`](crate::SzEnvironmentCore::destroy) and [`reinitialize`](Self::reinitialize).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// # let settings = "{}";
+    /// let env = SzEnvironmentCore::get_instance("my-app", settings, false)?;
+    /// let logging = env.get_logging()?;
+    /// let registration = logging.register(SzLogLevel::Info, |record| {
+    ///     eprintln!("{} {}", record.level(), record);
+    /// })?;
+    /// let engine = env.get_engine()?; // initialization messages reach the callback
+    /// // ... use the engine ...
+    /// drop(engine);
+    /// env.destroy()?;
+    /// drop(registration); // after destroy: nothing else is logging
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * `SzError::Unrecoverable` - Environment was destroyed (as for the other component getters)
+    fn get_logging(&self) -> SzResult<Box<dyn SzLogging>> {
+        if self.is_destroyed() {
+            return Err(crate::error::SzError::unrecoverable(
+                "Environment has been destroyed",
+            ));
+        }
+        Ok(Box::new(crate::core::logging::SzLoggingCore))
+    }
 }
 
 /// Core entity resolution engine operations.
@@ -1955,3 +2000,394 @@ pub trait SzProduct: Send + Sync {
     /// ```
     fn get_version(&self) -> SzResult<JsonString>;
 }
+
+/// Senzing native logging (libSzLogging).
+///
+/// All state lives in native: each method is one native call, and each registration is its own
+/// native registration. Binds the Senzing 4.5.0 API; methods that need Senzing >= 4.5.1 / 4.6.0
+/// return `SzError::Configuration` until then. See [`crate::logging`] for the callback rules, the
+/// closure lifetime and **the Senzing 4.5.0 usage rule**: register, unregister and change the
+/// default output or formatter only before the first engine initialization or after destroy
+/// ([`set_log_level`](Self::set_log_level) and [`get_log_level`](Self::get_log_level) are safe at
+/// any time). The full concurrency guarantees need the GDEV-4960 native fix.
+///
+/// The object-safe methods take a boxed [`SzLogCallback`]; the closure forms are on
+/// [`SzLoggingExt`] (in the prelude).
+///
+/// # Obtaining an Instance
+///
+/// ```no_run
+/// # use sz_rust_sdk::helpers::ExampleEnvironment;
+/// # let env = ExampleEnvironment::initialize("doctest_sz_logging")?;
+/// use sz_rust_sdk::prelude::*;
+///
+/// let logging = env.get_logging()?;
+/// # Ok::<(), SzError>(())
+/// ```
+pub trait SzLogging: Send + Sync {
+    /// Registers a callback for messages from every thread.
+    ///
+    /// Uses `SzLogging_registerCallbackWithFormat`. The returned [`SzLogRegistration`] unregisters
+    /// on drop. While it lives, native lowers the effective level to `options.min_level` if needed.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_register_callback")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let logging = env.get_logging()?;
+    /// let options = SzLogCallbackOptions::new(SzLogLevel::Warn).format(SzLogFormat::Jsonl);
+    /// let registration = logging.register_callback(options, Box::new(|r| eprintln!("{r}")))?;
+    /// drop(registration); // unregistered; the closure has been dropped
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * `SzError::Configuration` - called from inside a log callback (needs Senzing >= 4.5.1 / 4.6.0)
+    /// * `SzError::Unrecoverable` - native refused the registration (process exit in progress)
+    fn register_callback(
+        &self,
+        options: SzLogCallbackOptions,
+        callback: SzLogCallback,
+    ) -> SzResult<SzLogRegistration>;
+
+    /// Registers a callback for messages logged on the **calling OS thread** only
+    /// (`SzLogging_registerThreadLocalCallback`). On Senzing 4.5.0 the format must be
+    /// [`SzLogFormat::Legacy`].
+    ///
+    /// Work the engine does on its own threads is not delivered. The registration stays registered
+    /// after its thread exits and OS thread ids can be reused, so drop it before the thread exits.
+    /// While it lives, native lowers the effective level process-wide to `options.min_level` if
+    /// needed (other threads then format messages at that level too).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_register_thread_local")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let logging = env.get_logging()?;
+    /// let registration = logging.register_thread_local_callback(
+    ///     SzLogLevel::Debug.into(),
+    ///     Box::new(|r| eprintln!("this thread: {r}")),
+    /// )?;
+    /// # drop(registration);
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * `SzError::Configuration` - a format other than `Legacy`, or called from inside a log
+    ///   callback (both need Senzing >= 4.5.1 / 4.6.0)
+    /// * `SzError::Unrecoverable` - native refused the registration (process exit in progress)
+    fn register_thread_local_callback(
+        &self,
+        options: SzLogCallbackOptions,
+        callback: SzLogCallback,
+    ) -> SzResult<SzLogRegistration>;
+
+    /// Makes `callback` the default output, at `options.min_level` and in `options.format`
+    /// (`SzLogging_setDefaultCallback`, then `SzLogging_setDefaultFormatter` for a format other than
+    /// `Legacy`).
+    ///
+    /// There is no handle: the callback stays until [`set_default_output`](Self::set_default_output)
+    /// or another `set_default_callback` replaces it. On Senzing 4.5.0 the replaced closure is
+    /// leaked (there is no release hook), so set a default callback once rather than repeatedly.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_set_default_callback")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let logging = env.get_logging()?;
+    /// logging.set_default_callback(SzLogLevel::Info.into(), Box::new(|r| println!("{r}")))?;
+    /// logging.set_default_output(&SzLogOutput::Stderr)?; // replaces the callback
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * `SzError::Configuration` - called from inside a log callback (needs Senzing >= 4.5.1 / 4.6.0)
+    fn set_default_callback(
+        &self,
+        options: SzLogCallbackOptions,
+        callback: SzLogCallback,
+    ) -> SzResult<()>;
+
+    /// Sets the default output (`SzLogging_setDefaultOutput`). The default level is kept and a
+    /// replaced file is flushed and closed. On Senzing 4.5.0 the default format resets to `Legacy`,
+    /// so call [`set_default_formatter`](Self::set_default_formatter) **after** this, and a file that
+    /// cannot be opened is not reported (native logs an ERROR and keeps the previous output).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_set_default_output")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let logging = env.get_logging()?;
+    /// logging.set_default_output(&SzLogOutput::file("/var/log/senzing/sz.log"))?;
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * `SzError::BadInput` - [`SzLogOutput::Callback`] (get-only), an empty path or a path with a
+    ///   NUL byte
+    /// * `SzError::Configuration` - append mode ([`SzLogOutput::append_file`]), or called from inside
+    ///   a log callback (both need Senzing >= 4.5.1 / 4.6.0)
+    fn set_default_output(&self, output: &SzLogOutput) -> SzResult<()>;
+
+    /// The current default output (`SzLogging_getDefaultOutput`), including a file's path and mode.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_get_default_output")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let logging = env.get_logging()?;
+    /// if let SzLogOutput::File { path, append } = logging.get_default_output()? {
+    ///     println!("logging to {} (append: {append})", path.display());
+    /// }
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * `SzError::Configuration` - requires Senzing >= 4.5.1 / 4.6.0 (`SzLogging_getDefaultOutput`)
+    fn get_default_output(&self) -> SzResult<SzLogOutput>;
+
+    /// Sets the default output's format (`SzLogging_setDefaultFormatter`). Registered callbacks keep
+    /// their own format. On Senzing 4.5.0, [`set_default_output`](Self::set_default_output) resets
+    /// it to `Legacy`, so set the output first.
+    ///
+    /// Marks native logging as user-configured: from then on an init's `verbose_logging` no longer
+    /// changes the default level or format.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_set_default_formatter")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let logging = env.get_logging()?;
+    /// logging.set_default_formatter(SzLogFormat::Jsonl)?;
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * `SzError::Configuration` - called from inside a log callback (needs Senzing >= 4.5.1 / 4.6.0)
+    fn set_default_formatter(&self, format: SzLogFormat) -> SzResult<()>;
+
+    /// The default output's format (`SzLogging_getDefaultFormatter`).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_get_default_formatter")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let logging = env.get_logging()?;
+    /// println!("default format: {}", logging.get_default_formatter()?);
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * `SzError::Configuration` - requires Senzing >= 4.5.1 / 4.6.0 (`SzLogging_getDefaultFormatter`)
+    fn get_default_formatter(&self) -> SzResult<SzLogFormat>;
+
+    /// Sets the default output's level (`SzLogging_setLogLevel`). Registered callbacks keep their
+    /// own levels. Safe at any time, from any thread, including inside a callback.
+    ///
+    /// Marks native logging as user-configured, like
+    /// [`set_default_formatter`](Self::set_default_formatter).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_set_log_level")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let logging = env.get_logging()?;
+    /// logging.set_log_level(SzLogLevel::Warn)?;
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// None on Senzing 4.5.0 (the native call returns no status).
+    fn set_log_level(&self, level: SzLogLevel) -> SzResult<()>;
+
+    /// The default output's level, exactly what [`set_log_level`](Self::set_log_level) set
+    /// (`SzLogging_getDefaultLogLevel`).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_get_default_log_level")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let logging = env.get_logging()?;
+    /// let verbose = logging.get_default_log_level()? <= SzLogLevel::Debug;
+    /// # let _ = verbose;
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * `SzError::Configuration` - requires Senzing >= 4.5.1 / 4.6.0 (`SzLogging_getDefaultLogLevel`)
+    fn get_default_log_level(&self) -> SzResult<SzLogLevel>;
+
+    /// The effective level (`SzLogging_getLogLevel`): the minimum over the default output and every
+    /// registered callback. A message below it is not even formatted. Safe at any time.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_get_log_level")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let logging = env.get_logging()?;
+    /// logging.set_log_level(SzLogLevel::Error)?;
+    /// let registration = logging.register(SzLogLevel::Debug, |_r| {})?;
+    /// assert_eq!(logging.get_log_level()?, SzLogLevel::Debug);
+    /// # drop(registration);
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * `SzError::Unknown` - native returned a value outside `SzLogLevel`
+    fn get_log_level(&self) -> SzResult<SzLogLevel>;
+}
+
+/// Closure conveniences over [`SzLogging`], usable on `Box<dyn SzLogging>`,
+/// `&dyn SzLogging` and generics. Implemented for every [`SzLogging`]; in the prelude.
+///
+/// Each method is sugar over one [`SzLogging`] call: it boxes the closure, and nothing else is kept.
+pub trait SzLoggingExt: SzLogging {
+    /// [`register_callback`](SzLogging::register_callback) with a closure.
+    ///
+    /// `options` is an [`SzLogLevel`] or an [`SzLogCallbackOptions`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_register")?;
+    /// use sz_rust_sdk::prelude::*;
+    /// use std::sync::mpsc;
+    ///
+    /// let logging = env.get_logging()?;
+    /// let (tx, rx) = mpsc::sync_channel(1024);
+    /// let registration = logging.register(SzLogLevel::Info, move |r| {
+    ///     let _ = tx.try_send(r.to_entry()); // never block the logging thread
+    /// })?;
+    /// drop(registration); // the closure (and `tx`) is dropped, so `rx` ends
+    /// for entry in rx {
+    ///     println!("{} {}", entry.level, entry);
+    /// }
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// As [`register_callback`](SzLogging::register_callback).
+    fn register<F>(
+        &self,
+        options: impl Into<SzLogCallbackOptions>,
+        callback: F,
+    ) -> SzResult<SzLogRegistration>
+    where
+        F: Fn(&SzLogRecord<'_>) + Send + Sync + 'static,
+    {
+        self.register_callback(options.into(), Box::new(callback))
+    }
+
+    /// [`register_thread_local_callback`](SzLogging::register_thread_local_callback) with a closure.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_register_thread_local_ext")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let logging = env.get_logging()?;
+    /// let registration = logging.register_thread_local(SzLogLevel::Trace, |r| eprintln!("{r}"))?;
+    /// # drop(registration);
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// As [`register_thread_local_callback`](SzLogging::register_thread_local_callback).
+    fn register_thread_local<F>(
+        &self,
+        options: impl Into<SzLogCallbackOptions>,
+        callback: F,
+    ) -> SzResult<SzLogRegistration>
+    where
+        F: Fn(&SzLogRecord<'_>) + Send + Sync + 'static,
+    {
+        self.register_thread_local_callback(options.into(), Box::new(callback))
+    }
+
+    /// Captures the records logged on the calling thread until [`SzLogCapture::finish`].
+    ///
+    /// One thread-local registration whose closure owns the buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use sz_rust_sdk::helpers::ExampleEnvironment;
+    /// # let env = ExampleEnvironment::initialize("doctest_capture_thread_logs")?;
+    /// use sz_rust_sdk::prelude::*;
+    ///
+    /// let logging = env.get_logging()?;
+    /// let capture = logging.capture_thread_logs(SzLogLevel::Debug)?; // before init on 4.5.0
+    /// let engine = env.get_engine()?;
+    /// engine.add_record("TEST", "1", r#"{"NAME_FULL": "Robert Smith"}"#, None)?;
+    /// drop(engine);
+    /// env.destroy()?;
+    /// for entry in capture.finish() {
+    ///     println!("{} {}: {}", entry.level, entry.module, entry.message);
+    /// }
+    /// # Ok::<(), SzError>(())
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// As [`register_thread_local_callback`](SzLogging::register_thread_local_callback).
+    fn capture_thread_logs(
+        &self,
+        options: impl Into<SzLogCallbackOptions>,
+    ) -> SzResult<SzLogCapture> {
+        let entries = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+        let sink = std::sync::Arc::clone(&entries);
+        let registration = self.register_thread_local(options, move |r: &SzLogRecord<'_>| {
+            sink.lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .push(r.to_entry());
+        })?;
+        Ok(SzLogCapture::new(registration, entries))
+    }
+}
+
+impl<T: SzLogging + ?Sized> SzLoggingExt for T {}

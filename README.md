@@ -208,6 +208,14 @@ The SDK includes comprehensive examples demonstrating various use cases:
 - **`check_datastore_performance`** - Performance benchmarking
 - **`engine_priming`** - Engine optimization
 
+### Logging
+
+- **`verbose_toggle`** - Toggle verbosity at runtime from SIGUSR1/SIGUSR2 via a watcher thread
+- **`module_stats`** - Count log messages per module and level in a callback
+- **`stream_to_channel`** - Stream JSONL log lines to a dev console through a bounded channel
+- **`default_output_file`** - Send the default output to a file (truncate; append on Senzing >= 4.5.1/4.6.0)
+- **`jsonl_file`** - Write the default output to a JSONL file
+
 Run examples with:
 
 ```bash
@@ -267,6 +275,10 @@ The SDK provides comprehensive code snippets organized by category, providing co
 
 - **`stewardship/force_resolve`** - Manual entity resolution forcing
 - **`stewardship/force_unresolve`** - Manual entity separation
+
+### Logging
+
+- **`logging/log_callback`** - Receive Senzing log messages in a closure callback
 
 Run all code snippets with:
 
@@ -426,6 +438,51 @@ fn log_error(err: &(dyn std::error::Error + 'static)) {
 | `is_sz_unrecoverable()` | `bool`             | Chain contains an unrecoverable Senzing error            |
 | `is_sz_bad_input()`     | `bool`             | Chain contains a bad-input Senzing error                 |
 | `is_sz(category)`       | `bool`             | Chain contains an `SzError` matching the `ErrorCategory` |
+
+## Logging
+
+`env.get_logging()?` returns an `SzLogging` over Senzing's native logger (libSzLogging). All
+logging state is native and process-global: each registration is one native registration, and
+the returned `SzLogRegistration` unregisters when dropped.
+
+```rust
+use sz_rust_sdk::prelude::*;
+
+let env = ExampleEnvironment::initialize("my-app")?; // or SzEnvironmentCore::get_instance(..)
+let logging = env.get_logging()?;
+let options = SzLogCallbackOptions::new(SzLogLevel::Info).format(SzLogFormat::Jsonl);
+let registration = logging.register(options, |record| {
+    println!("[{}] {} {}", record.level(), record.module(), record);
+})?;                                  // register BEFORE the engine is initialized (4.5.0)
+let engine = env.get_engine()?;       // initialization is logged to the callback
+// ... work ...
+drop(engine);
+env.destroy()?;
+drop(registration);                   // unregister AFTER destroy (4.5.0)
+
+logging.set_default_output(&SzLogOutput::file("/var/log/senzing/sz.log"))?;
+logging.set_default_formatter(SzLogFormat::Jsonl)?; // after the output on 4.5.0
+logging.set_log_level(SzLogLevel::Warn)?;           // safe at any time
+```
+
+**Senzing 4.5.0 usage rule.** Register or unregister callbacks, set a default callback, and change
+the default output or formatter only while nothing else logs: before the first engine
+initialization (`get_engine()` / `get_diagnostic()`) or after `destroy()`. Senzing's own
+lock-watcher thread logs once the engine is initialized, so joining your threads is not enough.
+`set_log_level` / `get_log_level` are safe at any time. The full concurrency guarantees need the
+GDEV-4960 native fix.
+
+**Callbacks** run on the logging thread, concurrently across threads: keep them fast and never
+call engine methods from them. A panic in a callback is caught at the FFI boundary. On 4.5.0,
+sink changes from inside a callback return an error, and dropping a registration inside a
+callback deactivates and leaks its closure (native may still be running it).
+
+**Needs Senzing >= 4.5.1 / 4.6.0** (returns `SzError::Configuration` naming the native function
+until then; record fields return `None`): `SzLogRegistration::set_level` / `level`,
+`get_default_output` / `get_default_formatter` / `get_default_log_level`,
+`SzLogOutput::append_file`, thread-local callbacks with a non-LEGACY format, record
+`timestamp()` / `thread_id()`, UTC JSONL timestamps, and working thread-local callbacks (4.5.0
+never delivers to them). Each stub is marked `SZ-FUTURE(<C function>)` in the source.
 
 ## Database Isolation
 

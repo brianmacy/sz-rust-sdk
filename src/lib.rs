@@ -13,6 +13,7 @@
 //! - [`SzConfigManager`] - Configuration lifecycle management
 //! - [`SzDiagnostic`] - System diagnostics and monitoring
 //! - [`SzProduct`] - Version and license information
+//! - [`SzLogging`] - Native logging callbacks, levels and default output (see [`logging`])
 //!
 //! ## Usage
 //!
@@ -59,6 +60,7 @@ mod error_category_bridge; // Internal - hand-written category->SzError adapter 
 mod error_category_generated;
 mod ffi; // Internal FFI module - not part of public API
 pub mod flags;
+pub mod logging;
 pub mod traits;
 pub mod types;
 
@@ -72,6 +74,7 @@ pub use core::SenzingGuard;
 pub use core::SzEnvironmentCore;
 pub use error::*;
 pub use flags::*;
+pub use logging::*;
 pub use traits::*;
 pub use types::*;
 
@@ -88,6 +91,7 @@ pub mod prelude {
     pub use crate::core::SzEnvironmentCore;
     pub use crate::error::*;
     pub use crate::flags::*;
+    pub use crate::logging::*;
     pub use crate::traits::*;
     pub use crate::types::*;
 }

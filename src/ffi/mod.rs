@@ -16,3 +16,10 @@ pub(crate) mod helpers;
 // Re-export all shared bindings for internal use (unqualified `crate::ffi::Sz_*` call sites
 // throughout src/core/*.rs are unchanged).
 pub(crate) use sz_rust_sdk_ffi::bindings::*;
+
+/// libSzLogging.h declarations (Senzing 4.5.0 API). Kept in their own namespace because bindgen's
+/// `SzLogLevel` / `SzLogFormat` / `SzLogCallback` names clash with the public SDK
+/// types of the same names.
+pub(crate) mod logging {
+    pub(crate) use sz_rust_sdk_ffi::logging::*;
+}
