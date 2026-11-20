@@ -455,6 +455,9 @@ impl<'a> SzLogRecord<'a> {
 
     /// When native logged the message (UTC), as a [`SystemTime`].
     ///
+    /// Precision is the platform's `SystemTime` resolution (100 ns on Windows), so sub-100 ns
+    /// digits are truncated there; [`timestamp_ns`](Self::timestamp_ns) is exact.
+    ///
     /// `None` until Senzing >= 4.5.1 / 4.6.0: the 4.5.0 callback does not receive the time.
     pub fn timestamp(&self) -> Option<SystemTime> {
         self.timestamp_ns.map(system_time_from_unix_nanos)
@@ -825,7 +828,8 @@ mod tests {
     fn test_record_timestamp() {
         assert_eq!(record(c"m:h", c"x", None).timestamp(), None);
 
-        let ns = 1_763_568_000_123_456_789_i64;
+        // A multiple of 100 ns: Windows `SystemTime` truncates finer digits.
+        let ns = 1_763_568_000_123_456_700_i64;
         let rec = record(c"m:h", c"x", Some(ns));
         assert_eq!(rec.timestamp_ns(), Some(ns));
         let since = rec
