@@ -338,7 +338,12 @@ fn test_default_output_unopenable_file_is_bad_input() {
 fn test_default_output_file_creates_missing_parent_directories() {
     let _reset = Reset::quiet();
     let logging = logging();
-    let dir = scratch_dir().join(format!("missing-{:?}", Instant::now()));
+    let nanos = SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    // A Debug-formatted Instant contains ':' (illegal in a Windows path); use plain digits.
+    let dir = scratch_dir().join(format!("missing-{nanos}"));
     let path = dir.join("nested").join("sz.log");
     logging
         .set_default_output(SzLogOutput::file(&path))
