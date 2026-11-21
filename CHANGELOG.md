@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Code snippet `information/get_license`: the parsed view read fields the `getLicense` response does not have (`billing.billingType`, `contract.id`/dates, `expirationWarningDays`, `warning`), so most lines never printed. It now prints the documented fields (`customer`, `contract`, `licenseType`, `licenseLevel`, `issueDate`, `expireDate`, `recordLimit`, `advSearch`). This also clears the CodeQL `rust/cleartext-logging` alert on the dead `billingType` line.
+
 ### Changed
 
 - Docs: `examples/README.md` lists the Logging and Snapshot examples; `code-snippets/README.md` and `RUN_CODE_SNIPPETS.md` list the logging, error-handling and `lifecycle_patterns` snippets (26 total); `RUN_EXAMPLES.md` and both `run_all_examples*.sh` cover all 33 examples (`--all-features`, so `forward_to_log` runs); `OVERVIEW.md` lists logging.
