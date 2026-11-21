@@ -26,6 +26,7 @@ examples=(
     "load_with_info"
     "minimal_test"
     "search_records"
+    "snapshot_restore"
     "why_search"
     "simple_demo"
     "simple_working_demo"
@@ -37,6 +38,12 @@ examples=(
     "test_senz7220"
     "test_singleton"
     "working_demo"
+    "verbose_toggle"
+    "module_stats"
+    "stream_to_channel"
+    "default_output_file"
+    "jsonl_file"
+    "forward_to_log"
 )
 
 # Counters
@@ -59,7 +66,7 @@ run_example_verbose() {
     echo "====================================================================="
 
     # Run with timeout and show full output
-    if timeout "$timeout_duration" cargo run --example "$example_name"; then
+    if timeout "$timeout_duration" cargo run --all-features --example "$example_name"; then
         echo
         echo "  ✅ PASSED: $example_name"
         ((passed++))

@@ -14,7 +14,7 @@ Runs all examples quietly with just pass/fail status. Good for quick verificatio
 
 **Features:**
 
-- ✅ Runs all 28 examples
+- ✅ Runs all 33 examples (with `--all-features`, so `forward_to_log` runs too)
 - ⏰ 30-second timeout per example
 - 📊 Summary report with pass/fail counts
 - 🔇 Silent execution (no output from examples)
@@ -30,7 +30,7 @@ Runs all examples with full output. Good for debugging issues.
 
 **Features:**
 
-- ✅ Runs all 28 examples
+- ✅ Runs all 33 examples (with `--all-features`, so `forward_to_log` runs too)
 - ⏰ 30-second timeout per example
 - 📋 Full output from each example
 - 🐛 Detailed error information
@@ -42,20 +42,20 @@ Runs all examples with full output. Good for debugging issues.
 
 ```
 === Running All Senzing Rust SDK Examples ===
-Found 28 examples to run
+Found 33 examples to run
 
-[1/28] Running: basic_usage
+[1/33] Running: basic_usage
   ✅ PASSED: basic_usage
 
-[2/28] Running: complete_workflow
+[2/33] Running: complete_workflow
   ✅ PASSED: complete_workflow
 
 ...
 
 === SUMMARY ===
-Total examples: 28
-Passed: 26
-Failed: 2
+Total examples: 33
+Passed: 33
+Failed: 0
 
 🎉 All examples completed successfully!
 ```

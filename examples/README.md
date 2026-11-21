@@ -95,6 +95,27 @@ Examples demonstrating record deletion and impact analysis.
 | ---------------- | --------------------------------------------------- | ------------------------------------ |
 | `delete_records` | Delete records and observe entity resolution impact | `cargo run --example delete_records` |
 
+### 📝 Logging
+
+Senzing's native log output through `SzLogging` (`env.get_logging()?`). On Senzing 4.5.0, change outputs and
+registrations only while no engine threads are running (before the first engine init or after `destroy()`); the
+log level can change at any time.
+
+| Example               | Description                                                                 | Run Command                                            |
+| --------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `forward_to_log`      | Forward Senzing log records to the `log` crate (cargo feature `log`)         | `cargo run --example forward_to_log --features log`    |
+| `jsonl_file`          | Write the default log output to a JSONL file                                | `cargo run --example jsonl_file`                       |
+| `default_output_file` | Send the default log output to a file (truncate; append needs >= 4.5.1)      | `cargo run --example default_output_file`              |
+| `verbose_toggle`      | Turn verbose logging on/off at runtime from a signal                        | `cargo run --example verbose_toggle`                   |
+| `module_stats`        | Count log messages per module and level with a closure callback             | `cargo run --example module_stats`                     |
+| `stream_to_channel`   | Stream log messages to a console through a bounded channel (never blocks)   | `cargo run --example stream_to_channel`                |
+
+### 💾 Snapshot
+
+| Example            | Description                                                              | Run Command                            |
+| ------------------ | ------------------------------------------------------------------------ | -------------------------------------- |
+| `snapshot_restore` | Save an `internal://` datastore to a file and restore it without reloading | `cargo run --example snapshot_restore` |
+
 ### 🎯 Complete Workflow
 
 A comprehensive example demonstrating all major SDK capabilities in sequence.
