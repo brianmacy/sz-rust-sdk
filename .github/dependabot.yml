@@ -7,6 +7,12 @@ updates:
     open-pull-requests-limit: 10
     cooldown:
       default-days: 21
+    # One PR for all cargo bumps: separate PRs each rewrite Cargo.lock and
+    # supply-chain/imports.lock, so every merge conflicts the next one.
+    groups:
+      cargo:
+        patterns:
+          - "*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -14,3 +20,7 @@ updates:
     open-pull-requests-limit: 5
     cooldown:
       default-days: 21
+    groups:
+      github-actions:
+        patterns:
+          - "*"
