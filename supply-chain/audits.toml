@@ -87,13 +87,6 @@ start = "2026-10-30"
 end = "2027-11-21"
 notes = "crates.io trusted publishing from the rust-lang/log GitHub repository (log moved off KodrAus personal publishing at 0.4.35); same rust-lang ownership as the KodrAus entry above; Bytecode Alliance also trusts github:rust-lang/log."
 
-[[trusted.log]]
-criteria = "safe-to-deploy"
-trusted-publisher = "github:rust-lang/log"
-start = "2026-10-30"
-end = "2027-11-21"
-notes = "crates.io trusted publishing from the rust-lang/log GitHub repository (log moved off KodrAus personal publishing at 0.4.35); same rust-lang ownership as the KodrAus entry above; Bytecode Alliance also trusts github:rust-lang/log."
-
 [[trusted.memchr]]
 criteria = "safe-to-deploy"
 user-id = 189 # Andrew Gallant (BurntSushi)
