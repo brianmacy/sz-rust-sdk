@@ -80,6 +80,13 @@ start = "2019-07-10"
 end = "2027-10-25"
 notes = "Ashley Mannix (KodrAus): Rust libs team, maintainer of the rust-lang log and bitflags crates; recognized maintainer of foundational crates (not in an imported trust list)."
 
+[[trusted.log]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:rust-lang/log"
+start = "2026-10-30"
+end = "2027-11-21"
+notes = "crates.io trusted publishing from the rust-lang/log GitHub repository (log moved off KodrAus personal publishing at 0.4.35); same rust-lang ownership as the KodrAus entry above; Bytecode Alliance also trusts github:rust-lang/log."
+
 [[trusted.memchr]]
 criteria = "safe-to-deploy"
 user-id = 189 # Andrew Gallant (BurntSushi)
