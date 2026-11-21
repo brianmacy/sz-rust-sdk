@@ -5,16 +5,18 @@
 //! Logging is process-global native state, so every test is `#[serial]` and resets the default
 //! output, format and level on exit ([`Reset`]).
 //!
-//! Deterministic native message without an engine: `set_default_output` with a file path that
-//! cannot be opened makes native log `Failed to create file log sink for '<path>': ...` at ERROR,
-//! on the calling thread, and keep the previous output. The path embeds a marker so each test can
-//! tell its messages apart.
+//! Deterministic native message without an engine: native `SzLogging_setDefaultOutput` with a file
+//! path that cannot be opened logs `Failed to create file log sink for '<path>': ...` at ERROR, on
+//! the calling thread, and keeps the previous output. The SDK's `set_default_output` now rejects
+//! such a path before the native call, so [`emit_error`] calls the native function directly. The
+//! path embeds a marker so each test can tell its messages apart.
 //!
 //! Tests marked `#[ignore = "... GDEV-4960 ..."]` need Senzing >= 4.5.1 / 4.6.0; run them with
 //! `cargo test --test sz_logging_test -- --ignored` once that native ships (and the SZ-FUTURE stubs
 //! are wired up).
 
 use serial_test::serial;
+use std::ffi::CString;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::mpsc::{self, TryRecvError};
@@ -78,12 +80,14 @@ fn unopenable_path(marker: &str) -> PathBuf {
     blocker.join(format!("{marker}.log"))
 }
 
-/// Makes native log one ERROR containing `marker`, on the calling thread. On 4.5.0 the call itself
-/// returns Ok (no status return); the previous default output is kept.
-fn emit_error(logging: &dyn SzLogging, marker: &str) {
-    logging
-        .set_default_output(SzLogOutput::file(unopenable_path(marker)))
-        .expect("4.5.0 reports no status for an unopenable file");
+/// Makes native log one ERROR containing `marker`, on the calling thread; the previous default
+/// output is kept. Calls native directly: the SDK rejects an unopenable path before native sees it.
+fn emit_error(marker: &str) {
+    let path = unopenable_path(marker);
+    let path = CString::new(path.to_str().expect("UTF-8 temp path")).expect("no NUL");
+    let file = i32::try_from(sz_rust_sdk_ffi::logging::SzLogOutputType_SZ_LOG_OUTPUT_FILE).unwrap();
+    // SAFETY: a NUL-terminated path that outlives the call; 4.5.0 returns void.
+    unsafe { sz_rust_sdk_ffi::logging::SzLogging_setDefaultOutput(file, path.as_ptr()) };
 }
 
 /// Sets a flag when dropped: observes when a closure is freed.
@@ -114,7 +118,7 @@ fn test_register_delivers_and_drop_frees_closure() {
         })
         .unwrap();
 
-    emit_error(logging.as_ref(), "register-drop-1");
+    emit_error("register-drop-1");
     let entry = rx.recv_timeout(WAIT).expect("callback received the ERROR");
     assert_eq!(entry.level, SzLogLevel::Error);
     assert!(
@@ -127,7 +131,7 @@ fn test_register_delivers_and_drop_frees_closure() {
     // Outside a callback, drop unregisters and then frees the closure, so the sender is gone.
     drop(registration);
     assert_eq!(rx.try_recv().unwrap_err(), TryRecvError::Disconnected);
-    emit_error(logging.as_ref(), "register-drop-2");
+    emit_error("register-drop-2");
     assert_eq!(rx.try_recv().unwrap_err(), TryRecvError::Disconnected);
 }
 
@@ -153,8 +157,25 @@ fn test_formats_for_registered_callbacks() {
         );
         channels.push((format, rx));
     }
-    emit_error(logging.as_ref(), "formats");
+    let (tx, default_rx) = mpsc::channel();
+    registrations.push(
+        logging
+            .register(SzLogLevel::Error, move |r| {
+                let _ = tx.send(r.message().into_owned());
+            })
+            .unwrap(),
+    );
+    emit_error("formats");
     drop(registrations);
+
+    let message = collect(&default_rx)
+        .into_iter()
+        .find(|m| m.contains("formats"))
+        .expect("delivered");
+    assert!(
+        message.starts_with("Failed to create file log sink"),
+        "default options are BARE: {message}"
+    );
 
     for (format, rx) in channels {
         let message = collect(&rx)
@@ -203,7 +224,7 @@ fn test_level_filtering_and_effective_level() {
             counter.fetch_add(1, Ordering::SeqCst);
         })
         .unwrap();
-    emit_error(logging.as_ref(), "filtered");
+    emit_error("filtered");
     assert_eq!(calls.load(Ordering::SeqCst), 0, "ERROR is below CRITICAL");
 
     let debug = logging.register(SzLogLevel::Debug, |_r| {}).unwrap();
@@ -259,7 +280,7 @@ fn test_record_timestamp_and_thread_id_are_none() {
             let _ = tx.send((r.timestamp(), r.timestamp_ns(), r.thread_id()));
         })
         .unwrap();
-    emit_error(logging.as_ref(), "record-fields");
+    emit_error("record-fields");
     drop(registration);
     assert_eq!(rx.recv_timeout(WAIT).unwrap(), (None, None, None));
 }
@@ -287,6 +308,57 @@ fn test_default_output_argument_errors() {
 
 #[test]
 #[serial]
+fn test_default_output_unopenable_file_is_bad_input() {
+    let _reset = Reset::quiet();
+    let logging = logging();
+    let (tx, rx) = mpsc::channel();
+    let registration = logging
+        .register(SzLogLevel::Error, move |r| {
+            let _ = tx.send(r.message().into_owned());
+        })
+        .unwrap();
+    let path = unopenable_path("rejected");
+    let err = logging
+        .set_default_output(SzLogOutput::file(&path))
+        .unwrap_err();
+    drop(registration);
+    assert!(err.is_bad_input(), "{err:?}");
+    assert!(
+        err.to_string().contains("rejected.log"),
+        "names the path: {err}"
+    );
+    assert!(
+        collect(&rx).is_empty(),
+        "rejected before native: no ERROR is logged"
+    );
+}
+
+#[test]
+#[serial]
+fn test_default_output_file_creates_missing_parent_directories() {
+    let _reset = Reset::quiet();
+    let logging = logging();
+    let nanos = SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    // A Debug-formatted Instant contains ':' (illegal in a Windows path); use plain digits.
+    let dir = scratch_dir().join(format!("missing-{nanos}"));
+    let path = dir.join("nested").join("sz.log");
+    logging
+        .set_default_output(SzLogOutput::file(&path))
+        .unwrap();
+    logging.set_default_output(SzLogOutput::Null).unwrap();
+    assert!(
+        path.is_file(),
+        "created like native does: {}",
+        path.display()
+    );
+    let _ = std::fs::remove_dir_all(dir);
+}
+
+#[test]
+#[serial]
 fn test_default_output_file_truncates_and_keeps_previous_on_failure() {
     let _reset = Reset::quiet();
     let logging = logging();
@@ -298,7 +370,7 @@ fn test_default_output_file_truncates_and_keeps_previous_on_failure() {
         .set_default_output(SzLogOutput::file(&path))
         .unwrap();
     // The failed open is logged to the previous output, which is still this file.
-    emit_error(logging.as_ref(), "truncate-run");
+    emit_error("truncate-run");
     logging.set_default_output(SzLogOutput::Null).unwrap(); // flush + close
     let text = std::fs::read_to_string(&path).unwrap();
     assert!(!text.contains("PREEXISTING"), "FILE truncates: {text}");
@@ -317,7 +389,7 @@ fn test_default_output_jsonl_file() {
         .set_default_output(SzLogOutput::file(&path))
         .unwrap();
     logging.set_default_format(SzLogFormat::Jsonl).unwrap();
-    emit_error(logging.as_ref(), "jsonl-file");
+    emit_error("jsonl-file");
     logging.set_default_output(SzLogOutput::Null).unwrap();
 
     let text = std::fs::read_to_string(&path).unwrap();
@@ -327,8 +399,10 @@ fn test_default_output_jsonl_file() {
         .expect("line written");
     let json: serde_json::Value = serde_json::from_str(line).expect("JSONL line");
     assert!(json["timestamp"].is_string(), "{line}");
-    let severity = json["severity"].as_str().unwrap_or_default();
-    assert!(severity.eq_ignore_ascii_case("error"), "{line}");
+    assert_eq!(
+        json["severity"], "error",
+        "JSONL spells levels in lower case: {line}"
+    );
 }
 
 #[test]
@@ -348,7 +422,7 @@ fn test_default_callback_with_format() {
             }),
         )
         .unwrap();
-    emit_error(logging.as_ref(), "default-callback");
+    emit_error("default-callback");
     let message = rx.recv_timeout(WAIT).unwrap();
     assert!(
         message.starts_with("Failed to create file log sink"),
@@ -356,7 +430,7 @@ fn test_default_callback_with_format() {
     );
 
     logging.set_default_output(SzLogOutput::Null).unwrap();
-    emit_error(logging.as_ref(), "default-callback-replaced");
+    emit_error("default-callback-replaced");
     assert!(
         collect(&rx).is_empty(),
         "replaced default callback is not called"
@@ -386,8 +460,8 @@ fn test_drop_inside_own_callback_deactivates_and_leaks() {
         .unwrap();
     *slot.lock().unwrap() = Some(registration);
 
-    emit_error(logging.as_ref(), "self-drop-1");
-    emit_error(logging.as_ref(), "self-drop-2");
+    emit_error("self-drop-1");
+    emit_error("self-drop-2");
     assert_eq!(calls.load(Ordering::SeqCst), 1, "not called after its drop");
     assert!(
         !freed.load(Ordering::SeqCst),
@@ -417,10 +491,10 @@ fn test_drop_other_registration_inside_callback() {
         })
         .unwrap();
 
-    emit_error(logging.as_ref(), "cross-drop-1"); // B may run before A in this delivery
+    emit_error("cross-drop-1"); // B may run before A in this delivery
     let after_first = b_calls.load(Ordering::SeqCst);
     assert!(after_first <= 1);
-    emit_error(logging.as_ref(), "cross-drop-2");
+    emit_error("cross-drop-2");
     assert_eq!(
         b_calls.load(Ordering::SeqCst),
         after_first,
@@ -466,7 +540,7 @@ fn test_sink_changes_inside_callback_are_refused() {
             ));
         })
         .unwrap();
-    emit_error(logging.as_ref(), "inside");
+    emit_error("inside");
     drop(registration);
 
     let results = results.lock().unwrap();
@@ -511,32 +585,76 @@ fn test_panics_in_callback_and_drop_do_not_cross_ffi() {
         })
         .unwrap();
 
-    emit_error(logging.as_ref(), "panic-1");
-    emit_error(logging.as_ref(), "panic-2");
+    emit_error("panic-1");
+    emit_error("panic-2");
     assert_eq!(
         calls.load(Ordering::SeqCst),
         2,
         "delivery continues after a panic"
     );
     drop(registration); // the closure's Drop panics; it is swallowed
-    emit_error(logging.as_ref(), "panic-3");
+    emit_error("panic-3");
     assert_eq!(calls.load(Ordering::SeqCst), 2);
 }
 
 #[test]
 #[serial]
-fn test_thread_local_format_is_stubbed() {
+fn test_thread_local_requires_newer_senzing() {
+    let _reset = Reset::quiet();
     let logging = logging();
-    let options = SzLogCallbackOptions::new(SzLogLevel::Info).format(SzLogFormat::Jsonl);
+    logging.set_default_log_level(SzLogLevel::Error).unwrap();
+    let tl = "SzLogging_registerThreadLocalCallback, GDEV-4960";
+    let freed = Arc::new(AtomicBool::new(false));
+    let flag = DropFlag(Arc::clone(&freed));
     assert_requires_newer(
-        logging.register_thread_local_callback(options, Box::new(|_r| {})),
-        "SzLogging_registerCallbackEx",
+        logging.register_thread_local_callback(
+            SzLogLevel::Trace.into(),
+            Box::new(move |_r| {
+                let _keep = &flag;
+            }),
+        ),
+        tl,
+    );
+    assert!(
+        freed.load(Ordering::SeqCst),
+        "the refused closure is dropped"
+    );
+    let options = SzLogCallbackOptions::new(SzLogLevel::Info).format(SzLogFormat::Legacy);
+    assert_requires_newer(logging.register_thread_local(options, |_r| {}), tl);
+    assert_requires_newer(logging.capture_thread_logs(SzLogLevel::Error), tl);
+    assert_eq!(
+        logging.get_effective_log_level().unwrap(),
+        SzLogLevel::Error,
+        "nothing was registered natively (a TRACE registration would lower it)"
     );
 }
 
 #[test]
 #[serial]
-#[ignore = "4.5.0 thread-local callbacks never fire (thread-id mismatch); fixed by GDEV-4960 (Senzing >= 4.5.1/4.6.0)"]
+fn test_set_default_closure() {
+    let _reset = Reset::quiet();
+    let logging = logging();
+    let (tx, rx) = mpsc::channel();
+    logging
+        .set_default(SzLogLevel::Error, move |r| {
+            let _ = tx.send((r.level(), r.message().into_owned()));
+        })
+        .unwrap();
+    emit_error("set-default-closure");
+    let (level, message) = rx.recv_timeout(WAIT).expect("default closure called");
+    assert_eq!(level, SzLogLevel::Error);
+    assert!(
+        message.starts_with("Failed to create file log sink"),
+        "BARE by default: {message}"
+    );
+    logging.set_default_output(SzLogOutput::Null).unwrap();
+    emit_error("set-default-closure-replaced");
+    assert!(rx.try_iter().next().is_none(), "replaced");
+}
+
+#[test]
+#[serial]
+#[ignore = "thread-local registration returns an error on 4.5.0 (native never delivered, thread-id mismatch); needs GDEV-4960 (Senzing >= 4.5.1/4.6.0) and the SZ-FUTURE stub removed"]
 fn test_thread_local_scope() {
     let _reset = Reset::quiet();
     let logging: Arc<dyn SzLogging> = Arc::from(logging());
@@ -546,9 +664,8 @@ fn test_thread_local_scope() {
             let _ = tx.send(r.message().into_owned());
         })
         .unwrap();
-    emit_error(logging.as_ref(), "tl-mine");
-    let other = Arc::clone(&logging);
-    thread::spawn(move || emit_error(other.as_ref(), "tl-other"))
+    emit_error("tl-mine");
+    thread::spawn(move || emit_error("tl-other"))
         .join()
         .unwrap();
     drop(registration);
@@ -565,14 +682,13 @@ fn test_thread_local_scope() {
 
 #[test]
 #[serial]
-#[ignore = "4.5.0 thread-local callbacks never fire (thread-id mismatch); fixed by GDEV-4960 (Senzing >= 4.5.1/4.6.0)"]
+#[ignore = "thread-local registration returns an error on 4.5.0 (native never delivered, thread-id mismatch); needs GDEV-4960 (Senzing >= 4.5.1/4.6.0) and the SZ-FUTURE stub removed"]
 fn test_capture_thread_logs() {
     let _reset = Reset::quiet();
     let logging: Arc<dyn SzLogging> = Arc::from(logging());
     let capture = logging.capture_thread_logs(SzLogLevel::Error).unwrap();
-    emit_error(logging.as_ref(), "capture-mine");
-    let other = Arc::clone(&logging);
-    thread::spawn(move || emit_error(other.as_ref(), "capture-other"))
+    emit_error("capture-mine");
+    thread::spawn(move || emit_error("capture-other"))
         .join()
         .unwrap();
     let entries = capture.finish();
@@ -607,11 +723,10 @@ fn test_drop_from_another_thread_while_delivering() {
     let stop = Arc::new(AtomicBool::new(false));
     let emitters: Vec<_> = (0..8)
         .map(|i| {
-            let logging = Arc::clone(&logging);
             let stop = Arc::clone(&stop);
             thread::spawn(move || {
                 while !stop.load(Ordering::SeqCst) {
-                    emit_error(logging.as_ref(), &format!("emitter-{i}"));
+                    emit_error(&format!("emitter-{i}"));
                 }
             })
         })
@@ -649,7 +764,7 @@ fn test_record_timestamp_is_utc_now_and_matches_jsonl() {
         })
         .unwrap();
     let before = SystemTime::now();
-    emit_error(logging.as_ref(), "record-time");
+    emit_error("record-time");
     let (timestamp, thread_id, message) = rx.recv_timeout(WAIT).unwrap();
     drop(registration);
     let timestamp = timestamp.expect("record timestamp");
@@ -783,7 +898,7 @@ fn test_default_callback_replaced_by_default_callback() {
             }),
         )
         .unwrap();
-    emit_error(logging.as_ref(), "default-callback-twice");
+    emit_error("default-callback-twice");
     assert!(
         rx2.recv_timeout(WAIT).is_ok(),
         "the new default callback is called"

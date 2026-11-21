@@ -52,12 +52,9 @@ fn main() -> SzResult<()> {
     // The default output is our callback, so set_default_log_level controls what it receives.
     let delivered = Arc::new(AtomicUsize::new(0));
     let counter = Arc::clone(&delivered);
-    logging.set_default_callback(
-        SzLogLevel::Error.into(),
-        Box::new(move |_record| {
-            counter.fetch_add(1, Ordering::Relaxed);
-        }),
-    )?;
+    logging.set_default(SzLogLevel::Error, move |_record| {
+        counter.fetch_add(1, Ordering::Relaxed);
+    })?;
     logging.set_default_log_level(SzLogLevel::Error)?;
 
     // Watcher thread: applies the flag. Never calls engine methods.

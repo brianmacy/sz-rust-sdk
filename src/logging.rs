@@ -14,35 +14,55 @@
 //!
 //! # Senzing versions
 //!
-//! The crate binds the libSzLogging API released in Senzing 4.5.0 (unchanged since 4.3.0). The
+//! The crate binds the libSzLogging API first released in Senzing 4.5.0 (the minimum). The
 //! final API also covers functionality that needs a newer native release (Senzing **>= 4.5.1 /
 //! 4.6.0**): per-callback levels ([`SzLogRegistration::set_level`] / [`level`](SzLogRegistration::level)),
-//! the default-state getters, append mode ([`SzLogOutput::append_file`]), thread-local registrations
-//! with a format other than [`SzLogFormat::Legacy`], status-code error reporting, the record's
+//! the default-state getters, append mode ([`SzLogOutput::append_file`]), thread-local
+//! registrations ([`register_thread_local`](crate::traits::SzLoggingExt::register_thread_local),
+//! [`capture_thread_logs`](crate::traits::SzLoggingExt::capture_thread_logs); 4.5.0 never delivers
+//! to them, GDEV-4960), status-code error reporting, the record's
 //! [`timestamp`](SzLogRecord::timestamp) and [`thread_id`](SzLogRecord::thread_id), changing
 //! registrations from inside a callback, and native-owned closure lifetime. Until then those calls
 //! return `SzError::Configuration` naming the native function and "Senzing >= 4.5.1/4.6.0" (or
 //! `None` for the record fields). There is no runtime version detection.
 //!
-//! **Thread-local registrations receive nothing on Senzing 4.5.0** (native compares mismatched
-//! thread ids), so [`capture_thread_logs`](crate::traits::SzLoggingExt::capture_thread_logs)
-//! returns no entries there. GDEV-4960 fixes this in Senzing >= 4.5.1 / 4.6.0.
+//! On 4.5.0, [`SzLogRecord::thread_hash`] is the per-thread handle (it is in every record's module).
 //!
 //! # The Senzing 4.5.0 usage rule
 //!
-//! In 4.5.0, registering or unregistering a callback, setting a default callback, and changing the
-//! default output or default format rebuild native's sink list without synchronizing with
-//! threads that are logging. Do these **only while nothing else in the process can log** (no other
-//! application thread calling Senzing, and):
+//! **Change registrations, the default callback, the default output or the default format only
+//! while no engine threads are running: before the first engine initialization or after
+//! [`destroy`](crate::SzEnvironmentCore::destroy).**
+//! [`set_default_log_level`](crate::traits::SzLogging::set_default_log_level) and
+//! [`get_effective_log_level`](crate::traits::SzLogging::get_effective_log_level) are safe at any
+//! time.
 //!
-//! - **before the first engine initialization** (the first `get_engine()` or `get_diagnostic()`,
-//!   which run `Sz_init`), or
-//! - **after [`destroy`](crate::SzEnvironmentCore::destroy)**.
+//! - "Before the first engine initialization" means before the first `get_engine()` or
+//!   `get_diagnostic()` (they run `Sz_init`).
+//! - Joining your own worker threads is not enough: engine initialization starts Senzing's
+//!   lock-watcher thread, which logs on its own until destroy.
+//! - Why: in 4.5.0 these calls rebuild native's sink list without synchronizing with threads that
+//!   are logging. The SDK does not enforce the rule. The full concurrency guarantees (any call, any
+//!   thread, any time) need the GDEV-4960 native fix.
 //!
-//! Joining your own worker threads is not enough: engine initialization starts Senzing's
-//! lock-watcher thread, which logs on its own until destroy. [`set_default_log_level`](crate::traits::SzLogging::set_default_log_level) and
-//! [`get_effective_log_level`](crate::traits::SzLogging::get_effective_log_level) are safe at any time. The full
-//! concurrency guarantees (any call, any thread, any time) need the GDEV-4960 native fix.
+//! # `verbose_logging` and engine initialization
+//!
+//! Each component initialization (`Sz_init` and the other `*_init` calls) re-applies the
+//! environment's `verbose_logging` to the default output (level TRACE or ERROR, format
+//! [`Legacy`](SzLogFormat::Legacy)) **unless the application configured logging first**.
+//! [`set_default_log_level`](crate::traits::SzLogging::set_default_log_level),
+//! [`set_default_format`](crate::traits::SzLogging::set_default_format) and
+//! [`set_default_callback`](crate::traits::SzLogging::set_default_callback) count as
+//! configuration (native keeps their settings from then on);
+//! [`set_default_output`](crate::traits::SzLogging::set_default_output) and the `register*` calls do
+//! not. Registered callbacks keep their own level and format either way.
+//!
+//! # Flushing the default file output
+//!
+//! A file default output is flushed when the output is replaced (any
+//! [`set_default_output`](crate::traits::SzLogging::set_default_output) call) or at process exit.
+//! On Senzing 4.5.0 `destroy()` does **not** flush it, so call `set_default_output(..)` after
+//! `destroy()` before reading the file. Senzing >= 4.5.1 flushes at destroy.
 //!
 //! # Callback rules
 //!
@@ -93,6 +113,24 @@ use std::time::{Duration, SystemTime};
 /// Ordered from most to least verbose, so `level >= SzLogLevel::Warn` reads naturally. This is
 /// the native order and the **opposite** of `log::Level` / `tracing::Level`, where `Error` is the
 /// smallest.
+///
+/// # Level names in native output
+///
+/// Native writes its own spellings, which differ from [`as_str`](Self::as_str). When parsing a log
+/// file, compare against these (or parse case-insensitively with [`FromStr`], which accepts
+/// `"warning"`), not against `as_str()`:
+///
+/// | Level | `as_str()` | JSONL `severity` | Legacy tag |
+/// |---|---|---|---|
+/// | `Trace` | `TRACE` | `trace` | `TRCE` |
+/// | `Debug` | `DEBUG` | `debug` | `DBUG` |
+/// | `Info` | `INFO` | `info` | `INFO` |
+/// | `Warn` | `WARN` | `warning` | `WARN` |
+/// | `Error` | `ERROR` | `error` | `ERR` |
+/// | `Critical` | `CRITICAL` | `critical` | `CRIT` |
+///
+/// With the `log` feature, `log::Level::try_from(level)` converts a record level
+/// ([`Critical`](Self::Critical) maps to `log::Level::Error`; [`Off`](Self::Off) is an error).
 ///
 /// # Examples
 ///
@@ -189,6 +227,35 @@ impl FromStr for SzLogLevel {
             "CRITICAL" => Ok(Self::Critical),
             "OFF" => Ok(Self::Off),
             _ => Err(SzError::bad_input(format!("unknown log level {s:?}"))),
+        }
+    }
+}
+
+/// `Critical` and `Error` map to `log::Level::Error`; the rest map by name. `Off` is a filter
+/// value, never a record level, so it is an error (`SzError::BadInput`).
+///
+/// ```
+/// use sz_rust_sdk::prelude::*;
+///
+/// assert_eq!(log::Level::try_from(SzLogLevel::Critical)?, log::Level::Error);
+/// assert_eq!(log::Level::try_from(SzLogLevel::Warn)?, log::Level::Warn);
+/// assert!(log::Level::try_from(SzLogLevel::Off).is_err());
+/// # Ok::<(), SzError>(())
+/// ```
+#[cfg(feature = "log")]
+impl TryFrom<SzLogLevel> for log::Level {
+    type Error = SzError;
+
+    fn try_from(level: SzLogLevel) -> SzResult<Self> {
+        match level {
+            SzLogLevel::Trace => Ok(Self::Trace),
+            SzLogLevel::Debug => Ok(Self::Debug),
+            SzLogLevel::Info => Ok(Self::Info),
+            SzLogLevel::Warn => Ok(Self::Warn),
+            SzLogLevel::Error | SzLogLevel::Critical => Ok(Self::Error),
+            SzLogLevel::Off => Err(SzError::bad_input(
+                "SzLogLevel::Off is a filter value and has no log::Level",
+            )),
         }
     }
 }
@@ -343,8 +410,10 @@ impl SzLogOutput {
 /// Registration parameters: the callback's minimum level and the format native applies to
 /// [`SzLogRecord::message`].
 ///
-/// [`SzLogLevel`] converts into it, so `logging.register(SzLogLevel::Info, ..)` works; use
-/// [`format`](Self::format) to pick a format other than [`SzLogFormat::Legacy`].
+/// [`SzLogLevel`] converts into it, so `logging.register(SzLogLevel::Info, ..)` works. The default
+/// format is [`SzLogFormat::Bare`]: the record already carries the level and module, so the
+/// message needs no prefix (Legacy would stamp them a second time when the record is forwarded).
+/// Use [`format`](Self::format) to pick another.
 ///
 /// # Examples
 ///
@@ -353,7 +422,7 @@ impl SzLogOutput {
 ///
 /// let options = SzLogCallbackOptions::new(SzLogLevel::Debug).format(SzLogFormat::Jsonl);
 /// assert_eq!(options.min_level, SzLogLevel::Debug);
-/// assert_eq!(SzLogCallbackOptions::from(SzLogLevel::Info).format, SzLogFormat::Legacy);
+/// assert_eq!(SzLogCallbackOptions::from(SzLogLevel::Info).format, SzLogFormat::Bare);
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[non_exhaustive]
@@ -365,11 +434,12 @@ pub struct SzLogCallbackOptions {
 }
 
 impl SzLogCallbackOptions {
-    /// Options with `min_level` and the [`Legacy`](SzLogFormat::Legacy) format (the C default).
+    /// Options with `min_level` and the [`Bare`](SzLogFormat::Bare) format (the message text only;
+    /// level and module are on the record).
     pub const fn new(min_level: SzLogLevel) -> Self {
         Self {
             min_level,
-            format: SzLogFormat::Legacy,
+            format: SzLogFormat::Bare,
         }
     }
 
@@ -444,6 +514,9 @@ impl<'a> SzLogRecord<'a> {
     }
 
     /// The thread hash after the last `:` of native's `module` (`"82eb15f5faba9bab"`), if present.
+    ///
+    /// The per-thread handle on Senzing 4.5.0: records from one thread share it.
+    /// [`thread_id`](Self::thread_id) needs Senzing >= 4.5.1 / 4.6.0.
     pub fn thread_hash(&self) -> Option<&'a str> {
         let raw = self.module.to_bytes();
         let start = raw.iter().rposition(|b| *b == b':')? + 1;
@@ -485,7 +558,7 @@ impl<'a> SzLogRecord<'a> {
 
     /// OS id of the thread that logged the message (the id native's thread-local filtering uses).
     ///
-    /// `None` until Senzing >= 4.5.1 / 4.6.0.
+    /// `None` until Senzing >= 4.5.1 / 4.6.0; use [`thread_hash`](Self::thread_hash) on 4.5.0.
     pub fn thread_id(&self) -> Option<u64> {
         self.thread_id
     }
@@ -574,11 +647,15 @@ pub type SzLogCallback = Box<dyn Fn(&SzLogRecord<'_>) + Send + Sync + 'static>;
 /// On Senzing 4.5.0, drop it only while nothing else logs (the
 /// [usage rule](crate::logging#the-senzing-450-usage-rule)).
 ///
+/// Bind it to a name (`let registration = ...`): `let _ = ...` drops it, and so unregisters the
+/// callback, immediately.
+///
 /// The handle is `Send + Sync`: share it through an `Arc` or drop it on another thread.
 ///
-/// A thread-local registration (which receives nothing on Senzing 4.5.0) stays registered after its thread exits, and OS thread ids can be
-/// reused (a later thread with the same id would receive its messages). Drop it before the
-/// registering thread exits.
+/// A thread-local registration (Senzing >= 4.5.1 / 4.6.0) follows the **OS thread** that
+/// registered it: it stays registered after that thread exits, and OS thread ids can be reused (a
+/// later thread with the same id would receive its messages). Drop it before the registering
+/// thread exits.
 #[must_use = "the callback is unregistered as soon as the registration is dropped"]
 #[derive(Debug)]
 pub struct SzLogRegistration {
@@ -644,7 +721,8 @@ impl Drop for SzLogRegistration {
 }
 
 /// Collects the records logged on the thread that created it, until [`finish`](Self::finish) (or
-/// drop). Captures nothing on Senzing 4.5.0 (thread-local delivery needs >= 4.5.1 / 4.6.0). Created by [`SzLoggingExt::capture_thread_logs`](crate::traits::SzLoggingExt::capture_thread_logs).
+/// drop). Created by [`SzLoggingExt::capture_thread_logs`](crate::traits::SzLoggingExt::capture_thread_logs),
+/// which needs Senzing >= 4.5.1 / 4.6.0 (thread-local delivery, GDEV-4960).
 ///
 /// It is one thread-local registration whose closure owns the buffer. Work the engine does on its
 /// own threads is not captured.
@@ -801,10 +879,31 @@ mod tests {
     #[test]
     fn test_options() {
         let options = SzLogCallbackOptions::from(SzLogLevel::Debug);
-        assert_eq!(options.format, SzLogFormat::Legacy);
+        assert_eq!(options.format, SzLogFormat::Bare);
         assert_eq!(
             options.format(SzLogFormat::Jsonl).format,
             SzLogFormat::Jsonl
+        );
+    }
+
+    #[cfg(feature = "log")]
+    #[test]
+    fn test_log_level_conversion() {
+        let expected = [
+            (SzLogLevel::Trace, log::Level::Trace),
+            (SzLogLevel::Debug, log::Level::Debug),
+            (SzLogLevel::Info, log::Level::Info),
+            (SzLogLevel::Warn, log::Level::Warn),
+            (SzLogLevel::Error, log::Level::Error),
+            (SzLogLevel::Critical, log::Level::Error),
+        ];
+        for (level, log_level) in expected {
+            assert_eq!(log::Level::try_from(level).unwrap(), log_level);
+        }
+        assert!(
+            log::Level::try_from(SzLogLevel::Off)
+                .unwrap_err()
+                .is_bad_input()
         );
     }
 

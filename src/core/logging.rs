@@ -171,30 +171,17 @@ impl SzLoggingCore {
     fn register(
         options: SzLogCallbackOptions,
         callback: SzLogCallback,
-        thread_local: bool,
     ) -> SzResult<SzLogRegistration> {
         refuse_inside_callback("registering a log callback")?;
-        if thread_local && options.format != SzLogFormat::Legacy {
-            // SZ-FUTURE(SzLogging_registerCallbackEx SZ_LOG_SCOPE_THREAD with a format)
-            return Err(requires_newer_senzing(
-                "a thread-local callback with a format other than LEGACY (SzLogging_registerCallbackEx)",
-            ));
-        }
         let slot = CallbackSlot::new_raw(callback);
-        let user_data = slot.as_ptr().cast::<c_void>();
-        let level = options.min_level.to_native();
         // SAFETY: on_log matches SzLogCallback; the slot stays allocated while native may call it.
         let handle = unsafe {
-            if thread_local {
-                native::SzLogging_registerThreadLocalCallback(Some(on_log), user_data, level)
-            } else {
-                native::SzLogging_registerCallbackWithFormat(
-                    Some(on_log),
-                    user_data,
-                    level,
-                    options.format.to_native(),
-                )
-            }
+            native::SzLogging_registerCallbackWithFormat(
+                Some(on_log),
+                slot.as_ptr().cast::<c_void>(),
+                options.min_level.to_native(),
+                options.format.to_native(),
+            )
         };
         match NonNull::new(handle) {
             Some(handle) => Ok(SzLogRegistration::new(handle, slot)),
@@ -217,7 +204,7 @@ impl SzLogging for SzLoggingCore {
         options: SzLogCallbackOptions,
         callback: SzLogCallback,
     ) -> SzResult<SzLogRegistration> {
-        Self::register(options, callback, false)
+        Self::register(options, callback)
     }
 
     fn register_thread_local_callback(
@@ -225,7 +212,14 @@ impl SzLogging for SzLoggingCore {
         options: SzLogCallbackOptions,
         callback: SzLogCallback,
     ) -> SzResult<SzLogRegistration> {
-        Self::register(options, callback, true)
+        let _ = (options, callback);
+        // SZ-FUTURE(GDEV-4960 thread-local delivery): 4.5.0's SzLogging_registerThreadLocalCallback
+        // accepts the registration but never delivers to it (it compares mismatched thread ids), so
+        // refuse instead of registering a sink that never fires. Once fixed, register through
+        // SzLogging_registerCallbackEx with SZ_LOG_SCOPE_THREAD (any format).
+        Err(requires_newer_senzing(
+            "thread-local log delivery (SzLogging_registerThreadLocalCallback, GDEV-4960 fix)",
+        ))
     }
 
     fn set_default_callback(
@@ -270,10 +264,13 @@ impl SzLogging for SzLoggingCore {
             SzLogOutput::File {
                 path,
                 append: false,
-            } => (
-                native::SzLogOutputType_SZ_LOG_OUTPUT_FILE,
-                Some(path_to_c_string(path)?),
-            ),
+            } => {
+                let c_path = path_to_c_string(path)?;
+                // SZ-FUTURE(int SzLogging_setDefaultOutput): remove this pre-check once the status
+                // return lands (-2: the output could not be opened).
+                check_log_file_writable(path)?;
+                (native::SzLogOutputType_SZ_LOG_OUTPUT_FILE, Some(c_path))
+            }
             SzLogOutput::Callback => {
                 return Err(SzError::bad_input(
                     "SzLogOutput::Callback is reported by get_default_output only; \
@@ -284,8 +281,8 @@ impl SzLogging for SzLoggingCore {
         let param = path.as_ref().map_or(ptr::null(), |p| p.as_ptr());
         // SAFETY: param is null or a NUL-terminated path that outlives the call.
         unsafe { native::SzLogging_setDefaultOutput(output_type.cast_signed(), param) };
-        // SZ-FUTURE(int SzLogging_setDefaultOutput): 4.5.0 returns void, so a file that cannot be
-        // opened is not reported here (native logs an ERROR and keeps the previous output).
+        // SZ-FUTURE(int SzLogging_setDefaultOutput): 4.5.0 returns void; a file that cannot be
+        // opened is caught by `check_log_file_writable` above instead.
         Ok(())
     }
 
@@ -345,6 +342,26 @@ fn path_to_c_string(path: &Path) -> SzResult<CString> {
         .to_vec();
     CString::new(bytes)
         .map_err(|_| SzError::bad_input(format!("log file path contains a NUL byte: {path:?}")))
+}
+
+/// Argument validation for a file output on Senzing 4.5.0, whose `SzLogging_setDefaultOutput`
+/// returns no status: opens `path` for append (creating it) the way native will, so a file native
+/// cannot open is reported as `BadInput` instead of an ERROR on the previous output. Missing parent
+/// directories are created first, as native (spdlog) does.
+// SZ-FUTURE(int SzLogging_setDefaultOutput): remove once the status return lands.
+fn check_log_file_writable(path: &Path) -> SzResult<()> {
+    let cannot_open = |e: std::io::Error| {
+        SzError::bad_input(format!("cannot open log file {}: {e}", path.display()))
+    };
+    if let Some(parent) = path.parent().filter(|p| !p.as_os_str().is_empty()) {
+        std::fs::create_dir_all(parent).map_err(cannot_open)?;
+    }
+    std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+        .map(drop)
+        .map_err(cannot_open)
 }
 
 #[cfg(test)]

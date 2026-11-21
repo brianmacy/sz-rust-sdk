@@ -34,7 +34,7 @@ The SDK is organized into several core components:
 
 - Rust 1.88+ (2024 edition)
 - Senzing v4 SDK
-- Senzing v4.3+ (uses `internal://` in-memory database)
+- Senzing v4.5+ (SzLogging needs `libSzLogging.h`, first shipped in 4.5.0; `ExampleEnvironment` uses the `internal://` in-memory database)
 
 ### Platform-Specific Installation
 
@@ -117,7 +117,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-sz-rust-sdk = { git = "https://github.com/brianmacy/sz-rust-sdk", tag = "v4.3.1" }
+sz-rust-sdk = { git = "https://github.com/brianmacy/sz-rust-sdk", tag = "v4.5.0" }
 ```
 
 ### Versioning
@@ -215,6 +215,7 @@ The SDK includes comprehensive examples demonstrating various use cases:
 - **`stream_to_channel`** - Stream JSONL log lines to a dev console through a bounded channel
 - **`default_output_file`** - Send the default output to a file (truncate; append on Senzing >= 4.5.1/4.6.0)
 - **`jsonl_file`** - Write the default output to a JSONL file
+- **`forward_to_log`** - Forward Senzing's records to the `log` crate (`cargo run --example forward_to_log --features log`)
 
 Run examples with:
 
@@ -307,6 +308,9 @@ cargo build --release
 ```bash
 # Run all tests
 cargo test
+
+# Include the optional `log` feature (what CI runs)
+cargo test --all-features
 
 # Run with output
 cargo test -- --nocapture
@@ -450,9 +454,8 @@ use sz_rust_sdk::prelude::*;
 
 let env = ExampleEnvironment::initialize("my-app")?; // or SzEnvironmentCore::get_instance(..)
 let logging = env.get_logging()?;
-let options = SzLogCallbackOptions::new(SzLogLevel::Info).format(SzLogFormat::Jsonl);
-let registration = logging.register(options, |record| {
-    println!("[{}] {} {}", record.level(), record.module(), record);
+let registration = logging.register(SzLogLevel::Info, |record| {
+    println!("[{}] {} {}", record.level(), record.module(), record); // Bare: message text only
 })?;                                  // register BEFORE the engine is initialized (4.5.0)
 let engine = env.get_engine()?;       // initialization is logged to the callback
 // ... work ...
@@ -465,12 +468,44 @@ logging.set_default_format(SzLogFormat::Jsonl)?; // after the output on 4.5.0
 logging.set_default_log_level(SzLogLevel::Warn)?;           // safe at any time
 ```
 
-**Senzing 4.5.0 usage rule.** Register or unregister callbacks, set a default callback, and change
-the default output or format only while nothing else logs: before the first engine
-initialization (`get_engine()` / `get_diagnostic()`) or after `destroy()`. Senzing's own
-lock-watcher thread logs once the engine is initialized, so joining your threads is not enough.
-`set_default_log_level` / `get_effective_log_level` are safe at any time. The full concurrency guarantees need the
-GDEV-4960 native fix.
+**Senzing 4.5.0 usage rule: change registrations, the default callback, output or format only
+while no engine threads are running — before the first engine initialization (`get_engine()` /
+`get_diagnostic()`) or after `destroy()`.** `set_default_log_level` / `get_effective_log_level`
+are safe at any time. Joining your own threads is not enough (Senzing's lock-watcher thread logs
+once the engine is initialized). The SDK does not enforce the rule; the full concurrency
+guarantees need the GDEV-4960 native fix.
+
+**Recipes**
+
+| Goal | Call |
+|---|---|
+| Silence Senzing | `logging.set_default_output(SzLogOutput::Null)?` |
+| Verbose for debugging | `logging.set_default_log_level(SzLogLevel::Trace)?` (any time) |
+| JSONL to a file | `set_default_output(SzLogOutput::file(path))?` then `set_default_format(SzLogFormat::Jsonl)?` |
+| Forward to the `log` crate | feature `log`: `let fwd = logging.forward_to_log(SzLogLevel::Info)?;` (target `senzing::<module>`) |
+| Callbacks as the only sink | `set_default_output(SzLogOutput::Null)?`, then `register(..)` / `forward_to_log(..)` |
+
+**Registrations:** bind them to a name — `let _ = logging.register(..)` drops (unregisters) it
+immediately. `SzLogCallbackOptions::new(level)` (and a bare `SzLogLevel`) uses the `Bare` format:
+the record carries level and module, so the message has no prefix. `set_default(level, closure)`
+makes a closure the default output.
+
+**Flushing:** a file default output is flushed when the output is replaced or at process exit. On
+Senzing 4.5.0 `destroy()` does not flush it: call `set_default_output(..)` after `destroy()` before
+reading the file (Senzing >= 4.5.1 flushes at destroy). An unopenable path returns `BadInput`.
+
+**`verbose_logging`:** each engine initialization re-applies the environment's `verbose_logging`
+level and the Legacy format to the default output unless you configured them first.
+`set_default_log_level`, `set_default_format` and `set_default_callback` count as configuration;
+`set_default_output` and `register*` do not.
+
+**Level names in files:** native spells levels its own way. JSONL `severity` is `trace`, `debug`,
+`info`, `warning`, `error`, `critical`; Legacy tags are `TRCE`, `DBUG`, `INFO`, `WARN`, `ERR`,
+`CRIT`. `SzLogLevel::as_str()` gives `TRACE`/`DEBUG`/`WARN`/..., so parse with
+`"warning".parse::<SzLogLevel>()` (case-insensitive) rather than comparing against `as_str()`.
+
+**Threads:** on 4.5.0, group records by `record.thread_hash()` (the per-thread handle);
+`thread_id()` needs Senzing >= 4.5.1. Thread-local registrations follow the OS thread.
 
 **Callbacks** run on the logging thread, concurrently across threads: keep them fast and never
 call engine methods from them. A panic in a callback is caught at the FFI boundary. On 4.5.0,
@@ -480,9 +515,10 @@ callback deactivates and leaks its closure (native may still be running it).
 **Needs Senzing >= 4.5.1 / 4.6.0** (returns `SzError::Configuration` naming the native function
 until then; record fields return `None`): `SzLogRegistration::set_level` / `level`,
 `get_default_output` / `get_default_format` / `get_default_log_level`,
-`SzLogOutput::append_file`, thread-local callbacks with a non-LEGACY format, record
-`timestamp()` / `thread_id()`, UTC JSONL timestamps, and working thread-local callbacks (4.5.0
-never delivers to them). Each stub is marked `SZ-FUTURE(<C function>)` in the source.
+`SzLogOutput::append_file`, thread-local registrations (`register_thread_local*`,
+`capture_thread_logs`: 4.5.0 never delivers to them, GDEV-4960), record `timestamp()` /
+`thread_id()`, and UTC JSONL timestamps. Each stub is marked `SZ-FUTURE(<C function>)` in the
+source.
 
 ## Database Isolation
 

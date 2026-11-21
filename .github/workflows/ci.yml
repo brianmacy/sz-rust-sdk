@@ -55,7 +55,7 @@ jobs:
     - name: Run tests
       env:
         LD_LIBRARY_PATH: /opt/senzing/er/lib
-      run: cargo test -- --skip environment::SzEnvironmentCore
+      run: cargo test --all-features -- --skip environment::SzEnvironmentCore
     - name: Run SzEnvironmentCore doctests against SQLite file DB
       env:
         LD_LIBRARY_PATH: /opt/senzing/er/lib
@@ -87,7 +87,7 @@ jobs:
     - name: Run tests
       env:
         DYLD_LIBRARY_PATH: "${{ env.HOMEBREW_PREFIX || '/opt/homebrew' }}/opt/senzing/er/lib:${{ env.HOMEBREW_PREFIX || '/opt/homebrew' }}/opt/openssl@3/lib:${{ env.HOMEBREW_PREFIX || '/opt/homebrew' }}/opt/sqlite/lib"
-      run: cargo test -- --skip environment::SzEnvironmentCore
+      run: cargo test --all-features -- --skip environment::SzEnvironmentCore
     - name: Run SzEnvironmentCore doctests against SQLite file DB
       env:
         DYLD_LIBRARY_PATH: "${{ env.HOMEBREW_PREFIX || '/opt/homebrew' }}/opt/senzing/er/lib:${{ env.HOMEBREW_PREFIX || '/opt/homebrew' }}/opt/openssl@3/lib:${{ env.HOMEBREW_PREFIX || '/opt/homebrew' }}/opt/sqlite/lib"
@@ -123,7 +123,7 @@ jobs:
     # (GDEV-4364 internal:// concurrency regression in Senzing 4.4.2).
     - name: Run tests
       shell: pwsh
-      run: cargo test -- --skip environment::SzEnvironmentCore
+      run: cargo test --all-features -- --skip environment::SzEnvironmentCore
     - name: Run SzEnvironmentCore doctests against SQLite file DB
       shell: pwsh
       run: |
