@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Docs: `examples/README.md` lists the Logging and Snapshot examples; `code-snippets/README.md` and `RUN_CODE_SNIPPETS.md` list the logging, error-handling and `lifecycle_patterns` snippets (26 total); `RUN_EXAMPLES.md` and both `run_all_examples*.sh` cover all 33 examples (`--all-features`, so `forward_to_log` runs); `OVERVIEW.md` lists logging.
+- Dependabot groups updates into one PR per ecosystem (cargo, github-actions): separate cargo PRs each rewrite `Cargo.lock` and `supply-chain/imports.lock`, so each merge conflicted the next.
 - Dependencies: libc 0.2.191, serde_json 1.0.154 (Dependabot #52, #53). `cargo vet` trusts libc's crates.io trusted publisher `github:rust-lang/libc` (libc moved off the rust-lang-owner account at 0.2.191).
 
 ## [4.5.0] - 2026-11-20
