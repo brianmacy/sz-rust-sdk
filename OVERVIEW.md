@@ -23,6 +23,7 @@ The Senzing Rust SDK provides safe, idiomatic Rust bindings to the Senzing Entit
 - **Performance Diagnostics**: Monitor and optimize system performance
 - **Database Management**: Handle database initialization and configuration
 - **Version Information**: Access product and license details
+- **Logging**: Route Senzing's native log output to a file, JSONL, your own closure, or the `log` crate (`SzLogging`, Senzing 4.5.0+)
 
 ## Example Use Cases and Prompts
 
@@ -94,6 +95,8 @@ The Senzing Rust SDK provides safe, idiomatic Rust bindings to the Senzing Entit
 "My application crashes on certain records - show me proper error handling patterns"
 
 "Help me trace through why a specific entity resolution decision was made"
+
+"Send Senzing's logs to my service's logger and turn on verbose logging while I debug"
 ```
 
 ### Advanced Features

@@ -14,6 +14,7 @@ snippets/
 ├── information/       # System information examples
 ├── initialization/    # Environment setup examples
 ├── loading/          # Record loading examples
+├── logging/          # Receiving Senzing's log output
 ├── redo/             # Redo processing examples
 ├── searching/        # Search and query examples
 └── stewardship/      # Data stewardship examples
@@ -94,10 +95,11 @@ fn get_environment() -> SzResult<std::sync::Arc<SzEnvironmentCore>> {
 - `get_license.rs` - Retrieve license information
 - `get_version.rs` - Retrieve version information
 
-### Initialization (3 snippets)
+### Initialization (4 snippets)
 
 - `engine_priming.rs` - Prime engine for performance
 - `environment_and_hubs.rs` - Access all SDK interfaces
+- `lifecycle_patterns.rs` - Environment lifecycle: create, use, destroy
 - `purge_repository.rs` - Clean repository data
 
 ### Loading (3 snippets)
@@ -105,6 +107,10 @@ fn get_environment() -> SzResult<std::sync::Arc<SzEnvironmentCore>> {
 - `load_records.rs` - Load individual records
 - `load_via_loop.rs` - Bulk record loading
 - `load_via_loop_threadpool.rs` - Multi-threaded loading
+
+### Logging (1 snippet)
+
+- `log_callback.rs` - Receive Senzing log records in a closure (`SzLoggingExt::register`)
 
 ### Redo (4 snippets)
 
@@ -129,6 +135,6 @@ fn get_environment() -> SzResult<std::sync::Arc<SzEnvironmentCore>> {
 - `force_resolve.rs` - Force entity resolution
 - `force_unresolve.rs` - Force entity separation
 
-## Total: 24 Code Snippets
+## Total: 26 Code Snippets
 
 All snippets demonstrate minimal, focused examples of Senzing SDK usage with clear documentation and simple execution.

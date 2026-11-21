@@ -59,6 +59,13 @@ start = "2024-08-15"
 end = "2027-10-25"
 notes = "rust-lang-owner: the Rust project's crates.io publishing account; in the [[trusted]] sets of the imported Mozilla, ISRG, Bytecode Alliance and Ariel OS audits (checked 2026-10-25)."
 
+[[trusted.libc]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:rust-lang/libc"
+start = "2026-10-02"
+end = "2027-11-21"
+notes = "crates.io trusted publishing from the rust-lang/libc GitHub repository (libc moved off the rust-lang-owner account at 0.2.191); same Rust-project ownership as the rust-lang-owner entry above."
+
 [[trusted.lock_api]]
 criteria = "safe-to-run"
 user-id = 2915 # Amanieu d'Antras (Amanieu)

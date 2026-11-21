@@ -20,6 +20,9 @@ code-snippets/
 ├── deleting/
 │   ├── delete_records.rs
 │   └── delete_via_loop.rs
+├── error_handling/
+│   ├── error_inspection.rs
+│   └── retry_with_backoff.rs
 ├── information/
 │   ├── database_demo.rs
 │   ├── get_license.rs
@@ -27,11 +30,14 @@ code-snippets/
 ├── initialization/
 │   ├── engine_priming.rs
 │   ├── environment_and_hubs.rs
+│   ├── lifecycle_patterns.rs
 │   └── purge_repository.rs
 ├── loading/
 │   ├── load_records.rs
 │   ├── load_via_loop.rs
 │   └── load_via_loop_threadpool.rs
+├── logging/
+│   └── log_callback.rs
 ├── redo/
 │   ├── load_with_redo_via_loop.rs
 │   ├── redo_continuous.rs
@@ -78,7 +84,7 @@ Use the provided script to run all snippets automatically:
 
 This script will:
 
-- Run all 22 code snippets in category order
+- Run all 26 code snippets in category order
 - Execute each snippet with a 30-second timeout
 - Provide real-time colored output (✓ success, ✗ failed, ⏰ timeout)
 - Generate a summary report with success rate
@@ -105,10 +111,11 @@ All snippets should run successfully and demonstrate specific Senzing SDK capabi
 - **get_license**: Retrieve Senzing license information
 - **get_version**: Retrieve Senzing version information
 
-### Initialization (3 snippets)
+### Initialization (4 snippets)
 
 - **engine_priming**: Prime the Senzing engine for optimal performance
 - **environment_and_hubs**: Initialize environment and access all interfaces
+- **lifecycle_patterns**: Environment lifecycle: create, use, destroy
 - **purge_repository**: Safely purge all data from repository
 
 ### Loading (3 snippets)
@@ -116,6 +123,10 @@ All snippets should run successfully and demonstrate specific Senzing SDK capabi
 - **load_records**: Load individual records with simple error handling
 - **load_via_loop**: Bulk record loading with comprehensive error handling
 - **load_via_loop_threadpool**: Multi-threaded record loading
+
+### Logging (1 snippet)
+
+- **log_callback**: Receive Senzing log records in a closure
 
 ### Redo (4 snippets)
 
@@ -129,6 +140,11 @@ All snippets should run successfully and demonstrate specific Senzing SDK capabi
 - **search_records**: Basic entity search functionality
 - **search_threadpool**: Multi-threaded search operations
 - **why_search**: Search with explanations and analysis
+
+### Error Handling (2 snippets)
+
+- **error_inspection**: Inspect Senzing errors in mixed error chains with `SzErrorInspect`
+- **retry_with_backoff**: Retry retryable Senzing errors with exponential backoff
 
 ### Stewardship (2 snippets)
 
@@ -170,6 +186,6 @@ export SENZING_ENGINE_CONFIGURATION_JSON='{% raw %}{"PIPELINE":{"CONFIGPATH":"/e
 - Threading examples demonstrate real OS thread scaling
 - Database operations are optimized for demonstration purposes
 
-## Target: 22/22 Success Rate
+## Target: 26/26 Success Rate
 
-The goal is for all 22 code snippets to run successfully, demonstrating complete Senzing SDK functionality coverage.
+The goal is for all 26 code snippets to run successfully, demonstrating complete Senzing SDK functionality coverage.

@@ -43,6 +43,7 @@ examples=(
     "stream_to_channel"
     "default_output_file"
     "jsonl_file"
+    "forward_to_log"
 )
 
 # Counters
@@ -63,7 +64,7 @@ run_example() {
     echo "[$((passed + failed + 1))/$total_examples] Running: $example_name"
 
     # Run with timeout to prevent hanging
-    if timeout "$timeout_duration" cargo run --example "$example_name" >/dev/null 2>&1; then
+    if timeout "$timeout_duration" cargo run --all-features --example "$example_name" >/dev/null 2>&1; then
         echo "  ✅ PASSED: $example_name"
         ((passed++))
     else
