@@ -60,31 +60,17 @@ fn parse_and_display_license(license_json: &str) -> SzResult<()> {
     let license: Value = serde_json::from_str(license_json)
         .map_err(|e| SzError::bad_input(format!("Failed to parse license JSON: {}", e)))?;
 
-    // Display license type and customer information
-    if let Some(customer) = license.get("customer").and_then(|v| v.as_str()) {
-        println!("📋 Customer: {}", customer);
-    }
+    // Fields documented for the getLicense response (all strings except the
+    // integers recordLimit and advSearch); the raw JSON above shows every field.
+    let text = |key: &str| license.get(key).and_then(|v| v.as_str()).unwrap_or("");
 
-    if let Some(license_type) = license.get("licenseType").and_then(|v| v.as_str()) {
-        println!("📄 License Type: {}", license_type);
-    }
+    println!("📋 Customer: {}", text("customer"));
+    println!("📝 Contract: {}", text("contract"));
+    println!("📄 License Type: {}", text("licenseType"));
+    println!("🏷️  License Level: {}", text("licenseLevel"));
+    println!("🕐 Issued: {}", text("issueDate"));
+    println!("⏰ Expires: {}", text("expireDate"));
 
-    // Display contract information
-    if let Some(contract) = license.get("contract") {
-        if let Some(contract_id) = contract.get("id").and_then(|v| v.as_str()) {
-            println!("📝 Contract ID: {}", contract_id);
-        }
-
-        if let Some(start_date) = contract.get("startDate").and_then(|v| v.as_str()) {
-            println!("🕐 Contract Start: {}", start_date);
-        }
-
-        if let Some(end_date) = contract.get("endDate").and_then(|v| v.as_str()) {
-            println!("⏰ Contract End: {}", end_date);
-        }
-    }
-
-    // Display record limits
     if let Some(record_limit) = license.get("recordLimit").and_then(|v| v.as_i64()) {
         if record_limit > 0 {
             println!("📊 Record Limit: {}", format_number(record_limit));
@@ -93,23 +79,8 @@ fn parse_and_display_license(license_json: &str) -> SzResult<()> {
         }
     }
 
-    // Display expiration information
-    if let Some(expiration_warning) = license
-        .get("expirationWarningDays")
-        .and_then(|v| v.as_i64())
-    {
-        println!("⚠️  Expiration Warning: {} days", expiration_warning);
-    }
-
-    // Display any warnings or status
-    if let Some(warning) = license.get("warning").and_then(|v| v.as_str()) {
-        println!("🔔 Warning: {}", warning);
-    }
-
-    if let Some(billing) = license.get("billing") {
-        if let Some(billing_type) = billing.get("billingType").and_then(|v| v.as_str()) {
-            println!("💳 Billing Type: {}", billing_type);
-        }
+    if let Some(adv_search) = license.get("advSearch").and_then(|v| v.as_i64()) {
+        println!("🔎 Advanced Search: {}", adv_search);
     }
 
     Ok(())
