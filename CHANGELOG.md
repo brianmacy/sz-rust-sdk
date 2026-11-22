@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Flaky `SzEnvironmentCore` thread-safety doctest (`src/core/environment.rs`): its 4 threads added records with the same name, and on the `internal://` in-memory database concurrent adds that resolve to one entity fail with `SENZ1011 OBS_ENT already exists` (native race, 17/30 runs on Senzing 4.5.0; file-backed sqlite 0/20). The doctest now adds four different people. FAQ `internal-database.md` records the measurements.
 - Code snippet `information/get_license`: the parsed view read fields the `getLicense` response does not have (`billing.billingType`, `contract.id`/dates, `expirationWarningDays`, `warning`), so most lines never printed. It now prints the documented fields (`customer`, `contract`, `licenseType`, `licenseLevel`, `issueDate`, `expireDate`, `recordLimit`, `advSearch`). This also clears the CodeQL `rust/cleartext-logging` alert on the dead `billingType` line.
 
 ### Changed
 
+- CI: `ci.yml` pins `actions/checkout` and `dtolnay/rust-toolchain` to commit SHAs (with version comments for Dependabot), matching `docs.yml` and `security.yml`.
+- Removed the unused `thiserror` dependency.
 - Docs: `examples/README.md` lists the Logging and Snapshot examples; `code-snippets/README.md` and `RUN_CODE_SNIPPETS.md` list the logging, error-handling and `lifecycle_patterns` snippets (26 total); `RUN_EXAMPLES.md` and both `run_all_examples*.sh` cover all 33 examples (`--all-features`, so `forward_to_log` runs); `OVERVIEW.md` lists logging.
 - Dependabot groups updates into one PR per ecosystem (cargo, github-actions): separate cargo PRs each rewrite `Cargo.lock` and `supply-chain/imports.lock`, so each merge conflicted the next.
 - Dependencies: libc 0.2.191, serde_json 1.0.154 (Dependabot #52, #53). `cargo vet` trusts libc's crates.io trusted publisher `github:rust-lang/libc` (libc moved off the rust-lang-owner account at 0.2.191).

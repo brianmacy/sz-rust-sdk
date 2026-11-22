@@ -68,12 +68,16 @@ use std::sync::{Arc, Mutex, Once, OnceLock};
 /// use sz_rust_sdk::prelude::*;
 ///
 /// # let env = ExampleEnvironment::initialize("doctest_thread_safety")?;
-/// let handles: Vec<_> = (0..4).map(|i| {
+/// // Distinct people per thread: concurrent adds that resolve to the SAME entity
+/// // can fail with SENZ1011 on the `internal://` in-memory database (native race;
+/// // file-backed databases are unaffected).
+/// let names = ["Robert Smith", "Maria Garcia", "Wei Chen", "Aisha Khan"];
+/// let handles: Vec<_> = names.into_iter().enumerate().map(|(i, name)| {
 ///     let env = env.clone();
 ///     std::thread::spawn(move || {
 ///         let engine = env.get_engine().unwrap();
-///         engine.add_record("TEST", &format!("THREAD_{}", i),
-///             r#"{"NAME_FULL": "Test User"}"#, None)
+///         engine.add_record("TEST", &format!("THREAD_{i}"),
+///             &format!(r#"{{"NAME_FULL": "{name}"}}"#), None)
 ///     })
 /// }).collect();
 ///
