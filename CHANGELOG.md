@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- FAQ MCP server synced to the-faq-mcp reference: `mcp<2` pinned in the PEP 723 header (mcp 2.x removed `mcp.server.fastmcp`, so the unpinned server failed to start), background re-index so edited FAQs are served without a restart, and the reference `.mcp.json` launcher (repo-root resolution; `.claude/.faq-venv` → `uv run --script` → `python` fallback).
+- FAQ reminder hooks vendored at `.claude/hooks/faq-reminder.sh` and wired in `.claude/settings.json`: `PreCompact` asks to write down what was learned; `UserPromptSubmit` (at most hourly) asks to consult, then write.
 - CI: `ci.yml` pins `actions/checkout` and `dtolnay/rust-toolchain` to commit SHAs (with version comments for Dependabot), matching `docs.yml` and `security.yml`.
 - Removed the unused `thiserror` dependency.
 - Docs: `examples/README.md` lists the Logging and Snapshot examples; `code-snippets/README.md` and `RUN_CODE_SNIPPETS.md` list the logging, error-handling and `lifecycle_patterns` snippets (26 total); `RUN_EXAMPLES.md` and both `run_all_examples*.sh` cover all 33 examples (`--all-features`, so `forward_to_log` runs); `OVERVIEW.md` lists logging.
