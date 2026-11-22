@@ -48,3 +48,21 @@ scoop install senzingsdk/senzingsdk
 ```
 
 Scoop sets `SENZING_DIR` and adds the lib directory to `PATH` automatically.
+
+### Staging cask installed next to the released one
+
+Installing or upgrading the `senzingsdk-staging` cask re-points `/opt/homebrew/opt/senzing`
+to `Caskroom/senzingsdk-staging/<version>/senzing`. Auto-detection in `build.rs` and
+`ExampleEnvironment` then builds and tests against the pre-release. The released cask stays
+under `Caskroom/senzingsdk/<version>/senzing`. To test against it, set `SENZING_DIR` to its
+`er` directory. Both `build.rs` (link path) and `ExampleEnvironment` (resources, templates,
+`../data`) use it. Put its `lib` first in `DYLD_LIBRARY_PATH`:
+
+```bash
+export SENZING_DIR=/opt/homebrew/Caskroom/senzingsdk/4.5.0.26320/senzing/er
+export DYLD_LIBRARY_PATH="$SENZING_DIR/lib:/opt/homebrew/opt/openssl@3/lib:/opt/homebrew/opt/sqlite/lib"
+cargo test --all-features
+```
+
+`build.rs` declares `rerun-if-env-changed=SENZING_DIR`, so switching versions triggers a rebuild.
+To confirm which library loaded, run a test binary with `DYLD_PRINT_LIBRARIES=1` and grep for `libSz`.

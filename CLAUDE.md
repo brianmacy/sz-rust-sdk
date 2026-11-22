@@ -187,6 +187,9 @@ The SDK's `ExampleEnvironment` helper auto-detects Senzing installation paths by
 standard platform locations (Homebrew on macOS, `/opt/senzing` on Linux). Engine configuration
 is passed as a JSON string — see https://www.senzing.com/docs/tutorials/senzing_engine_config/
 You can also set `SENZING_ENGINE_CONFIGURATION_JSON` to provide the full config directly.
+If the `senzingsdk-staging` cask is installed, `/opt/homebrew/opt/senzing` points at the pre-release.
+To test against the released cask, set `SENZING_DIR=/opt/homebrew/Caskroom/senzingsdk/<version>/senzing/er`
+(see the FAQ "Upgrading Homebrew").
 
 #### Linux (Standard Installation)
 
