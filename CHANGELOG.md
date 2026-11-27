@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Error taxonomy regenerated from the released Senzing 4.5.0 `szerrors.json` (4.5.0.26320; 456 → 467 codes). Codes 38 and 39 now map to `NotFound` (were `Unknown`). New codes: 1020 `DatabaseConnectionLost`; 1021, 1022 `Database`; 2295, 2296, 7248, 9221 `Configuration`; 7512, 7513, 9502, 9503, 9807 `Unknown`. Code 7211 was removed upstream and now falls back to `Unknown`.
 - FAQ MCP server synced to the-faq-mcp reference: `mcp<2` pinned in the PEP 723 header (mcp 2.x removed `mcp.server.fastmcp`, so the unpinned server failed to start), background re-index so edited FAQs are served without a restart, and the reference `.mcp.json` launcher (repo-root resolution; `.claude/.faq-venv` → `uv run --script` → `python` fallback).
 - FAQ reminder hooks vendored at `.claude/hooks/faq-reminder.sh` and wired in `.claude/settings.json`: `PreCompact` asks to write down what was learned; `UserPromptSubmit` (at most hourly) asks to consult, then write.
 - CI: `ci.yml` pins `actions/checkout` and `dtolnay/rust-toolchain` to commit SHAs (with version comments for Dependabot), matching `docs.yml` and `security.yml`.

@@ -1616,7 +1616,7 @@ impl SzError {
     /// Creates an error from getLastExceptionCode() with message from getLastException()
     ///
     /// This method maps native Senzing error codes to the appropriate Rust error type.
-    /// The mapping is auto-generated from szerrors.json and covers all 456 Senzing error codes.
+    /// The mapping is auto-generated from szerrors.json and covers every Senzing error code in it.
     ///
     /// # Examples
     ///
@@ -1631,7 +1631,7 @@ impl SzError {
         let error_msg = Self::get_last_exception_message(component, error_code);
         let ctx = ErrorContext::with_code(error_msg, error_code, component);
 
-        // Use generated error mapping (456 error codes from szerrors.json)
+        // Use generated error mapping (every error code in szerrors.json)
         crate::error_category_bridge::map_error_code(error_code, ctx)
     }
 
@@ -1847,6 +1847,42 @@ mod test_error_mapping {
         );
         assert!(error.is_retryable());
         assert_eq!(error.error_code(), Some(1006));
+    }
+
+    /// Classifications that changed with the Senzing 4.5.0 szerrors.json.
+    #[test]
+    fn test_szerrors_4_5_0_classifications() {
+        for code in [38, 39] {
+            let error = SzError::from_code(code);
+            assert!(
+                matches!(error, SzError::NotFound(_)),
+                "code {code} is SzNotFoundError in 4.5.0, got: {error:?}"
+            );
+            assert!(error.is_bad_input(), "NotFound extends BadInput: {error:?}");
+        }
+        let error = SzError::from_code(1020);
+        assert!(
+            matches!(error, SzError::DatabaseConnectionLost(_)),
+            "code 1020 is SzDatabaseConnectionLostError, got: {error:?}"
+        );
+        assert!(error.is_retryable());
+        for code in [1021, 1022] {
+            let error = SzError::from_code(code);
+            assert!(
+                matches!(error, SzError::Database(_)),
+                "code {code}: {error:?}"
+            );
+        }
+        for code in [2295, 2296, 7248, 9221] {
+            let error = SzError::from_code(code);
+            assert!(
+                matches!(error, SzError::Configuration(_)),
+                "code {code}: {error:?}"
+            );
+        }
+        // 7211 was removed from szerrors.json, so it falls back to the base category.
+        let error = SzError::from_code(7211);
+        assert!(matches!(error, SzError::Unknown(_)), "code 7211: {error:?}");
     }
 
     #[test]

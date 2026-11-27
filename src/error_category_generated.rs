@@ -58,8 +58,8 @@ impl SzErrorCategory {
     ];
 }
 
-/// (errorCode, category), sorted by code. Generated from szerrors.json (456 entries).
-pub const CODES: [(i32, SzErrorCategory); 456] = [
+/// (errorCode, category), sorted by code. Generated from szerrors.json (467 entries).
+pub const CODES: [(i32, SzErrorCategory); 467] = [
     (2, SzErrorCategory::BadInput),
     (5, SzErrorCategory::Base),
     (7, SzErrorCategory::BadInput),
@@ -85,8 +85,8 @@ pub const CODES: [(i32, SzErrorCategory); 456] = [
     (35, SzErrorCategory::Configuration),
     (36, SzErrorCategory::Configuration),
     (37, SzErrorCategory::NotFound),
-    (38, SzErrorCategory::Base),
-    (39, SzErrorCategory::Base),
+    (38, SzErrorCategory::NotFound),
+    (39, SzErrorCategory::NotFound),
     (40, SzErrorCategory::Configuration),
     (41, SzErrorCategory::Base),
     (42, SzErrorCategory::Base),
@@ -158,6 +158,9 @@ pub const CODES: [(i32, SzErrorCategory); 456] = [
     (1017, SzErrorCategory::Database),
     (1018, SzErrorCategory::Database),
     (1019, SzErrorCategory::Configuration),
+    (1020, SzErrorCategory::DatabaseConnectionLost),
+    (1021, SzErrorCategory::Database),
+    (1022, SzErrorCategory::Database),
     (2001, SzErrorCategory::Configuration),
     (2002, SzErrorCategory::Base),
     (2003, SzErrorCategory::Base),
@@ -323,6 +326,8 @@ pub const CODES: [(i32, SzErrorCategory); 456] = [
     (2292, SzErrorCategory::Base),
     (2293, SzErrorCategory::Base),
     (2294, SzErrorCategory::Base),
+    (2295, SzErrorCategory::Configuration),
+    (2296, SzErrorCategory::Configuration),
     (3011, SzErrorCategory::Base),
     (3101, SzErrorCategory::Base),
     (3102, SzErrorCategory::Base),
@@ -338,7 +343,6 @@ pub const CODES: [(i32, SzErrorCategory); 456] = [
     (3125, SzErrorCategory::Base),
     (3131, SzErrorCategory::BadInput),
     (7209, SzErrorCategory::Configuration),
-    (7211, SzErrorCategory::Configuration),
     (7212, SzErrorCategory::Configuration),
     (7216, SzErrorCategory::Configuration),
     (7217, SzErrorCategory::Configuration),
@@ -369,6 +373,7 @@ pub const CODES: [(i32, SzErrorCategory); 456] = [
     (7245, SzErrorCategory::ReplaceConflict),
     (7246, SzErrorCategory::Configuration),
     (7247, SzErrorCategory::Configuration),
+    (7248, SzErrorCategory::Configuration),
     (7303, SzErrorCategory::BadInput),
     (7305, SzErrorCategory::BadInput),
     (7313, SzErrorCategory::BadInput),
@@ -377,6 +382,8 @@ pub const CODES: [(i32, SzErrorCategory); 456] = [
     (7344, SzErrorCategory::Configuration),
     (7426, SzErrorCategory::BadInput),
     (7511, SzErrorCategory::Base),
+    (7512, SzErrorCategory::Base),
+    (7513, SzErrorCategory::Base),
     (8000, SzErrorCategory::BadInput),
     (8410, SzErrorCategory::Base),
     (8501, SzErrorCategory::Configuration),
@@ -439,6 +446,7 @@ pub const CODES: [(i32, SzErrorCategory); 456] = [
     (9120, SzErrorCategory::Configuration),
     (9210, SzErrorCategory::Configuration),
     (9220, SzErrorCategory::Configuration),
+    (9221, SzErrorCategory::Configuration),
     (9222, SzErrorCategory::Configuration),
     (9224, SzErrorCategory::Configuration),
     (9225, SzErrorCategory::Configuration),
@@ -510,12 +518,15 @@ pub const CODES: [(i32, SzErrorCategory); 456] = [
     (9414, SzErrorCategory::BadInput),
     (9500, SzErrorCategory::Configuration),
     (9501, SzErrorCategory::Base),
+    (9502, SzErrorCategory::Base),
+    (9503, SzErrorCategory::Base),
     (9701, SzErrorCategory::Base),
     (9802, SzErrorCategory::Configuration),
     (9803, SzErrorCategory::Configuration),
     (9804, SzErrorCategory::Base),
     (9805, SzErrorCategory::Base),
     (9806, SzErrorCategory::Base),
+    (9807, SzErrorCategory::Base),
 ];
 
 /// Classify a Senzing error code. Unknown codes fall back to the base category.
