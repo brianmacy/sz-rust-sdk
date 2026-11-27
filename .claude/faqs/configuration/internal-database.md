@@ -13,7 +13,7 @@ Senzing v4.3 introduced `internal://` as a database connection type. It creates 
 ### Key behaviors
 
 - Each `SzConfigMgr_init` + `Sz_init` pair shares the same in-memory DB **within a single environment lifecycle**
-- The DB is ephemeral — destroyed when the environment is destroyed
+- The DB is in-memory, so it ends with the process. It does **not** end with `destroy()`: measured 2026-11-27 on Senzing 4.5.0.26320, the default config ID and a loaded record were both still there in a new environment created after `destroy()` in the same process (see "Data outlives destroy()" below)
 - `get_default_config_id()` returns `Ok(0)` (not `Err`) when no config exists — check for `id == 0`
 - Config must be registered via `get_config_manager()` BEFORE calling `get_engine()` (which triggers `Sz_init`)
 - Pre-4.3 SDKs will fail with `SENZ0087: Unrecognized database type`
@@ -27,7 +27,14 @@ Senzing v4.3 introduced `internal://` as a database connection type. It creates 
 4. env.get_engine()                       // triggers Sz_init, finds config
 ```
 
-Do NOT create a temp environment to register config and then destroy it — with `internal://` the config disappears with the environment.
+Do not rely on a temp environment to carry config into the next one either way: on 4.5.0 the config survives `destroy()`, but the SDK's own docs and tests assumed it did not. Register what an environment needs in that environment (re-registering identical config JSON returns the same config ID).
+
+### Data outlives destroy() within a process
+
+Within one process, `internal://` data loaded before `destroy()` is still present after it. Consequences for tests in one binary:
+
+- Once a data source has been loaded, every later init whose configuration lacks it fails with `SENZ0060|The engine configuration does not match the records loaded into the repository: errors[MISSING DATA_SOURCE X;]`. Deleting the records is not enough; `SzDiagnostic::purge_repository()` clears it (`tests/sz_config_id_init_test.rs` purges after loading its alternate data source).
+- Records from earlier tests can still be there; use unique record IDs (already the convention).
 
 ### When to use sqlite3:// instead
 

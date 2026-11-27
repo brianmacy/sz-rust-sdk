@@ -21,7 +21,7 @@
         "code": "SENZ0010",
         "class": "SzRetryTimeoutExceededError",
         "name": "EAS_ERR_RETRY_TIMEOUT",
-        "comment": "Retry timeout exceeded resolved entity locklist [{0}]"
+        "comment": "Retry timeout exceeded resolved entity locklist [{0}] observed entity locklist [{1}] (WORK_RETRY_TIMEOUT={2}s)"
     },
     "14": {
         "code": "SENZ0014",
@@ -151,13 +151,13 @@
     },
     "38": {
         "code": "SENZ0038",
-        "class": "SzError",
+        "class": "SzNotFoundError",
         "name": "EAS_ERR_RECORD_HAS_NO_RESOLVED_ENTITY",
         "comment": "Data source record has no resolved entity: dsrc[{0}], recordID[{1}]"
     },
     "39": {
         "code": "SENZ0039",
-        "class": "SzError",
+        "class": "SzNotFoundError",
         "name": "EAS_ERR_NO_OBSERVED_ENTITY_FOR_DSRC_ENTITY_KEY",
         "comment": "No observed entity for entity key: dsrc[{0}], record_id[{1}], key[{2}]"
     },
@@ -586,6 +586,24 @@
         "class": "SzConfigurationError",
         "name": "EAS_ERR_DATABASE_SCHEMA_TABLES_NOT_FOUND",
         "comment": "Datastore schema tables not found. [{0}]"
+    },
+    "1020": {
+        "code": "SENZ1020",
+        "class": "SzDatabaseConnectionLostError",
+        "name": "EAS_ERR_DATABASE_CONNECTION_NEEDS_VALIDATION",
+        "comment": "Database Connection Needs Validation '{0}'"
+    },
+    "1021": {
+        "code": "SENZ1021",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_PREPARED_STATEMENT_ERROR",
+        "comment": "Prepared statement error '{0}'"
+    },
+    "1022": {
+        "code": "SENZ1022",
+        "class": "SzDatabaseError",
+        "name": "EAS_ERR_DATABASE_STATEMENT_TIMEOUT",
+        "comment": "Database Statement Timeout '{0}'"
     },
     "2001": {
         "code": "SENZ2001",
@@ -1577,6 +1595,18 @@
         "name": "EAS_ERR_DATA_SOURCE_ID_DOES_NOT_EXIST",
         "comment": "Data source ID [{0}] does not exist."
     },
+    "2295": {
+        "code": "SENZ2295",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CROSS_SCRIPT_KEYS_ALL_DISABLED",
+        "comment": "Configuration SETTINGS disable both the translated and transliterated [{0}] key forms; at least one must be enabled."
+    },
+    "2296": {
+        "code": "SENZ2296",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_CROSS_SCRIPT_KEY_SETTING_NOT_BOOLEAN",
+        "comment": "Configuration SETTINGS value [{0}] must be a boolean."
+    },
     "3011": {
         "code": "SENZ3011",
         "class": "SzError",
@@ -1666,12 +1696,6 @@
         "class": "SzConfigurationError",
         "name": "EAS_ERR_DB_BAD_BACKEND_TYPE",
         "comment": "Invalid [SQL] Backend Parameter. Valid values are SQL or HYBRID"
-    },
-    "7211": {
-        "code": "SENZ7211",
-        "class": "SzConfigurationError",
-        "name": "EAS_ERR_DB_BAD_CLUSTER_SIZE",
-        "comment": "Cluster [{0}] is configured with an invalid size. Size must be equal to 1."
     },
     "7212": {
         "code": "SENZ7212",
@@ -1853,6 +1877,12 @@
         "name": "EAS_ERR_INVALID_MINIMUM_DATASTORE_SCHEMA_VERSION",
         "comment": "Invalid minimum datastore version number for engine schema [version '{0}']."
     },
+    "7248": {
+        "code": "SENZ7248",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_DB_TABLE_IS_NOT_SHARDABLE",
+        "comment": "Table [{0}] may not be assigned to a cluster; it must reside in the default datastore"
+    },
     "7303": {
         "code": "SENZ7303",
         "class": "SzBadInputError",
@@ -1893,13 +1923,25 @@
         "code": "SENZ7426",
         "class": "SzBadInputError",
         "name": "EAS_ERR_XLITERATOR_FAILED",
-        "comment": "Transliteration failed"
+        "comment": "Transliteration failed: {0}"
     },
     "7511": {
         "code": "SENZ7511",
         "class": "SzError",
         "name": "EAS_ERR_ABORT_ER_AND_RETRY",
         "comment": "Detected change in candidate entity[{0}].  Restarting ER evaluation."
+    },
+    "7512": {
+        "code": "SENZ7512",
+        "class": "SzError",
+        "name": "EAS_ERR_OBS_ENT_WOULD_COMMIT_WITHOUT_OKEY",
+        "comment": "Observed entity(s) [{0}] would commit with no RES_ENT_OKEY row.  Aborting and retrying the operation."
+    },
+    "7513": {
+        "code": "SENZ7513",
+        "class": "SzError",
+        "name": "EAS_ERR_OBS_ENT_SWAP_WITHOUT_OKEY",
+        "comment": "Observed entity [{0}] has no RES_ENT_OKEY row and cannot be the old side of an identity swap."
     },
     "8000": {
         "code": "SENZ8000",
@@ -2272,6 +2314,12 @@
         "class": "SzConfigurationError",
         "name": "EAS_ERR_FTYPE_CANNOT_BE_HASHED",
         "comment": "FType configured to be hashed, but cannot be scored.  FTYPE_ID[{0}] FTYPE_CODE[{1}]"
+    },
+    "9221": {
+        "code": "SENZ9221",
+        "class": "SzConfigurationError",
+        "name": "EAS_ERR_EMBEDDING_FTYPE_CANNOT_BE_HASHED",
+        "comment": "Embedding FType [{0}] cannot be anonymized ({1}); embedding vectors must be stored as cleartext to be scored and indexed."
     },
     "9222": {
         "code": "SENZ9222",
@@ -2699,6 +2747,18 @@
         "name": "EAS_TOKEN_LIBRARY_ALREADY_HASHED",
         "comment": "Cannot hash token library. The Token Library contains previous hashed data"
     },
+    "9502": {
+        "code": "SENZ9502",
+        "class": "SzError",
+        "name": "EAS_ERR_TOKEN_LIBRARY_BAD_ROW",
+        "comment": "Cannot load token library. Row [{0}] is invalid: {1}"
+    },
+    "9503": {
+        "code": "SENZ9503",
+        "class": "SzError",
+        "name": "EAS_ERR_EMBEDDED_RESOURCE_UNAVAILABLE",
+        "comment": "Embedded engine resource [{0}] is missing or corrupt. The engine build is incomplete."
+    },
     "9701": {
         "code": "SENZ9701",
         "class": "SzError",
@@ -2734,5 +2794,11 @@
         "class": "SzError",
         "name": "EAS_ERR_GNR_RESOURCE_HANDLE_NOT_INITIALIZED",
         "comment": "GNRResourceHandle not initialized - primeGNRResources() must be called first"
+    },
+    "9807": {
+        "code": "SENZ9807",
+        "class": "SzError",
+        "name": "EAS_ERR_ADDRESS_INTERPRETER_INIT_FAILED",
+        "comment": "AddressInterpreter initialization failed: {0}"
     }
 }

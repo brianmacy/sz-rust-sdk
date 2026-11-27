@@ -71,7 +71,7 @@ pub mod helpers;
 
 // Public API from core module
 pub use core::SenzingGuard;
-pub use core::SzEnvironmentCore;
+pub use core::{SzEnvironmentCore, SzEnvironmentCoreBuilder};
 pub use error::*;
 pub use flags::*;
 pub use logging::*;
@@ -88,7 +88,7 @@ pub use types::*;
 /// - Flag types for controlling operations
 pub mod prelude {
     pub use crate::core::SenzingGuard;
-    pub use crate::core::SzEnvironmentCore;
+    pub use crate::core::{SzEnvironmentCore, SzEnvironmentCoreBuilder};
     pub use crate::error::*;
     pub use crate::flags::*;
     pub use crate::logging::*;

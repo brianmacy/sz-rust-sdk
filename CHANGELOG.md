@@ -7,13 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `SzEnvironmentCore::builder()` (`SzEnvironmentCoreBuilder`: `module_name`, `settings`, `verbose_logging`, `config_id`, `build`) — parity with `SzCoreEnvironment.newBuilder().configId(..)` in the Java/C#/Swift SDKs. With `config_id` set, the engine starts with `Sz_initWithConfigID` and the diagnostic with `SzDiagnostic_initWithConfigID` instead of the datastore default. `build()` returns the active singleton like `get_instance`, and returns `Configuration` if a requested config ID differs from the active environment's (use `reinitialize` to switch). `get_instance` is unchanged.
+- `SzEnvironmentCore::get_config_id()`: the config ID the engine and diagnostic initialize with (the builder's, then the last successful `reinitialize`); `None` = datastore default.
+
 ### Fixed
+
+- `get_diagnostic()` never initialized the diagnostic (`SzDiagnostic_init`), and `reinitialize()` never re-initialized it (`SzDiagnostic_reinit`). It now runs `SzDiagnostic_init` (or `SzDiagnostic_initWithConfigID`) once, like the other subsystems, without starting the engine (as in Java/C#). `reinitialize()` re-inits the diagnostic when it is initialized, and a diagnostic started later uses the reinitialized ID.
+- A failed subsystem init (`Sz_init`, `SzConfigMgr_init`, `SzProduct_init`, `SzDiagnostic_init`) lost its native error: every caller got a code-less `Unrecoverable("Sz_init failed: … (code: N)")`. Every caller now gets the native code, component and error category (for example `Configuration`, code 7221, for an unregistered config ID). An invalid settings string (interior NUL) is returned as `StringConversion`.
 
 - Flaky `SzEnvironmentCore` thread-safety doctest (`src/core/environment.rs`): its 4 threads added records with the same name, and on the `internal://` in-memory database concurrent adds that resolve to one entity fail with `SENZ1011 OBS_ENT already exists` (native race, 17/30 runs on Senzing 4.5.0; file-backed sqlite 0/20). The doctest now adds four different people. FAQ `internal-database.md` records the measurements.
 - Code snippet `information/get_license`: the parsed view read fields the `getLicense` response does not have (`billing.billingType`, `contract.id`/dates, `expirationWarningDays`, `warning`), so most lines never printed. It now prints the documented fields (`customer`, `contract`, `licenseType`, `licenseLevel`, `issueDate`, `expireDate`, `recordLimit`, `advSearch`). This also clears the CodeQL `rust/cleartext-logging` alert on the dead `billingType` line.
 
 ### Changed
 
+- Error taxonomy regenerated from the released Senzing 4.5.0 `szerrors.json` (4.5.0.26320; 456 → 467 codes). Codes 38 and 39 now map to `NotFound` (were `Unknown`). New codes: 1020 `DatabaseConnectionLost`; 1021, 1022 `Database`; 2295, 2296, 7248, 9221 `Configuration`; 7512, 7513, 9502, 9503, 9807 `Unknown`. Code 7211 was removed upstream and now falls back to `Unknown`.
 - FAQ MCP server synced to the-faq-mcp reference: `mcp<2` pinned in the PEP 723 header (mcp 2.x removed `mcp.server.fastmcp`, so the unpinned server failed to start), background re-index so edited FAQs are served without a restart, and the reference `.mcp.json` launcher (repo-root resolution; `.claude/.faq-venv` → `uv run --script` → `python` fallback).
 - FAQ reminder hooks vendored at `.claude/hooks/faq-reminder.sh` and wired in `.claude/settings.json`: `PreCompact` asks to write down what was learned; `UserPromptSubmit` (at most hourly) asks to consult, then write.
 - CI: `ci.yml` pins `actions/checkout` and `dtolnay/rust-toolchain` to commit SHAs (with version comments for Dependabot), matching `docs.yml` and `security.yml`.

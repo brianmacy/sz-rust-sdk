@@ -166,6 +166,21 @@ fn main() -> SzResult<()> {
 }
 ```
 
+### Starting with a Specific Configuration
+
+By default the engine and diagnostic start with the datastore's default configuration. To start them with another registered configuration (`Sz_initWithConfigID`, as `SzCoreEnvironment.newBuilder().configId(..)` does in the Java and C# SDKs), use the builder:
+
+```rust
+let env = SzEnvironmentCore::builder()
+    .module_name("my-app")
+    .settings(settings)
+    .config_id(config_id) // a ConfigId, or an Option<ConfigId>
+    .build()?;
+assert_eq!(env.get_active_config_id()?, config_id);
+```
+
+Native subsystems still initialize on first use, so an unregistered ID is reported by the first `get_engine()` or `get_diagnostic()`. `env.reinitialize(id)` switches a running environment: it re-inits the engine, and the diagnostic too if it is initialized. `env.get_config_id()` returns the ID in use (`None` = datastore default).
+
 ## Usage Pattern
 
 The SDK follows a "concrete entry point, trait interfaces" pattern:
