@@ -1635,6 +1635,20 @@ impl SzError {
         crate::error_category_bridge::map_error_code(error_code, ctx)
     }
 
+    /// Builds the error a native code maps to, with a caller-supplied message.
+    ///
+    /// Used to replay a stored native failure (for example a failed subsystem
+    /// `*_init`) to later callers: the code, component and error category are
+    /// the same as the original's, without re-reading the native last exception.
+    pub(crate) fn from_native_code<S: Into<String>>(
+        message: S,
+        error_code: i64,
+        component: SzComponent,
+    ) -> Self {
+        let ctx = ErrorContext::with_code(message, error_code, component);
+        crate::error_category_bridge::map_error_code(error_code, ctx)
+    }
+
     /// Gets the last exception message from the specified component
     fn get_last_exception_message(component: SzComponent, error_code: i64) -> String {
         use crate::ffi;

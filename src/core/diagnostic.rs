@@ -14,16 +14,10 @@ use crate::{
 pub struct SzDiagnosticCore;
 
 impl SzDiagnosticCore {
+    /// Creates the handle. `SzEnvironmentCore::get_diagnostic` has already run
+    /// `SzDiagnostic_init` (or `SzDiagnostic_initWithConfigID`).
     pub fn new() -> SzResult<Self> {
         Ok(Self)
-    }
-
-    pub fn new_with_params(
-        _module_name: &str,
-        _ini_params: &str,
-        _verbose_logging: bool,
-    ) -> SzResult<Self> {
-        Self::new()
     }
 }
 

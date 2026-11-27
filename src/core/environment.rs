@@ -1,14 +1,89 @@
 //! Core implementation of SzEnvironment trait
 
 use crate::{
-    error::{SzError, SzResult},
-    ffi_call,
+    error::{SzComponent, SzError, SzResult},
+    ffi::helpers::{
+        check_config_mgr_return_code, check_diagnostic_return_code, check_product_return_code,
+        check_return_code, str_to_c_string,
+    },
+    ffi_call, ffi_call_diagnostic,
     traits::*,
     types::*,
 };
+use std::ffi::CString;
 use std::mem::ManuallyDrop;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex, Once, OnceLock};
+use std::sync::{Arc, Mutex, MutexGuard, Once, OnceLock, PoisonError, RwLock};
+
+/// Locks a mutex, recovering the data if a panicking thread poisoned it.
+fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
+    mutex.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
+/// A native init failure, kept so every later caller gets the same error.
+struct InitFailure {
+    message: String,
+    code: Option<i64>,
+    component: Option<SzComponent>,
+}
+
+impl InitFailure {
+    fn from_error(error: &SzError) -> Self {
+        Self {
+            message: error.message().to_string(),
+            code: error.error_code(),
+            component: error.component(),
+        }
+    }
+
+    /// Rebuilds the error with its native code, component and category intact.
+    fn to_error(&self, init_name: &str) -> SzError {
+        let message = format!("{init_name} failed: {}", self.message);
+        match (self.code, self.component) {
+            (Some(code), Some(component)) => SzError::from_native_code(message, code, component),
+            _ => SzError::unrecoverable(message),
+        }
+    }
+}
+
+/// Runs one native subsystem's `*_init` exactly once.
+///
+/// The first caller runs the init; other threads block until it finishes. A
+/// failure is stored and returned to every caller, keeping its native code and
+/// error category.
+struct InitGuard {
+    /// Native function name, used in the replayed error message
+    name: &'static str,
+    once: Once,
+    failure: Mutex<Option<InitFailure>>,
+}
+
+impl InitGuard {
+    fn new(name: &'static str) -> Self {
+        Self {
+            name,
+            once: Once::new(),
+            failure: Mutex::new(None),
+        }
+    }
+
+    fn run(&self, init: impl FnOnce() -> SzResult<()>) -> SzResult<()> {
+        self.once.call_once(|| {
+            if let Err(error) = init() {
+                *lock(&self.failure) = Some(InitFailure::from_error(&error));
+            }
+        });
+        match lock(&self.failure).as_ref() {
+            Some(failure) => Err(failure.to_error(self.name)),
+            None => Ok(()),
+        }
+    }
+
+    /// True once the init has run and succeeded.
+    fn is_initialized(&self) -> bool {
+        self.once.is_completed() && lock(&self.failure).is_none()
+    }
+}
 
 /// Core implementation of the SzEnvironment trait.
 ///
@@ -87,21 +162,112 @@ use std::sync::{Arc, Mutex, Once, OnceLock};
 /// ```
 pub struct SzEnvironmentCore {
     is_destroyed: Arc<AtomicBool>,
-    /// Guards Sz_init() - ensures it runs exactly once and other threads wait
-    init_once: Arc<Once>,
-    /// Stores any error that occurred during Sz_init
-    init_error: Arc<Mutex<Option<String>>>,
-    /// Guards SzConfigMgr_init() - ensures it runs exactly once and other threads wait
-    config_mgr_init_once: Arc<Once>,
-    /// Stores any error that occurred during SzConfigMgr_init
-    config_mgr_init_error: Arc<Mutex<Option<String>>>,
-    /// Guards SzProduct_init() - ensures it runs exactly once and other threads wait
-    product_init_once: Arc<Once>,
-    /// Stores any error that occurred during SzProduct_init
-    product_init_error: Arc<Mutex<Option<String>>>,
+    engine_init: InitGuard,
+    config_mgr_init: InitGuard,
+    product_init: InitGuard,
+    diagnostic_init: InitGuard,
+    /// Configuration the engine and diagnostic initialize with: the builder's
+    /// `config_id`, then the last successful `reinitialize`. `None` means the
+    /// datastore's default configuration. Engine/diagnostic inits hold the read
+    /// lock across the native call; `reinitialize` holds the write lock, so an
+    /// init never starts with a configuration that is being replaced.
+    config_id: RwLock<Option<ConfigId>>,
     module_name: String,
     ini_params: String,
     verbose_logging: bool,
+}
+
+/// Builder for the [`SzEnvironmentCore`] singleton.
+///
+/// Mirrors `SzCoreEnvironment.newBuilder()` in the Java and C# SDKs. Use it to
+/// start the engine and diagnostic with an explicit registered configuration
+/// instead of the datastore's default one; otherwise
+/// [`SzEnvironmentCore::get_instance`] is equivalent.
+///
+/// ```
+/// # use sz_rust_sdk::helpers::ExampleEnvironment;
+/// use sz_rust_sdk::prelude::*;
+///
+/// # let env = ExampleEnvironment::initialize("doctest_builder")?;
+/// # let settings = env.get_ini_params().to_string();
+/// # let config_id = env.get_config_manager()?.get_default_config_id()?;
+/// # env.reinitialize(config_id)?; // the shared doctest singleton now pins config_id
+/// # drop(env);
+/// let env = SzEnvironmentCore::builder()
+///     .module_name("my-app")
+///     .settings(&settings)
+///     .config_id(config_id)
+///     .build()?;
+/// assert_eq!(env.get_active_config_id()?, config_id);
+/// # Ok::<(), SzError>(())
+/// ```
+#[derive(Debug, Clone)]
+pub struct SzEnvironmentCoreBuilder {
+    module_name: String,
+    settings: String,
+    verbose_logging: bool,
+    config_id: Option<ConfigId>,
+}
+
+impl Default for SzEnvironmentCoreBuilder {
+    fn default() -> Self {
+        Self {
+            module_name: "SzRustSDK".to_string(),
+            settings: "{}".to_string(),
+            verbose_logging: false,
+            config_id: None,
+        }
+    }
+}
+
+impl SzEnvironmentCoreBuilder {
+    /// Sets the module (instance) name used in native logs.
+    pub fn module_name(mut self, module_name: impl Into<String>) -> Self {
+        self.module_name = module_name.into();
+        self
+    }
+
+    /// Sets the engine settings JSON (the `ini_params` of [`SzEnvironmentCore::get_instance`]).
+    pub fn settings(mut self, settings: impl Into<String>) -> Self {
+        self.settings = settings.into();
+        self
+    }
+
+    /// Enables or disables verbose native logging.
+    pub fn verbose_logging(mut self, verbose_logging: bool) -> Self {
+        self.verbose_logging = verbose_logging;
+        self
+    }
+
+    /// Starts the engine and diagnostic with this registered configuration
+    /// (`Sz_initWithConfigID` / `SzDiagnostic_initWithConfigID`) instead of the
+    /// datastore's default. Accepts a [`ConfigId`] or an `Option<ConfigId>`;
+    /// `None` (the default) uses the datastore's default configuration.
+    pub fn config_id(mut self, config_id: impl Into<Option<ConfigId>>) -> Self {
+        self.config_id = config_id.into();
+        self
+    }
+
+    /// Returns the singleton environment, creating it if none is active.
+    ///
+    /// Native subsystems still initialize lazily, on first use, so an invalid
+    /// configuration ID is reported by the first `get_engine()` /
+    /// `get_diagnostic()` call, not here.
+    ///
+    /// # Errors
+    ///
+    /// Returns `SzError::Configuration` if an environment is already active
+    /// with different settings or verbose logging, or with a different
+    /// configuration ID than one set here. To switch the configuration of a
+    /// running environment, use [`SzEnvironment::reinitialize`].
+    pub fn build(self) -> SzResult<Arc<SzEnvironmentCore>> {
+        SzEnvironmentCore::get_or_create(
+            &self.module_name,
+            &self.settings,
+            self.verbose_logging,
+            self.config_id,
+        )
+    }
 }
 
 // Singleton storage for the global SzEnvironmentCore instance
@@ -119,18 +285,39 @@ impl SzEnvironmentCore {
     /// * `ini_params` - JSON string containing initialization parameters
     /// * `verbose_logging` - Whether to enable verbose logging
     pub fn new(module_name: &str, ini_params: &str, verbose_logging: bool) -> SzResult<Self> {
-        Ok(Self {
+        Ok(Self::with_config_id(
+            module_name,
+            ini_params,
+            verbose_logging,
+            None,
+        ))
+    }
+
+    fn with_config_id(
+        module_name: &str,
+        ini_params: &str,
+        verbose_logging: bool,
+        config_id: Option<ConfigId>,
+    ) -> Self {
+        Self {
             is_destroyed: Arc::new(AtomicBool::new(false)),
-            init_once: Arc::new(Once::new()),
-            init_error: Arc::new(Mutex::new(None)),
-            config_mgr_init_once: Arc::new(Once::new()),
-            config_mgr_init_error: Arc::new(Mutex::new(None)),
-            product_init_once: Arc::new(Once::new()),
-            product_init_error: Arc::new(Mutex::new(None)),
+            engine_init: InitGuard::new("Sz_init"),
+            config_mgr_init: InitGuard::new("SzConfigMgr_init"),
+            product_init: InitGuard::new("SzProduct_init"),
+            diagnostic_init: InitGuard::new("SzDiagnostic_init"),
+            config_id: RwLock::new(config_id),
             module_name: module_name.to_string(),
             ini_params: ini_params.to_string(),
             verbose_logging,
-        })
+        }
+    }
+
+    /// Returns a builder for the singleton environment.
+    ///
+    /// The builder can set an explicit configuration ID, which
+    /// [`get_instance`](Self::get_instance) cannot. See [`SzEnvironmentCoreBuilder`].
+    pub fn builder() -> SzEnvironmentCoreBuilder {
+        SzEnvironmentCoreBuilder::default()
     }
 
     /// Creates a new SzEnvironment instance with default parameters
@@ -198,37 +385,53 @@ impl SzEnvironmentCore {
         ini_params: &str,
         verbose_logging: bool,
     ) -> SzResult<Arc<Self>> {
-        let global_env = GLOBAL_ENVIRONMENT.get_or_init(|| ManuallyDrop::new(Mutex::new(None)));
-        let mut env_guard = global_env.lock().unwrap();
+        Self::get_or_create(module_name, ini_params, verbose_logging, None)
+    }
 
-        match env_guard.as_ref() {
-            Some(existing_env) => {
-                // Check if the existing environment is still valid
-                if existing_env.is_destroyed() {
-                    let new_env = Arc::new(Self::new(module_name, ini_params, verbose_logging)?);
-                    *env_guard = Some(new_env.clone());
-                    Ok(new_env)
-                } else {
-                    // Validate critical parameters match existing instance (ini_params and verbose_logging)
-                    // Module name can be different as it's only used for logging
-                    if existing_env.ini_params != ini_params
-                        || existing_env.verbose_logging != verbose_logging
-                    {
-                        return Err(SzError::configuration(
-                            "Cannot change critical initialization parameters (ini_params, verbose_logging) after SzEnvironmentCore instance is created",
-                        ));
-                    }
-                    // Return the existing valid environment (module name can be different)
-                    Ok(existing_env.clone())
-                }
+    /// Returns the active singleton, or creates it. A `config_id` of `None`
+    /// accepts whatever configuration the active environment uses.
+    fn get_or_create(
+        module_name: &str,
+        ini_params: &str,
+        verbose_logging: bool,
+        config_id: Option<ConfigId>,
+    ) -> SzResult<Arc<Self>> {
+        let global_env = GLOBAL_ENVIRONMENT.get_or_init(|| ManuallyDrop::new(Mutex::new(None)));
+        let mut env_guard = lock(global_env);
+
+        if let Some(existing_env) = env_guard.as_ref()
+            && !existing_env.is_destroyed()
+        {
+            // Validate critical parameters match existing instance (ini_params and verbose_logging)
+            // Module name can be different as it's only used for logging
+            if existing_env.ini_params != ini_params
+                || existing_env.verbose_logging != verbose_logging
+            {
+                return Err(SzError::configuration(
+                    "Cannot change critical initialization parameters (ini_params, verbose_logging) after SzEnvironmentCore instance is created",
+                ));
             }
-            None => {
-                // Create the first instance
-                let new_env = Arc::new(Self::new(module_name, ini_params, verbose_logging)?);
-                *env_guard = Some(new_env.clone());
-                Ok(new_env)
+            if let Some(requested) = config_id
+                && existing_env.get_config_id() != Some(requested)
+            {
+                return Err(SzError::configuration(format!(
+                    "Cannot start with configuration ID {requested}: the active SzEnvironmentCore \
+                     uses {:?} (None = datastore default). Use reinitialize() to switch configurations.",
+                    existing_env.get_config_id()
+                )));
             }
+            return Ok(existing_env.clone());
         }
+
+        // No active instance (none yet, or the stored one was destroyed)
+        let new_env = Arc::new(Self::with_config_id(
+            module_name,
+            ini_params,
+            verbose_logging,
+            config_id,
+        ));
+        *env_guard = Some(new_env.clone());
+        Ok(new_env)
     }
 
     /// Gets the existing global singleton SzEnvironmentCore instance
@@ -432,148 +635,97 @@ impl SzEnvironmentCore {
         self.verbose_logging
     }
 
-    /// Ensures Sz_init has been called - should be called before any engine operations
+    /// Returns the configuration ID the engine and diagnostic initialize with.
     ///
-    /// This method is thread-safe: the first thread to call this will run Sz_init(),
-    /// and all other threads will block until initialization is complete.
+    /// This is the ID given to [`SzEnvironmentCoreBuilder::config_id`], replaced
+    /// by each successful [`reinitialize`](SzEnvironment::reinitialize). `None`
+    /// means the datastore's default configuration. Mirrors `configID` in the
+    /// Swift SDK and the Java/C# environment's config ID.
+    pub fn get_config_id(&self) -> Option<ConfigId> {
+        *self
+            .config_id
+            .read()
+            .unwrap_or_else(PoisonError::into_inner)
+    }
+
+    /// Converts the module name and settings for a native `*_init` call.
+    ///
+    /// Done outside the init guards, so an invalid string (interior NUL) is
+    /// reported to every caller as the same `StringConversion` error.
+    fn native_init_params(&self) -> SzResult<(CString, CString, i64)> {
+        Ok((
+            str_to_c_string(&self.module_name)?,
+            str_to_c_string(&self.ini_params)?,
+            i64::from(self.verbose_logging),
+        ))
+    }
+
+    /// Ensures the engine is initialized: `Sz_initWithConfigID` when a
+    /// configuration ID is set, otherwise `Sz_init`. Runs once; other threads
+    /// block until it finishes.
     fn ensure_initialized(&self) -> SzResult<()> {
-        // Clone Arcs for use in closure (can't capture &self in call_once)
-        let module_name = self.module_name.clone();
-        let ini_params = self.ini_params.clone();
-        let verbose_logging = self.verbose_logging;
-        let init_error = Arc::clone(&self.init_error);
-
-        // call_once blocks all threads until the closure completes
-        self.init_once.call_once(|| {
-            let result = (|| -> SzResult<()> {
-                let module_name_c = crate::ffi::helpers::str_to_c_string(&module_name)?;
-                let ini_params_c = crate::ffi::helpers::str_to_c_string(&ini_params)?;
-                let verbose = if verbose_logging { 1 } else { 0 };
-
-                ffi_call!(crate::ffi::Sz_init(
-                    module_name_c.as_ptr(),
-                    ini_params_c.as_ptr(),
-                    verbose as i64
-                ));
-                Ok(())
-            })();
-
-            // Store any error for other threads to see
-            if let Err(e) = result
-                && let Ok(mut guard) = init_error.lock()
-            {
-                *guard = Some(e.to_string());
-            }
-        });
-
-        // Check if initialization failed
-        if let Ok(guard) = self.init_error.lock()
-            && let Some(err_msg) = guard.as_ref()
-        {
-            return Err(SzError::unrecoverable(format!("Sz_init failed: {err_msg}")));
-        }
-
-        Ok(())
+        let (module, ini, verbose) = self.native_init_params()?;
+        self.engine_init.run(|| {
+            let config_id = self
+                .config_id
+                .read()
+                .unwrap_or_else(PoisonError::into_inner);
+            let return_code = unsafe {
+                match *config_id {
+                    Some(id) => {
+                        crate::ffi::Sz_initWithConfigID(module.as_ptr(), ini.as_ptr(), id, verbose)
+                    }
+                    None => crate::ffi::Sz_init(module.as_ptr(), ini.as_ptr(), verbose),
+                }
+            };
+            check_return_code(return_code)
+        })
     }
 
-    /// Ensures SzConfigMgr_init has been called - should be called before any config manager operations
-    ///
-    /// This method is thread-safe: the first thread to call this will run SzConfigMgr_init(),
-    /// and all other threads will block until initialization is complete.
+    /// Ensures the diagnostic is initialized: `SzDiagnostic_initWithConfigID`
+    /// when a configuration ID is set, otherwise `SzDiagnostic_init`. Runs once;
+    /// other threads block until it finishes.
+    fn ensure_diagnostic_initialized(&self) -> SzResult<()> {
+        let (module, ini, verbose) = self.native_init_params()?;
+        self.diagnostic_init.run(|| {
+            let config_id = self
+                .config_id
+                .read()
+                .unwrap_or_else(PoisonError::into_inner);
+            let return_code = unsafe {
+                match *config_id {
+                    Some(id) => crate::ffi::SzDiagnostic_initWithConfigID(
+                        module.as_ptr(),
+                        ini.as_ptr(),
+                        id,
+                        verbose,
+                    ),
+                    None => crate::ffi::SzDiagnostic_init(module.as_ptr(), ini.as_ptr(), verbose),
+                }
+            };
+            check_diagnostic_return_code(return_code)
+        })
+    }
+
+    /// Ensures `SzConfigMgr_init` has run. It does not need the engine, so a
+    /// configuration can be registered before the engine starts.
     fn ensure_config_mgr_initialized(&self) -> SzResult<()> {
-        // Clone Arcs for use in closure (can't capture &self in call_once)
-        let module_name = self.module_name.clone();
-        let ini_params = self.ini_params.clone();
-        let verbose_logging = self.verbose_logging;
-        let init_error = Arc::clone(&self.config_mgr_init_error);
-
-        // call_once blocks all threads until the closure completes
-        self.config_mgr_init_once.call_once(|| {
-            let result = (|| -> SzResult<()> {
-                let module_name_c = crate::ffi::helpers::str_to_c_string(&module_name)?;
-                let ini_params_c = crate::ffi::helpers::str_to_c_string(&ini_params)?;
-                let verbose = if verbose_logging { 1 } else { 0 };
-
-                // Call the FFI directly and check with the proper config_mgr error handler
-                let return_code = unsafe {
-                    crate::ffi::SzConfigMgr_init(
-                        module_name_c.as_ptr(),
-                        ini_params_c.as_ptr(),
-                        verbose,
-                    )
-                };
-                crate::ffi::helpers::check_config_mgr_return_code(return_code)?;
-                Ok(())
-            })();
-
-            // Store any error for other threads to see
-            if let Err(e) = result
-                && let Ok(mut guard) = init_error.lock()
-            {
-                *guard = Some(e.to_string());
-            }
-        });
-
-        // Check if initialization failed
-        if let Ok(guard) = self.config_mgr_init_error.lock()
-            && let Some(err_msg) = guard.as_ref()
-        {
-            return Err(SzError::unrecoverable(format!(
-                "SzConfigMgr_init failed: {err_msg}"
-            )));
-        }
-
-        Ok(())
+        let (module, ini, verbose) = self.native_init_params()?;
+        self.config_mgr_init.run(|| {
+            let return_code =
+                unsafe { crate::ffi::SzConfigMgr_init(module.as_ptr(), ini.as_ptr(), verbose) };
+            check_config_mgr_return_code(return_code)
+        })
     }
 
-    /// Ensures SzProduct_init has been called - should be called before any product operations
-    ///
-    /// This method is thread-safe: the first thread to call this will run SzProduct_init(),
-    /// and all other threads will block until initialization is complete.
+    /// Ensures `SzProduct_init` has run.
     fn ensure_product_initialized(&self) -> SzResult<()> {
-        // Clone Arcs for use in closure (can't capture &self in call_once)
-        let module_name = self.module_name.clone();
-        let ini_params = self.ini_params.clone();
-        let verbose_logging = self.verbose_logging;
-        let init_error = Arc::clone(&self.product_init_error);
-
-        // call_once blocks all threads until the closure completes
-        self.product_init_once.call_once(|| {
-            let result = (|| -> SzResult<()> {
-                let module_name_c = crate::ffi::helpers::str_to_c_string(&module_name)?;
-                let ini_params_c = crate::ffi::helpers::str_to_c_string(&ini_params)?;
-                let verbose = if verbose_logging { 1 } else { 0 };
-
-                // Call the FFI directly and check with the proper product error handler
-                let return_code = unsafe {
-                    crate::ffi::SzProduct_init(
-                        module_name_c.as_ptr(),
-                        ini_params_c.as_ptr(),
-                        verbose,
-                    )
-                };
-                crate::ffi::helpers::check_product_return_code(return_code)?;
-                Ok(())
-            })();
-
-            // Store any error for other threads to see
-            if let Err(e) = result
-                && let Ok(mut guard) = init_error.lock()
-            {
-                *guard = Some(e.to_string());
-            }
-        });
-
-        // Check if initialization failed
-        if let Ok(guard) = self.product_init_error.lock()
-            && let Some(err_msg) = guard.as_ref()
-        {
-            return Err(SzError::unrecoverable(format!(
-                "SzProduct_init failed: {err_msg}"
-            )));
-        }
-
-        Ok(())
+        let (module, ini, verbose) = self.native_init_params()?;
+        self.product_init.run(|| {
+            let return_code =
+                unsafe { crate::ffi::SzProduct_init(module.as_ptr(), ini.as_ptr(), verbose) };
+            check_product_return_code(return_code)
+        })
     }
 }
 
@@ -593,10 +745,22 @@ impl SzEnvironment for SzEnvironmentCore {
             return Err(SzError::unrecoverable("Environment has been destroyed"));
         }
 
-        // Ensure Sz_init has been called before reinitializing
+        // Start the engine first if needed (as Java/C# do), so the new ID is
+        // always validated by Sz_reinit.
         self.ensure_initialized()?;
 
+        // Hold the write lock so no engine/diagnostic init runs with the old ID
+        // while it is being replaced.
+        let mut active = self
+            .config_id
+            .write()
+            .unwrap_or_else(PoisonError::into_inner);
         ffi_call!(crate::ffi::Sz_reinit(config_id));
+        if self.diagnostic_init.is_initialized() {
+            ffi_call_diagnostic!(crate::ffi::SzDiagnostic_reinit(config_id));
+        }
+        // Recorded only on success; a diagnostic started later inits with it.
+        *active = Some(config_id);
         Ok(())
     }
 
@@ -659,15 +823,11 @@ impl SzEnvironment for SzEnvironmentCore {
             return Err(SzError::unrecoverable("Environment has been destroyed"));
         }
 
-        // Ensure Sz_init has been called before creating diagnostic
-        self.ensure_initialized()?;
+        // SzDiagnostic_init / SzDiagnostic_initWithConfigID, once. Like Java/C#,
+        // the diagnostic initializes on its own; it does not start the engine.
+        self.ensure_diagnostic_initialized()?;
 
-        let diagnostic_core = super::diagnostic::SzDiagnosticCore::new_with_params(
-            &self.module_name,
-            &self.ini_params,
-            self.verbose_logging,
-        )?;
-        Ok(Box::new(diagnostic_core))
+        Ok(Box::new(super::diagnostic::SzDiagnosticCore::new()?))
     }
 
     fn export_datastore_snapshot(&self, path: &std::path::Path) -> SzResult<()> {
@@ -748,7 +908,10 @@ mod logging_tests {
     fn test_get_logging_needs_no_native_init() {
         let env = SzEnvironmentCore::new("logging-unit", "{}", false).unwrap();
         assert!(env.get_logging().is_ok());
-        assert!(!env.init_once.is_completed(), "get_logging must not init");
+        assert!(
+            !env.engine_init.once.is_completed(),
+            "get_logging must not init"
+        );
     }
 
     #[test]
@@ -758,5 +921,52 @@ mod logging_tests {
         // Unlike the component getters: the 4.5.0 usage rule changes logging after destroy.
         assert!(env.get_product().is_err(), "component getters refuse");
         assert!(env.get_logging().is_ok(), "get_logging works after destroy");
+    }
+}
+
+#[cfg(test)]
+mod init_guard_tests {
+    use super::*;
+
+    #[test]
+    fn test_init_guard_replays_native_code_and_category() {
+        let guard = InitGuard::new("Sz_init");
+        let native = || {
+            Err(SzError::from_native_code(
+                "no config",
+                7221,
+                SzComponent::Engine,
+            ))
+        };
+        for attempt in 0..2 {
+            let error = guard.run(native).expect_err("failure must be replayed");
+            assert!(
+                matches!(error, SzError::Configuration(_)),
+                "attempt {attempt}: {error}"
+            );
+            assert_eq!(error.error_code(), Some(7221));
+            assert_eq!(error.component(), Some(SzComponent::Engine));
+            assert_eq!(error.message(), "Sz_init failed: no config");
+        }
+        assert!(!guard.is_initialized());
+    }
+
+    #[test]
+    fn test_init_guard_replays_codeless_error_as_unrecoverable() {
+        let guard = InitGuard::new("SzProduct_init");
+        let error = guard
+            .run(|| Err(SzError::unknown("no native code")))
+            .expect_err("failure must be returned");
+        assert!(matches!(error, SzError::Unrecoverable(_)), "{error}");
+        assert_eq!(error.message(), "SzProduct_init failed: no native code");
+    }
+
+    #[test]
+    fn test_init_guard_runs_init_once() {
+        let guard = InitGuard::new("SzDiagnostic_init");
+        assert!(!guard.is_initialized());
+        assert!(guard.run(|| Ok(())).is_ok());
+        assert!(guard.run(|| panic!("init must not run twice")).is_ok());
+        assert!(guard.is_initialized());
     }
 }

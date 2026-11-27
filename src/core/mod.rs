@@ -19,5 +19,5 @@ mod snapshot;
 pub mod environment;
 
 // Public API: SzEnvironmentCore and SenzingGuard
-pub use environment::SzEnvironmentCore;
+pub use environment::{SzEnvironmentCore, SzEnvironmentCoreBuilder};
 pub use guard::SenzingGuard;
